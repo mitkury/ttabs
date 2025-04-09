@@ -251,7 +251,15 @@
           splitDirection: finalSplitDirection
         });
         
-        // Here we'll implement the actual splitting logic later
+        // Call the splitPanel method in ttabs
+        if (dragData.action === 'move' && dragData.tabId) {
+          ttabs.splitPanel(
+            dragData.tabId,
+            dragData.panelId,
+            id,
+            finalSplitDirection
+          );
+        }
       }
     } catch (error) {
       console.error('Error processing content drop:', error);
