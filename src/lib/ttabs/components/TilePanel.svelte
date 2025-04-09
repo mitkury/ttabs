@@ -203,6 +203,12 @@
     e.preventDefault();
     dragTarget = { panelId: id, area: 'content' };
     
+    // Don't show split indicators if we're dragging the only tab of this panel
+    if (draggedTabId && draggedPanelId === id && tabs.length === 1) {
+      splitDirection = null;
+      return;
+    }
+    
     // Determine which quadrant we're in
     if (contentElement) {
       splitDirection = getQuadrant(e, contentElement);
@@ -222,6 +228,12 @@
     e.preventDefault();
     // Set the current drag target
     dragTarget = { panelId: id, area: 'content' };
+    
+    // Don't show split indicators if we're dragging the only tab of this panel
+    if (draggedTabId && draggedPanelId === id && tabs.length === 1) {
+      splitDirection = null;
+      return;
+    }
     
     // Update the split direction based on mouse position
     if (contentElement) {
@@ -243,6 +255,12 @@
       if (dragTarget?.panelId === id && dragTarget?.area === 'content' && splitDirection) {
         // Get the final split direction at the moment of drop
         const finalSplitDirection = contentElement ? getQuadrant(e, contentElement) : 'bottom';
+        
+        // Check if we're trying to split a panel with its only tab
+        if (dragData.panelId === id && tabs.length === 1) {
+          console.log('Cannot split a panel with its only tab');
+          return;
+        }
         
         console.log('Dropping tab for split:', {
           tabId: dragData.tabId,

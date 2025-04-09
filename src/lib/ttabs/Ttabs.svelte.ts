@@ -364,6 +364,12 @@ export class Ttabs {
     if (!sourcePanel.tabs.includes(tabId)) {
       return false;
     }
+    
+    // Prevent splitting a panel with its only tab
+    if (sourcePanelId === targetPanelId && sourcePanel.tabs.length === 1) {
+      console.warn('Cannot split a panel with its only tab');
+      return false;
+    }
 
     // Find the column containing the target panel
     const targetParentId = targetPanel.parent;
