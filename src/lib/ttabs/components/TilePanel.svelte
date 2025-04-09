@@ -138,6 +138,10 @@
     }
   }
   
+  function onDragEnter(e: DragEvent) {
+    e.preventDefault();
+  }
+  
   function onDrop(e: DragEvent) {
     // Prevent default browser handling
     e.preventDefault();
@@ -254,15 +258,15 @@
     <div 
       class="ttabs-tab-bar" 
       bind:this={tabBarElement}
-      on:dragover={onDragOver}
-      on:dragenter|preventDefault
-      on:dragleave={() => {
+      ondragover={onDragOver}
+      ondragenter={onDragEnter}
+      ondragleave={() => {
         if (isDragging) {
           dragOverTabId = null;
           dragPosition = null;
         }
       }}
-      on:drop={onDrop}
+      ondrop={onDrop}
     >
       {#each tabs as tabId}
         <div 
@@ -273,9 +277,9 @@
           class:drop-after={tabId === dragOverTabId && dragPosition === 'after'}
           data-tab-id={tabId}
           draggable="true"
-          on:click={() => selectTab(tabId)}
-          on:dragstart={(e) => onDragStart(e, tabId)}
-          on:dragend={onDragEnd}
+          onclick={() => selectTab(tabId)}
+          ondragstart={(e) => onDragStart(e, tabId)}
+          ondragend={onDragEnd}
         >
           {#if ttabs.getTile<TileTabType>(tabId)?.type === 'tab'}
             {ttabs.getTile<TileTabType>(tabId)?.name || 'Unnamed Tab'}

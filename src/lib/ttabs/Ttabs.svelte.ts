@@ -454,44 +454,6 @@ export class Ttabs {
   }
 
   /**
-   * Simplifies grid hierarchy by merging nested grids when possible
-   */
-  simplifyGridHierarchy(gridId: string): void {
-    const grid = this.getTile<TileGrid>(gridId);
-    if (!grid || grid.rows.length !== 1) return;
-
-    // Check for grid > row > column > grid pattern
-    const row = this.getTile<TileRow>(grid.rows[0]);
-    if (!row || row.columns.length !== 1) return;
-
-    const column = this.getTile<TileColumn>(row.columns[0]);
-    if (!column || !column.child) return;
-
-    const childTile = this.getTile(column.child);
-    if (!childTile || childTile.type !== 'grid') return;
-
-    // We found a simplifiable pattern
-    const childGrid = childTile as TileGrid;
-
-    // Transfer rows from child grid to parent grid
-    const newRows = [...childGrid.rows];
-
-    // Update parent references
-    newRows.forEach(childRowId => {
-      const childRow = this.getTile<TileRow>(childRowId);
-      if (childRow) {
-        this.updateTile(childRowId, { parent: gridId });
-      }
-    });
-
-    // Update parent grid and clean up
-    this.updateTile(gridId, { rows: newRows });
-    this.removeTile(childGrid.id);
-    this.removeTile(column.id);
-    this.removeTile(row.id);
-  }
-
-  /**
    * Reset the state to empty
    */
   resetState(): void {
