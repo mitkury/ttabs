@@ -333,20 +333,20 @@ export class Ttabs {
     let parentId = tile.parent;
     let shouldRemove = false;
 
-    // Check if tile should be removed based on its type
+    // Check if the tile should be removed based on its type
     switch (tile.type) {
       case 'panel':
-        // Remove panel if it has no tabs
+        // Remove the panel if it has no tabs
         const panel = tile as TilePanel;
         shouldRemove = panel.tabs.length === 0;
         break;
 
       case 'column':
-        // Remove column if it has no valid child
+        // Remove the column if it has no valid child
         const column = tile as TileColumn;
         shouldRemove = !column.child || !this.tiles[column.child];
 
-        // Redistribute width to siblings if removing
+        // Redistribute the width to siblings if removing
         if (shouldRemove && parentId) {
           const row = this.getTile<TileRow>(parentId);
           if (row) {
@@ -359,11 +359,11 @@ export class Ttabs {
         break;
 
       case 'row':
-        // Remove row if it has no columns
+        // Remove the row if it has no columns
         const row = tile as TileRow;
         shouldRemove = row.columns.length === 0;
 
-        // Redistribute height to siblings if removing
+        // Redistribute the height to siblings if removing
         if (shouldRemove && parentId) {
           const grid = this.getTile<TileGrid>(parentId);
           if (grid) {
@@ -376,7 +376,7 @@ export class Ttabs {
         break;
 
       case 'grid':
-        // Remove grid if it has no rows and is not the root
+        // Remove the grid if it has no rows and is not the root
         const grid = tile as TileGrid;
         shouldRemove = grid.rows.length === 0 && !!grid.parent;
 
@@ -392,7 +392,6 @@ export class Ttabs {
               const child = column?.child;
               const parentColumn = this.getTile<TileColumn>(grid.parent);
               if (child && parentColumn) {
-                console.log(`Simplifying grid hierarchy for ${grid.id}`);
                 this.updateTile(parentColumn.id, { child: child });
                 this.updateTile(grid.id, { rows: [] });
                 this.removeTile(grid.id);
