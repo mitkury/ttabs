@@ -20,7 +20,10 @@
   let dragOverTabId: string | null = $state(null);
   let dragPosition: 'before' | 'after' | null = $state(null);
   let tabBarElement: HTMLElement | null = $state(null);
+  let contentElement: HTMLElement | null = $state(null);
   let isDragging = $state(false);
+  let dragTarget: { panelId: string; area: 'tab-bar' | 'content' } | null = $state(null);
+  let splitDirection: 'top' | 'right' | 'bottom' | 'left' | null = $state(null);
   
   onMount(() => {
     if (browser) {
@@ -45,6 +48,41 @@
     if (isDragging) {
       dragOverTabId = null;
       dragPosition = null;
+      splitDirection = null;
+    }
+  }
+  
+  // Helper function to determine which quadrant of the content we're hovering over
+  function getQuadrant(e: DragEvent, element: HTMLElement): 'top' | 'right' | 'bottom' | 'left' {
+    if (!element) return 'bottom'; // Default fallback
+    
+    const rect = element.getBoundingClientRect();
+    const x = e.clientX - rect.left; // x position within the element
+    const y = e.clientY - rect.top;  // y position within the element
+    const width = rect.width;
+    const height = rect.height;
+    
+    // Calculate relative position (0-1)
+    const relativeX = x / width;
+    const relativeY = y / height;
+    
+    // Simple quadrant detection
+    // We use a diamond-like area division rather than just rectangles
+    // This creates more natural quadrants for splitting
+    if (relativeY < relativeX) {
+      // We're either in the top or right quadrant
+      if (relativeY < 1 - relativeX) {
+        return 'top';
+      } else {
+        return 'right';
+      }
+    } else {
+      // We're either in the left or bottom quadrant
+      if (relativeY < 1 - relativeX) {
+        return 'left';
+      } else {
+        return 'bottom';
+      }
     }
   }
   
@@ -77,6 +115,9 @@
   function onDragOver(e: DragEvent) {
     // Prevent default to allow drop
     e.preventDefault();
+    
+    // Set the current drag target to tab bar of this panel
+    dragTarget = { panelId: id, area: 'tab-bar' };
     
     // Skip if no tab bar
     if (!tabBarElement) {
@@ -136,10 +177,87 @@
         dragPosition = null;
       }
     }
+    
+    // Reset split direction when over tab bar
+    splitDirection = null;
   }
   
   function onDragEnter(e: DragEvent) {
     e.preventDefault();
+    dragTarget = { panelId: id, area: 'tab-bar' };
+    splitDirection = null;
+  }
+  
+  function onDragLeave(e: DragEvent) {
+    e.preventDefault();
+    // Only clear if we're the current target
+    if (dragTarget?.panelId === id && dragTarget?.area === 'tab-bar') {
+      dragTarget = null;
+      dragOverTabId = null;
+      dragPosition = null;
+    }
+  }
+  
+  // Content area drag handlers
+  function onContentDragEnter(e: DragEvent) {
+    e.preventDefault();
+    dragTarget = { panelId: id, area: 'content' };
+    
+    // Determine which quadrant we're in
+    if (contentElement) {
+      splitDirection = getQuadrant(e, contentElement);
+    }
+  }
+  
+  function onContentDragLeave(e: DragEvent) {
+    e.preventDefault();
+    // Only clear if we're the current target
+    if (dragTarget?.panelId === id && dragTarget?.area === 'content') {
+      dragTarget = null;
+      splitDirection = null;
+    }
+  }
+  
+  function onContentDragOver(e: DragEvent) {
+    e.preventDefault();
+    // Set the current drag target
+    dragTarget = { panelId: id, area: 'content' };
+    
+    // Update the split direction based on mouse position
+    if (contentElement) {
+      splitDirection = getQuadrant(e, contentElement);
+    }
+  }
+  
+  function onContentDrop(e: DragEvent) {
+    e.preventDefault();
+    
+    try {
+      // Get the drag data
+      const dataText = e.dataTransfer?.getData('application/json');
+      if (!dataText) return;
+      
+      const dragData = JSON.parse(dataText);
+      
+      // Check if we're dropping on the content area of a panel
+      if (dragTarget?.panelId === id && dragTarget?.area === 'content' && splitDirection) {
+        // Get the final split direction at the moment of drop
+        const finalSplitDirection = contentElement ? getQuadrant(e, contentElement) : 'bottom';
+        
+        console.log('Dropping tab for split:', {
+          tabId: dragData.tabId,
+          sourcePanelId: dragData.panelId,
+          targetPanelId: id,
+          splitDirection: finalSplitDirection
+        });
+        
+        // Here we'll implement the actual splitting logic later
+      }
+    } catch (error) {
+      console.error('Error processing content drop:', error);
+    } finally {
+      resetDragState();
+    }
   }
   
   function onDrop(e: DragEvent) {
@@ -245,6 +363,8 @@
     draggedPanelId = null;
     dragOverTabId = null;
     dragPosition = null;
+    dragTarget = null;
+    splitDirection = null;
     isDragging = false;
   }
 </script>
@@ -261,12 +381,7 @@
       bind:this={tabBarElement}
       ondragover={onDragOver}
       ondragenter={onDragEnter}
-      ondragleave={() => {
-        if (isDragging) {
-          dragOverTabId = null;
-          dragPosition = null;
-        }
-      }}
+      ondragleave={onDragLeave}
       ondrop={onDrop}
       role="tablist"
       aria-label="Tabs"
@@ -305,8 +420,18 @@
     <div 
       class="ttabs-tab-content"
       id="panel-{id}-content"
+      bind:this={contentElement}
+      ondragenter={onContentDragEnter}
+      ondragleave={onContentDragLeave}
+      ondragover={onContentDragOver}
+      ondrop={onContentDrop}
       role="tabpanel"
+      tabindex="0"
       aria-labelledby={activeTab ? `tab-${activeTab}` : undefined}
+      class:split-indicator-top={splitDirection === 'top'}
+      class:split-indicator-right={splitDirection === 'right'}
+      class:split-indicator-bottom={splitDirection === 'bottom'}
+      class:split-indicator-left={splitDirection === 'left'}
     >
       {#if activeTab}
         <TileTab ttabs={ttabs} id={activeTab} />
@@ -391,6 +516,56 @@
   .ttabs-tab-content {
     flex: 1;
     overflow: hidden;
+    position: relative;
+  }
+  
+  /* Split indicators */
+  .ttabs-tab-content.split-indicator-top::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 30%;
+    background-color: rgba(74, 108, 247, 0.1);
+    z-index: 10;
+    pointer-events: none;
+  }
+  
+  .ttabs-tab-content.split-indicator-right::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 30%;
+    height: 100%;
+    background-color: rgba(74, 108, 247, 0.1);
+    z-index: 10;
+    pointer-events: none;
+  }
+  
+  .ttabs-tab-content.split-indicator-bottom::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 30%;
+    background-color: rgba(74, 108, 247, 0.1);
+    z-index: 10;
+    pointer-events: none;
+  }
+  
+  .ttabs-tab-content.split-indicator-left::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 30%;
+    height: 100%;
+    background-color: rgba(74, 108, 247, 0.1);
+    z-index: 10;
+    pointer-events: none;
   }
   
   .ttabs-empty-state {
