@@ -317,113 +317,106 @@ export class Ttabs {
     this.setActivePanel(targetPanelId);
 
     // Check if source panel is now empty and should be cleaned up
-    this.checkEmptyContainers(sourcePanelId);
+    this.cleanupContainers(sourcePanelId);
 
     return true;
   }
 
   /**
-   * Check if a panel is empty and remove it if needed, then check its parent column
+   * Recursively checks and cleans up empty containers
+   * Traverses up the hierarchy to remove unnecessary container structures
    */
-  checkEmptyContainers(panelId: string): void {
-    const panel = this.getTile<TilePanel>(panelId);
+  cleanupContainers(tileId: string): void {
+    const tile = this.getTile(tileId);
+    if (!tile) return;
 
-    // Only proceed if panel exists and has no tabs
-    if (!panel || panel.tabs.length > 0) return;
-
-    // Get parent column
-    const parentColumnId = panel.parent;
-    if (!parentColumnId) return;
-
-    // Remove the panel
-    this.removeTile(panelId);
-
-    // Then check if parent column is now empty and should be removed
-    this.checkEmptyColumn(parentColumnId);
-  }
-
-  /**
-   * Check if a column is empty and remove it if needed, then check its parent row
-   */
-  checkEmptyColumn(columnId: string): void {
-    const column = this.getTile<TileColumn>(columnId);
-    if (!column) return;
-
-    // If column has a valid child, nothing to do
-    // We need to check if the child still exists in the tiles collection
-    if (column.child && this.tiles[column.child]) return;
-
-    // Get parent row
-    const parentRowId = column.parent;
-    if (!parentRowId) return;
-
-    const row = this.getTile<TileRow>(parentRowId);
-    if (!row) return;
-
-    // Get sibling columns
-    const siblingColumns = row.columns.filter(id => id !== columnId);
-
-    // Only redistribute space if there are siblings
-    if (siblingColumns.length > 0) {
-      this.redistributeWidths(siblingColumns, column.width);
+    // Handle based on tile type
+    if (tile.type === 'panel') {
+      const panel = tile as TilePanel;
+      
+      // Skip if panel has tabs
+      if (panel.tabs.length > 0) return;
+      
+      // Get parent container
+      const parentId = panel.parent;
+      if (!parentId) return;
+      
+      // Remove empty panel
+      this.removeTile(tileId);
+      
+      // Continue cleanup with parent
+      this.cleanupContainers(parentId);
     }
-
-    // Remove column
-    this.removeTile(columnId);
-
-    // Check if row should now be removed
-    if (siblingColumns.length === 0) {
-      this.checkEmptyRow(parentRowId);
+    else if (tile.type === 'column') {
+      const column = tile as TileColumn;
+      
+      // Skip if column has a valid child
+      if (column.child && this.tiles[column.child]) return;
+      
+      // Get parent row
+      const parentId = column.parent;
+      if (!parentId) return;
+      
+      const row = this.getTile<TileRow>(parentId);
+      if (!row) return;
+      
+      // Get sibling columns
+      const siblingColumns = row.columns.filter(id => id !== tileId);
+      
+      // Redistribute width if there are siblings
+      if (siblingColumns.length > 0) {
+        this.redistributeWidths(siblingColumns, column.width);
+      }
+      
+      // Remove column
+      this.removeTile(tileId);
+      
+      // Continue cleanup with parent
+      this.cleanupContainers(parentId);
     }
-  }
-
-  /**
-   * Check if a row is empty and remove it if needed, then check its parent grid
-   */
-  checkEmptyRow(rowId: string): void {
-    const row = this.getTile<TileRow>(rowId);
-    if (!row || row.columns.length > 0) return;
-
-    // Get parent grid
-    const parentGridId = row.parent;
-    if (!parentGridId) return;
-
-    const grid = this.getTile<TileGrid>(parentGridId);
-    if (!grid) return;
-
-    // Get sibling rows
-    const siblingRows = grid.rows.filter(id => id !== rowId);
-
-    // Only redistribute space if there are siblings
-    if (siblingRows.length > 0) {
-      this.redistributeHeights(siblingRows, row.height);
+    else if (tile.type === 'row') {
+      const row = tile as TileRow;
+      
+      // Skip if row has columns
+      if (row.columns.length > 0) return;
+      
+      // Get parent grid
+      const parentId = row.parent;
+      if (!parentId) return;
+      
+      const grid = this.getTile<TileGrid>(parentId);
+      if (!grid) return;
+      
+      // Get sibling rows
+      const siblingRows = grid.rows.filter(id => id !== tileId);
+      
+      // Redistribute height if there are siblings
+      if (siblingRows.length > 0) {
+        this.redistributeHeights(siblingRows, row.height);
+      }
+      
+      // Remove row
+      this.removeTile(tileId);
+      
+      // Continue with grid cleanup or simplification
+      if (siblingRows.length === 0) {
+        this.cleanupContainers(parentId);
+      } else {
+        this.simplifyGridHierarchy(parentId);
+      }
     }
-
-    // Remove row
-    this.removeTile(rowId);
-
-    // Check if grid should be simplified
-    if (siblingRows.length === 0) {
-      // Handle empty grid case
-      this.checkEmptyGrid(parentGridId);
-    } else {
-      this.simplifyGridHierarchy(parentGridId);
+    else if (tile.type === 'grid') {
+      const grid = tile as TileGrid;
+      
+      // Skip if grid has rows or is the root grid
+      if (grid.rows.length > 0 || !grid.parent) return;
+      
+      // Remove empty grid
+      this.removeTile(tileId);
+      
+      // Continue cleanup with parent
+      this.cleanupContainers(grid.parent);
     }
-  }
-
-  /**
-   * Check if a grid is empty and remove it if needed
-   */
-  checkEmptyGrid(gridId: string): void {
-    const grid = this.getTile<TileGrid>(gridId);
-    if (!grid || grid.rows.length > 0) return;
-
-    // Only remove non-root grids
-    const parentId = grid.parent;
-    if (!parentId) return; // Don't remove the root grid
-
-    // Remove empty grid
-    this.removeTile(gridId);
   }
 
   /**
