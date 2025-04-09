@@ -254,6 +254,7 @@
     class="ttabs-panel" 
     data-tile-id={id}
     class:drop-target={draggedTabId && draggedPanelId !== id}
+    role="tabpanel"
   >
     <div 
       class="ttabs-tab-bar" 
@@ -267,9 +268,12 @@
         }
       }}
       ondrop={onDrop}
+      role="tablist"
+      aria-label="Tabs"
+      tabindex="0"
     >
       {#each tabs as tabId}
-        <div 
+        <div
           class="ttabs-tab-header" 
           class:active={tabId === activeTab}
           class:is-dragging={tabId === draggedTabId}
@@ -278,8 +282,18 @@
           data-tab-id={tabId}
           draggable="true"
           onclick={() => selectTab(tabId)}
+          onkeydown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              selectTab(tabId);
+            }
+          }}
           ondragstart={(e) => onDragStart(e, tabId)}
           ondragend={onDragEnd}
+          role="tab"
+          aria-selected={tabId === activeTab}
+          aria-controls="panel-{id}-content"
+          tabindex="0"
         >
           {#if ttabs.getTile<TileTabType>(tabId)?.type === 'tab'}
             {ttabs.getTile<TileTabType>(tabId)?.name || 'Unnamed Tab'}
@@ -288,7 +302,12 @@
       {/each}
     </div>
     
-    <div class="ttabs-tab-content">
+    <div 
+      class="ttabs-tab-content"
+      id="panel-{id}-content"
+      role="tabpanel"
+      aria-labelledby={activeTab ? `tab-${activeTab}` : undefined}
+    >
       {#if activeTab}
         <TileTab ttabs={ttabs} id={activeTab} />
       {:else}
