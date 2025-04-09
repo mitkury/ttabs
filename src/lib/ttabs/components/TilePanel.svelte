@@ -70,9 +70,17 @@
     for (const tabElement of tabElements) {
       const rect = tabElement.getBoundingClientRect();
       
-      // Skip the tab being dragged if it's in this panel
+      // Get the current tab ID
       const tabId = tabElement.getAttribute('data-tab-id');
-      if (tabId === draggedTabId && id === draggedPanelId) continue;
+      
+      // If we're over the tab being dragged, mark it as found but don't set it as target
+      // This prevents the tab from being moved when dropped on itself
+      if (tabId === draggedTabId && id === draggedPanelId) {
+        foundTab = true;
+        dragOverTabId = null;
+        dragPosition = null;
+        break;
+      }
       
       // Check if mouse is over this tab
       if (mouseX >= rect.left && mouseX <= rect.right) {
@@ -142,8 +150,9 @@
           // Reordering tabs within the same panel
           const sourceIndex = tabs.indexOf(sourceTabId);
           
-          // If we're not over any tab, append to the end if not already there
+          // If we're not over any tab and not dragging over self, append to the end if not already there
           if (!dragOverTabId) {
+            // Check if we're not already at the end of the list
             if (sourceIndex !== -1 && sourceIndex !== tabs.length - 1) {
               const newTabs = [...tabs];
               newTabs.splice(sourceIndex, 1);
