@@ -77,6 +77,81 @@ export class Ttabs {
   }
 
   /**
+   * Get a grid by ID, throwing an error if not found
+   * @throws Error if the tile is not found or not a grid
+   */
+  getGrid(id: string): TileGrid {
+    const tile = this.tiles[id];
+    if (!tile) {
+      throw new Error(`Grid not found: ${id}`);
+    }
+    if (tile.type !== 'grid') {
+      throw new Error(`Tile ${id} is not a grid, found ${tile.type}`);
+    }
+    return tile as TileGrid;
+  }
+  
+  /**
+   * Get a row by ID, throwing an error if not found
+   * @throws Error if the tile is not found or not a row
+   */
+  getRow(id: string): TileRow {
+    const tile = this.tiles[id];
+    if (!tile) {
+      throw new Error(`Row not found: ${id}`);
+    }
+    if (tile.type !== 'row') {
+      throw new Error(`Tile ${id} is not a row, found ${tile.type}`);
+    }
+    return tile as TileRow;
+  }
+  
+  /**
+   * Get a column by ID, throwing an error if not found
+   * @throws Error if the tile is not found or not a column
+   */
+  getColumn(id: string): TileColumn {
+    const tile = this.tiles[id];
+    if (!tile) {
+      throw new Error(`Column not found: ${id}`);
+    }
+    if (tile.type !== 'column') {
+      throw new Error(`Tile ${id} is not a column, found ${tile.type}`);
+    }
+    return tile as TileColumn;
+  }
+  
+  /**
+   * Get a panel by ID, throwing an error if not found
+   * @throws Error if the tile is not found or not a panel
+   */
+  getPanel(id: string): TilePanel {
+    const tile = this.tiles[id];
+    if (!tile) {
+      throw new Error(`Panel not found: ${id}`);
+    }
+    if (tile.type !== 'panel') {
+      throw new Error(`Tile ${id} is not a panel, found ${tile.type}`);
+    }
+    return tile as TilePanel;
+  }
+  
+  /**
+   * Get a tab by ID, throwing an error if not found
+   * @throws Error if the tile is not found or not a tab
+   */
+  getTab(id: string): TileTab {
+    const tile = this.tiles[id];
+    if (!tile) {
+      throw new Error(`Tab not found: ${id}`);
+    }
+    if (tile.type !== 'tab') {
+      throw new Error(`Tile ${id} is not a tab, found ${tile.type}`);
+    }
+    return tile as TileTab;
+  }
+
+  /**
    * Get children of a tile filtered by type
    */
   getChildren(parentId: string, tileType: TileType | null = null): Tile[] {
@@ -262,73 +337,73 @@ export class Ttabs {
    * @returns boolean True if the operation was successful
    */
   moveTab(tabId: string, targetPanelId: string, targetIndex?: number): boolean {
-    // Get the tab and determine source panel
-    const tab = this.getTile<TileTab>(tabId);
-    if (!tab || tab.type !== 'tab') return false;
-    
-    const sourcePanelId = tab.parent;
-    if (!sourcePanelId) return false;
-    
-    // Get the source and target panels
-    const sourcePanel = this.getTile<TilePanel>(sourcePanelId);
-    const targetPanel = this.getTile<TilePanel>(targetPanelId);
-    
-    // Check if everything exists and is valid
-    if (!sourcePanel || sourcePanel.type !== 'panel' ||
-      !targetPanel || targetPanel.type !== 'panel') {
+    try {
+      // Get the tab and determine source panel
+      const tab = this.getTab(tabId);
+      
+      const sourcePanelId = tab.parent;
+      if (!sourcePanelId) {
+        throw new Error(`Tab ${tabId} has no parent panel`);
+      }
+      
+      // Get the source and target panels
+      const sourcePanel = this.getPanel(sourcePanelId);
+      const targetPanel = this.getPanel(targetPanelId);
+      
+      // Check if the tab is in the source panel
+      if (!sourcePanel.tabs.includes(tabId)) {
+        throw new Error(`Tab ${tabId} is not in source panel ${sourcePanelId}`);
+      }
+
+      // Create copies of the tab arrays
+      const sourceTabs = [...sourcePanel.tabs];
+      const targetTabs = [...targetPanel.tabs];
+
+      // Remove the tab from the source panel
+      const sourceIndex = sourceTabs.indexOf(tabId);
+      sourceTabs.splice(sourceIndex, 1);
+
+      // Find a new active tab for the source panel if needed
+      let newSourceActiveTab = sourcePanel.activeTab;
+      if (sourcePanel.activeTab === tabId) {
+        // Get the next tab, or the previous one if there is no next
+        newSourceActiveTab = sourceTabs.length > 0 ? sourceTabs[Math.min(sourceIndex, sourceTabs.length - 1)] : null;
+      }
+
+      // Add the tab to the target panel at the specified index or at the end
+      if (targetIndex !== undefined && targetIndex >= 0 && targetIndex <= targetTabs.length) {
+        targetTabs.splice(targetIndex, 0, tabId);
+      } else {
+        // Append to the end
+        targetTabs.push(tabId);
+      }
+
+      // Update the tab's parent reference
+      this.updateTile(tabId, { parent: targetPanelId });
+
+      // Update the source panel
+      this.updateTile(sourcePanelId, {
+        tabs: sourceTabs,
+        activeTab: newSourceActiveTab
+      });
+
+      // Update the target panel and make the moved tab active
+      this.updateTile(targetPanelId, {
+        tabs: targetTabs,
+        activeTab: tabId
+      });
+
+      // Set the target panel as active
+      this.setActivePanel(targetPanelId);
+
+      // Check if source panel is now empty and should be cleaned up
+      this.cleanupContainers(sourcePanelId);
+
+      return true;
+    } catch (error) {
+      console.error('Error in moveTab:', error);
       return false;
     }
-
-    // Check if the tab is in the source panel
-    if (!sourcePanel.tabs.includes(tabId)) {
-      return false;
-    }
-
-    // Create copies of the tab arrays
-    const sourceTabs = [...sourcePanel.tabs];
-    const targetTabs = [...targetPanel.tabs];
-
-    // Remove the tab from the source panel
-    const sourceIndex = sourceTabs.indexOf(tabId);
-    sourceTabs.splice(sourceIndex, 1);
-
-    // Find a new active tab for the source panel if needed
-    let newSourceActiveTab = sourcePanel.activeTab;
-    if (sourcePanel.activeTab === tabId) {
-      // Get the next tab, or the previous one if there is no next
-      newSourceActiveTab = sourceTabs.length > 0 ? sourceTabs[Math.min(sourceIndex, sourceTabs.length - 1)] : null;
-    }
-
-    // Add the tab to the target panel at the specified index or at the end
-    if (targetIndex !== undefined && targetIndex >= 0 && targetIndex <= targetTabs.length) {
-      targetTabs.splice(targetIndex, 0, tabId);
-    } else {
-      // Append to the end
-      targetTabs.push(tabId);
-    }
-
-    // Update the tab's parent reference
-    this.updateTile(tabId, { parent: targetPanelId });
-
-    // Update the source panel
-    this.updateTile(sourcePanelId, {
-      tabs: sourceTabs,
-      activeTab: newSourceActiveTab
-    });
-
-    // Update the target panel and make the moved tab active
-    this.updateTile(targetPanelId, {
-      tabs: targetTabs,
-      activeTab: tabId
-    });
-
-    // Set the target panel as active
-    this.setActivePanel(targetPanelId);
-
-    // Check if source panel is now empty and should be cleaned up
-    this.cleanupContainers(sourcePanelId);
-
-    return true;
   }
 
   /**
@@ -343,275 +418,288 @@ export class Ttabs {
     targetPanelId: string,
     direction: 'top' | 'right' | 'bottom' | 'left'
   ): boolean {
-    // Get the tab and determine source panel
-    const tab = this.getTile<TileTab>(tabId);
-    if (!tab || tab.type !== 'tab') return false;
-    
-    const sourcePanelId = tab.parent;
-    if (!sourcePanelId) return false;
-    
-    // Get the source and target panels
-    const sourcePanel = this.getTile<TilePanel>(sourcePanelId);
-    const targetPanel = this.getTile<TilePanel>(targetPanelId);
-    
-    // Validate inputs
-    if (!sourcePanel || sourcePanel.type !== 'panel' ||
-        !targetPanel || targetPanel.type !== 'panel') {
-      return false;
-    }
-
-    // Check if the tab is in the source panel
-    if (!sourcePanel.tabs.includes(tabId)) {
-      return false;
-    }
-    
-    // Prevent splitting a panel with its only tab
-    if (sourcePanelId === targetPanelId && sourcePanel.tabs.length === 1) {
-      console.warn('Cannot split a panel with its only tab');
-      return false;
-    }
-
-    // Find the column containing the target panel
-    const targetParentId = targetPanel.parent;
-    if (!targetParentId) return false;
-
-    const parentTile = this.getTile(targetParentId);
-    if (!parentTile || parentTile.type !== 'column') return false;
-
-    const parentColumn = parentTile as TileColumn;
-    
-    // Different approach based on split direction
-    if (direction === 'left' || direction === 'right') {
-      // Horizontal split: Find the row containing the column with the target panel
-      const rowId = parentColumn.parent;
-      if (!rowId) return false;
-
-      const row = this.getTile<TileRow>(rowId);
-      if (!row || row.type !== 'row') return false;
-
-      // Find the index of the current column in the row
-      const columnIndex = row.columns.indexOf(parentColumn.id);
-      if (columnIndex === -1) return false;
-
-      // Calculate new width for existing and new column (50/50 split)
-      const newWidth = parentColumn.width / 2;
+    try {
+      // Get the tab and determine source panel
+      const tab = this.getTab(tabId);
+      const sourcePanelId = tab.parent;
       
-      // Update existing column width
-      this.updateTile(parentColumn.id, { width: newWidth });
-
-      // Create a new column
-      const newColumnId = this.addTile<TileColumn>({
-        type: 'column',
-        parent: rowId,
-        width: newWidth,
-        child: undefined
-      });
-
-      // Create a new panel in the new column
-      const newPanelId = this.addTile<TilePanel>({
-        type: 'panel',
-        parent: newColumnId,
-        tabs: [],
-        activeTab: null
-      });
-
-      // Update new column with the new panel
-      this.updateTile(newColumnId, { child: newPanelId });
-
-      // Update row with the new column in the correct position (left or right of existing)
-      const newColumns = [...row.columns];
-      if (direction === 'right') {
-        // Add after the current column
-        newColumns.splice(columnIndex + 1, 0, newColumnId);
-      } else {
-        // Add before the current column
-        newColumns.splice(columnIndex, 0, newColumnId);
+      if (!sourcePanelId) {
+        throw new Error(`Tab ${tabId} has no parent panel`);
+      }
+      
+      // Get the source and target panels
+      const sourcePanel = this.getPanel(sourcePanelId);
+      const targetPanel = this.getPanel(targetPanelId);
+      
+      // Check if the tab is in the source panel
+      if (!sourcePanel.tabs.includes(tabId)) {
+        throw new Error(`Tab ${tabId} is not in source panel ${sourcePanelId}`);
+      }
+      
+      // Prevent splitting a panel with its only tab
+      if (sourcePanelId === targetPanelId && sourcePanel.tabs.length === 1) {
+        console.warn('Cannot split a panel with its only tab');
+        return false;
       }
 
-      this.updateTile(rowId, { columns: newColumns });
+      // Find the column containing the target panel
+      const targetParentId = targetPanel.parent;
+      if (!targetParentId) {
+        throw new Error(`Target panel ${targetPanelId} has no parent`);
+      }
 
-      // Move the tab to the new panel
-      return this.moveTab(tabId, newPanelId);
+      const parentColumn = this.getColumn(targetParentId);
+      
+      // Different approach based on split direction
+      if (direction === 'left' || direction === 'right') {
+        // Horizontal split: Find the row containing the column with the target panel
+        const rowId = parentColumn.parent;
+        if (!rowId) {
+          throw new Error(`Column ${parentColumn.id} has no parent row`);
+        }
 
-    } else if (direction === 'top' || direction === 'bottom') {
-      // Vertical split
-      
-      // Check if the column already contains a grid
-      let gridId: string;
-      
-      if (parentColumn.child === targetPanelId) {
-        // Column directly contains the panel, need to create a grid
+        const row = this.getRow(rowId);
+
+        // Find the index of the current column in the row
+        const columnIndex = row.columns.indexOf(parentColumn.id);
+        if (columnIndex === -1) {
+          throw new Error(`Column ${parentColumn.id} not found in row ${rowId}`);
+        }
+
+        // Calculate new width for existing and new column (50/50 split)
+        const newWidth = parentColumn.width / 2;
         
-        // Create new grid
-        gridId = this.addTile<TileGrid>({
-          type: 'grid',
-          parent: parentColumn.id,
-          rows: []
-        });
-        
-        // Create two rows for the existing panel and the new one
-        const rowHeight = 50; // 50% each
-        
-        // Create rows in appropriate order based on direction
-        const firstRowId = this.addTile<TileRow>({
-          type: 'row',
-          parent: gridId,
-          height: rowHeight,
-          columns: []
-        });
-        
-        const secondRowId = this.addTile<TileRow>({
-          type: 'row',
-          parent: gridId,
-          height: rowHeight,
-          columns: []
-        });
-        
-        // Create a column for the existing panel
-        const existingPanelColumnId = this.addTile<TileColumn>({
+        // Update existing column width
+        this.updateTile(parentColumn.id, { width: newWidth });
+
+        // Create a new column
+        const newColumnId = this.addTile<TileColumn>({
           type: 'column',
-          parent: direction === 'top' ? secondRowId : firstRowId,
-          width: 100, // 100% of row width
-          child: targetPanelId
-        });
-        
-        // Create a column for the new panel
-        const newPanelColumnId = this.addTile<TileColumn>({
-          type: 'column',
-          parent: direction === 'top' ? firstRowId : secondRowId,
-          width: 100, // 100% of row width
+          parent: rowId,
+          width: newWidth,
           child: undefined
         });
-        
-        // Update rows with their columns
-        this.updateTile(firstRowId, { 
-          columns: [direction === 'top' ? newPanelColumnId : existingPanelColumnId] 
-        });
-        
-        this.updateTile(secondRowId, { 
-          columns: [direction === 'top' ? existingPanelColumnId : newPanelColumnId] 
-        });
-        
-        // Update grid with rows
-        this.updateTile(gridId, { 
-          rows: [firstRowId, secondRowId]
-        });
-        
-        // Create a new panel
+
+        // Create a new panel in the new column
         const newPanelId = this.addTile<TilePanel>({
           type: 'panel',
-          parent: newPanelColumnId,
+          parent: newColumnId,
           tabs: [],
           activeTab: null
         });
-        
-        // Update column with new panel
-        this.updateTile(newPanelColumnId, { child: newPanelId });
-        
-        // Update target panel parent to point to its new column
-        this.updateTile(targetPanelId, { parent: existingPanelColumnId });
-        
-        // Update column to point to the grid instead of directly to the panel
-        this.updateTile(parentColumn.id, { child: gridId });
-        
+
+        // Update new column with the new panel
+        this.updateTile(newColumnId, { child: newPanelId });
+
+        // Update row with the new column in the correct position (left or right of existing)
+        const newColumns = [...row.columns];
+        if (direction === 'right') {
+          // Add after the current column
+          newColumns.splice(columnIndex + 1, 0, newColumnId);
+        } else {
+          // Add before the current column
+          newColumns.splice(columnIndex, 0, newColumnId);
+        }
+
+        this.updateTile(rowId, { columns: newColumns });
+
         // Move the tab to the new panel
         return this.moveTab(tabId, newPanelId);
+
+      } else if (direction === 'top' || direction === 'bottom') {
+        // Vertical split
         
-      } else {
-        // Column already contains a grid or something else, need to handle differently
-        const existingChild = parentColumn.child;
-        if (!existingChild) return false;
+        // Check if the column already contains a grid
+        let gridId: string;
         
-        const existingChildTile = this.getTile(existingChild);
-        if (!existingChildTile) return false;
-        
-        // If the child is a grid, add a new row to it
-        if (existingChildTile.type === 'grid') {
-          gridId = existingChild;
-          const grid = existingChildTile as TileGrid;
+        if (parentColumn.child === targetPanelId) {
+          // Column directly contains the panel, need to create a grid
           
-          // Find the row containing the target panel
-          let targetRowId: string | null = null;
-          let targetRow: TileRow | null = null;
+          // Create new grid
+          gridId = this.addTile<TileGrid>({
+            type: 'grid',
+            parent: parentColumn.id,
+            rows: []
+          });
           
-          for (const rowId of grid.rows) {
-            const row = this.getTile<TileRow>(rowId);
-            if (!row) continue;
-            
-            // Check if any column in this row contains the target panel
-            for (const colId of row.columns) {
-              const col = this.getTile<TileColumn>(colId);
-              if (col && col.child === targetPanelId) {
-                targetRowId = rowId;
-                targetRow = row;
-                break;
-              }
-            }
-            
-            if (targetRowId) break;
-          }
+          // Create two rows for the existing panel and the new one
+          const rowHeight = 50; // 50% each
           
-          if (!targetRowId || !targetRow) return false;
-          
-          // Calculate height for the new row
-          const rowIndex = grid.rows.indexOf(targetRowId);
-          const newHeight = targetRow.height / 2;
-          
-          // Update existing row height
-          this.updateTile(targetRowId, { height: newHeight });
-          
-          // Create a new row
-          const newRowId = this.addTile<TileRow>({
+          // Create rows in appropriate order based on direction
+          const firstRowId = this.addTile<TileRow>({
             type: 'row',
             parent: gridId,
-            height: newHeight,
+            height: rowHeight,
             columns: []
           });
           
-          // Create a new column in the row
-          const newColumnId = this.addTile<TileColumn>({
+          const secondRowId = this.addTile<TileRow>({
+            type: 'row',
+            parent: gridId,
+            height: rowHeight,
+            columns: []
+          });
+          
+          // Create a column for the existing panel
+          const existingPanelColumnId = this.addTile<TileColumn>({
             type: 'column',
-            parent: newRowId,
-            width: 100, // 100% of the row
+            parent: direction === 'top' ? secondRowId : firstRowId,
+            width: 100, // 100% of row width
+            child: targetPanelId
+          });
+          
+          // Create a column for the new panel
+          const newPanelColumnId = this.addTile<TileColumn>({
+            type: 'column',
+            parent: direction === 'top' ? firstRowId : secondRowId,
+            width: 100, // 100% of row width
             child: undefined
           });
           
-          // Create a new panel in the column
+          // Update rows with their columns
+          this.updateTile(firstRowId, { 
+            columns: [direction === 'top' ? newPanelColumnId : existingPanelColumnId] 
+          });
+          
+          this.updateTile(secondRowId, { 
+            columns: [direction === 'top' ? existingPanelColumnId : newPanelColumnId] 
+          });
+          
+          // Update grid with rows
+          this.updateTile(gridId, { 
+            rows: [firstRowId, secondRowId]
+          });
+          
+          // Create a new panel
           const newPanelId = this.addTile<TilePanel>({
             type: 'panel',
-            parent: newColumnId,
+            parent: newPanelColumnId,
             tabs: [],
             activeTab: null
           });
           
-          // Update column with panel
-          this.updateTile(newColumnId, { child: newPanelId });
+          // Update column with new panel
+          this.updateTile(newPanelColumnId, { child: newPanelId });
           
-          // Update row with column
-          this.updateTile(newRowId, { columns: [newColumnId] });
+          // Update target panel parent to point to its new column
+          this.updateTile(targetPanelId, { parent: existingPanelColumnId });
           
-          // Update grid with new row in the right position
-          const newRows = [...grid.rows];
-          if (direction === 'bottom') {
-            // Add after the current row
-            newRows.splice(rowIndex + 1, 0, newRowId);
-          } else {
-            // Add before the current row
-            newRows.splice(rowIndex, 0, newRowId);
-          }
-          
-          this.updateTile(gridId, { rows: newRows });
+          // Update column to point to the grid instead of directly to the panel
+          this.updateTile(parentColumn.id, { child: gridId });
           
           // Move the tab to the new panel
           return this.moveTab(tabId, newPanelId);
+          
         } else {
-          // Not a grid and not the panel directly - unsupported configuration
-          return false;
+          // Column already contains a grid or something else, need to handle differently
+          const existingChild = parentColumn.child;
+          if (!existingChild) {
+            throw new Error(`Column ${parentColumn.id} has no child`);
+          }
+          
+          try {
+            // Try to get the child as a grid
+            const grid = this.getGrid(existingChild);
+            gridId = existingChild;
+            
+            // Find the row containing the target panel
+            let targetRowId: string | null = null;
+            let targetRow: TileRow | null = null;
+            
+            for (const rowId of grid.rows) {
+              try {
+                const row = this.getRow(rowId);
+                
+                // Check if any column in this row contains the target panel
+                for (const colId of row.columns) {
+                  try {
+                    const col = this.getColumn(colId);
+                    if (col.child === targetPanelId) {
+                      targetRowId = rowId;
+                      targetRow = row;
+                      break;
+                    }
+                  } catch (error) {
+                    console.error(`Error checking column ${colId}:`, error);
+                    // Continue to next column
+                  }
+                }
+                
+                if (targetRowId) break;
+              } catch (error) {
+                console.error(`Error checking row ${rowId}:`, error);
+                // Continue to next row
+              }
+            }
+            
+            if (!targetRowId || !targetRow) {
+              throw new Error(`Could not find row containing panel ${targetPanelId}`);
+            }
+            
+            // Calculate height for the new row
+            const rowIndex = grid.rows.indexOf(targetRowId);
+            const newHeight = targetRow.height / 2;
+            
+            // Update existing row height
+            this.updateTile(targetRowId, { height: newHeight });
+            
+            // Create a new row
+            const newRowId = this.addTile<TileRow>({
+              type: 'row',
+              parent: gridId,
+              height: newHeight,
+              columns: []
+            });
+            
+            // Create a new column in the row
+            const newColumnId = this.addTile<TileColumn>({
+              type: 'column',
+              parent: newRowId,
+              width: 100, // 100% of the row
+              child: undefined
+            });
+            
+            // Create a new panel in the column
+            const newPanelId = this.addTile<TilePanel>({
+              type: 'panel',
+              parent: newColumnId,
+              tabs: [],
+              activeTab: null
+            });
+            
+            // Update column with panel
+            this.updateTile(newColumnId, { child: newPanelId });
+            
+            // Update row with column
+            this.updateTile(newRowId, { columns: [newColumnId] });
+            
+            // Update grid with new row in the right position
+            const newRows = [...grid.rows];
+            if (direction === 'bottom') {
+              // Add after the current row
+              newRows.splice(rowIndex + 1, 0, newRowId);
+            } else {
+              // Add before the current row
+              newRows.splice(rowIndex, 0, newRowId);
+            }
+            
+            this.updateTile(gridId, { rows: newRows });
+            
+            // Move the tab to the new panel
+            return this.moveTab(tabId, newPanelId);
+          } catch (error) {
+            // The child is not a grid
+            console.error(`Error handling existing child ${existingChild}:`, error);
+            return false;
+          }
         }
       }
+      
+      return false;
+    } catch (error) {
+      console.error('Error in splitPanel:', error);
+      return false;
     }
-    
-    return false;
   }
 
   /**
