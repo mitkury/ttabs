@@ -256,17 +256,26 @@ export class Ttabs {
 
   /**
    * Move a tab from one panel to another
+   * @param tabId The tab to move
+   * @param targetPanelId The panel to move the tab to
+   * @param targetIndex Optional index where to insert the tab in the target panel
+   * @returns boolean True if the operation was successful
    */
-  moveTab(tabId: string, sourcePanelId: string, targetPanelId: string, targetIndex?: number): boolean {
+  moveTab(tabId: string, targetPanelId: string, targetIndex?: number): boolean {
+    // Get the tab and determine source panel
+    const tab = this.getTile<TileTab>(tabId);
+    if (!tab || tab.type !== 'tab') return false;
+    
+    const sourcePanelId = tab.parent;
+    if (!sourcePanelId) return false;
+    
     // Get the source and target panels
     const sourcePanel = this.getTile<TilePanel>(sourcePanelId);
     const targetPanel = this.getTile<TilePanel>(targetPanelId);
-    const tab = this.getTile<TileTab>(tabId);
-
+    
     // Check if everything exists and is valid
     if (!sourcePanel || sourcePanel.type !== 'panel' ||
-      !targetPanel || targetPanel.type !== 'panel' ||
-      !tab || tab.type !== 'tab') {
+      !targetPanel || targetPanel.type !== 'panel') {
       return false;
     }
 
@@ -325,26 +334,29 @@ export class Ttabs {
   /**
    * Split a panel to create a new layout
    * @param tabId The tab to move to the new panel
-   * @param sourcePanelId The panel where the tab currently resides
    * @param targetPanelId The panel being split
    * @param direction The direction to split ('top', 'right', 'bottom', 'left')
    * @returns boolean True if the split operation was successful
    */
   splitPanel(
     tabId: string,
-    sourcePanelId: string,
     targetPanelId: string,
     direction: 'top' | 'right' | 'bottom' | 'left'
   ): boolean {
-    // Get the source panel, target panel, and tab
+    // Get the tab and determine source panel
+    const tab = this.getTile<TileTab>(tabId);
+    if (!tab || tab.type !== 'tab') return false;
+    
+    const sourcePanelId = tab.parent;
+    if (!sourcePanelId) return false;
+    
+    // Get the source and target panels
     const sourcePanel = this.getTile<TilePanel>(sourcePanelId);
     const targetPanel = this.getTile<TilePanel>(targetPanelId);
-    const tab = this.getTile<TileTab>(tabId);
-
+    
     // Validate inputs
     if (!sourcePanel || sourcePanel.type !== 'panel' ||
-        !targetPanel || targetPanel.type !== 'panel' ||
-        !tab || tab.type !== 'tab') {
+        !targetPanel || targetPanel.type !== 'panel') {
       return false;
     }
 
@@ -413,7 +425,7 @@ export class Ttabs {
       this.updateTile(rowId, { columns: newColumns });
 
       // Move the tab to the new panel
-      return this.moveTab(tabId, sourcePanelId, newPanelId);
+      return this.moveTab(tabId, newPanelId);
 
     } else if (direction === 'top' || direction === 'bottom') {
       // Vertical split
@@ -497,7 +509,7 @@ export class Ttabs {
         this.updateTile(parentColumn.id, { child: gridId });
         
         // Move the tab to the new panel
-        return this.moveTab(tabId, sourcePanelId, newPanelId);
+        return this.moveTab(tabId, newPanelId);
         
       } else {
         // Column already contains a grid or something else, need to handle differently
@@ -585,7 +597,7 @@ export class Ttabs {
           this.updateTile(gridId, { rows: newRows });
           
           // Move the tab to the new panel
-          return this.moveTab(tabId, sourcePanelId, newPanelId);
+          return this.moveTab(tabId, newPanelId);
         } else {
           // Not a grid and not the panel directly - unsupported configuration
           return false;

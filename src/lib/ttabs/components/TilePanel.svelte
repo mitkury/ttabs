@@ -246,7 +246,6 @@
         
         console.log('Dropping tab for split:', {
           tabId: dragData.tabId,
-          sourcePanelId: dragData.panelId,
           targetPanelId: id,
           splitDirection: finalSplitDirection
         });
@@ -255,7 +254,6 @@
         if (dragData.action === 'move' && dragData.tabId) {
           ttabs.splitPanel(
             dragData.tabId,
-            dragData.panelId,
             id,
             finalSplitDirection
           );
@@ -302,7 +300,7 @@
           }
           
           // Move the tab between panels
-          ttabs.moveTab(sourceTabId, sourcePanelId, id, targetIndex);
+          ttabs.moveTab(sourceTabId, id, targetIndex);
         } else {
           // Reordering tabs within the same panel
           const sourceIndex = tabs.indexOf(sourceTabId);
