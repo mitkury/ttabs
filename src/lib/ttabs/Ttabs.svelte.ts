@@ -329,93 +329,70 @@ export class Ttabs {
   cleanupContainers(tileId: string): void {
     const tile = this.getTile(tileId);
     if (!tile) return;
+    
+    let parentId = tile.parent;
+    let shouldRemove = false;
+    
+    // Check if tile should be removed based on its type
+    switch (tile.type) {
+      case 'panel':
+        // Remove panel if it has no tabs
+        const panel = tile as TilePanel;
+        shouldRemove = panel.tabs.length === 0;
+        break;
+        
+      case 'column':
+        // Remove column if it has no valid child
+        const column = tile as TileColumn;
+        shouldRemove = !column.child || !this.tiles[column.child];
+        
+        // Redistribute width to siblings if removing
+        if (shouldRemove && parentId) {
+          const row = this.getTile<TileRow>(parentId);
+          if (row) {
+            const siblingColumns = row.columns.filter(id => id !== tileId);
+            if (siblingColumns.length > 0) {
+              this.redistributeWidths(siblingColumns, column.width);
+            }
+          }
+        }
+        break;
+        
+      case 'row':
+        // Remove row if it has no columns
+        const row = tile as TileRow;
+        shouldRemove = row.columns.length === 0;
+        
+        // Redistribute height to siblings if removing
+        if (shouldRemove && parentId) {
+          const grid = this.getTile<TileGrid>(parentId);
+          if (grid) {
+            const siblingRows = grid.rows.filter(id => id !== tileId);
+            if (siblingRows.length > 0) {
+              this.redistributeHeights(siblingRows, row.height);
+            }
+          }
+        }
+        break;
+        
+      case 'grid':
+        // Remove grid if it has no rows and is not the root
+        const grid = tile as TileGrid;
+        shouldRemove = grid.rows.length === 0 && !!grid.parent;
 
-    // Handle based on tile type
-    if (tile.type === 'panel') {
-      const panel = tile as TilePanel;
-      
-      // Skip if panel has tabs
-      if (panel.tabs.length > 0) return;
-      
-      // Get parent container
-      const parentId = panel.parent;
-      if (!parentId) return;
-      
-      // Remove empty panel
+        // @TODO: consider checking if the grid is like that: grid -> row -> column -> grid -> row -> column -> tile 
+        // and if so, simplify it to: grid -> column -> tile
+
+        break;
+    }
+    
+    // Remove the tile if necessary and continue cleanup with parent
+    if (shouldRemove) {
       this.removeTile(tileId);
-      
-      // Continue cleanup with parent
+    }
+
+    if (parentId) {
       this.cleanupContainers(parentId);
-    }
-    else if (tile.type === 'column') {
-      const column = tile as TileColumn;
-      
-      // Skip if column has a valid child
-      if (column.child && this.tiles[column.child]) return;
-      
-      // Get parent row
-      const parentId = column.parent;
-      if (!parentId) return;
-      
-      const row = this.getTile<TileRow>(parentId);
-      if (!row) return;
-      
-      // Get sibling columns
-      const siblingColumns = row.columns.filter(id => id !== tileId);
-      
-      // Redistribute width if there are siblings
-      if (siblingColumns.length > 0) {
-        this.redistributeWidths(siblingColumns, column.width);
-      }
-      
-      // Remove column
-      this.removeTile(tileId);
-      
-      // Continue cleanup with parent
-      this.cleanupContainers(parentId);
-    }
-    else if (tile.type === 'row') {
-      const row = tile as TileRow;
-      
-      // Skip if row has columns
-      if (row.columns.length > 0) return;
-      
-      // Get parent grid
-      const parentId = row.parent;
-      if (!parentId) return;
-      
-      const grid = this.getTile<TileGrid>(parentId);
-      if (!grid) return;
-      
-      // Get sibling rows
-      const siblingRows = grid.rows.filter(id => id !== tileId);
-      
-      // Redistribute height if there are siblings
-      if (siblingRows.length > 0) {
-        this.redistributeHeights(siblingRows, row.height);
-      }
-      
-      // Remove row
-      this.removeTile(tileId);
-      
-      // Continue with grid cleanup or simplification
-      if (siblingRows.length === 0) {
-        this.cleanupContainers(parentId);
-      } else {
-        this.simplifyGridHierarchy(parentId);
-      }
-    }
-    else if (tile.type === 'grid') {
-      const grid = tile as TileGrid;
-      
-      // Skip if grid has rows or is the root grid
-      if (grid.rows.length > 0 || !grid.parent) return;
-      
-      // Remove empty grid
-      this.removeTile(tileId);
-      
-      // Continue cleanup with parent
-      this.cleanupContainers(grid.parent);
     }
   }
 
@@ -465,40 +442,36 @@ export class Ttabs {
   simplifyGridHierarchy(gridId: string): void {
     const grid = this.getTile<TileGrid>(gridId);
     if (!grid || grid.rows.length !== 1) return;
-
-    const rowId = grid.rows[0];
-    const row = this.getTile<TileRow>(rowId);
+    
+    // Check for grid > row > column > grid pattern
+    const row = this.getTile<TileRow>(grid.rows[0]);
     if (!row || row.columns.length !== 1) return;
-
-    const columnId = row.columns[0];
-    const column = this.getTile<TileColumn>(columnId);
+    
+    const column = this.getTile<TileColumn>(row.columns[0]);
     if (!column || !column.child) return;
-
+    
     const childTile = this.getTile(column.child);
     if (!childTile || childTile.type !== 'grid') return;
-
-    // We have a grid > row > column > grid structure that can be simplified
-    const childGridId = childTile.id;
+    
+    // We found a simplifiable pattern
     const childGrid = childTile as TileGrid;
-
-    // Transfer all rows from child grid to this grid
+    
+    // Transfer rows from child grid to parent grid
     const newRows = [...childGrid.rows];
-
-    // Update parent references for all transferred rows
+    
+    // Update parent references
     newRows.forEach(childRowId => {
       const childRow = this.getTile<TileRow>(childRowId);
       if (childRow) {
         this.updateTile(childRowId, { parent: gridId });
       }
     });
-
-    // Update the grid with the new rows
+    
+    // Update parent grid and clean up
     this.updateTile(gridId, { rows: newRows });
-
-    // Clean up the old structure (row, column, and child grid)
-    this.removeTile(childGridId);
-    this.removeTile(columnId);
-    this.removeTile(rowId);
+    this.removeTile(childGrid.id);
+    this.removeTile(column.id);
+    this.removeTile(row.id);
   }
 
   /**
