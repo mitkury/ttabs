@@ -329,10 +329,10 @@ export class Ttabs {
   cleanupContainers(tileId: string): void {
     const tile = this.getTile(tileId);
     if (!tile) return;
-    
+
     let parentId = tile.parent;
     let shouldRemove = false;
-    
+
     // Check if tile should be removed based on its type
     switch (tile.type) {
       case 'panel':
@@ -340,12 +340,12 @@ export class Ttabs {
         const panel = tile as TilePanel;
         shouldRemove = panel.tabs.length === 0;
         break;
-        
+
       case 'column':
         // Remove column if it has no valid child
         const column = tile as TileColumn;
         shouldRemove = !column.child || !this.tiles[column.child];
-        
+
         // Redistribute width to siblings if removing
         if (shouldRemove && parentId) {
           const row = this.getTile<TileRow>(parentId);
@@ -357,12 +357,12 @@ export class Ttabs {
           }
         }
         break;
-        
+
       case 'row':
         // Remove row if it has no columns
         const row = tile as TileRow;
         shouldRemove = row.columns.length === 0;
-        
+
         // Redistribute height to siblings if removing
         if (shouldRemove && parentId) {
           const grid = this.getTile<TileGrid>(parentId);
@@ -374,18 +374,31 @@ export class Ttabs {
           }
         }
         break;
-        
+
       case 'grid':
         // Remove grid if it has no rows and is not the root
         const grid = tile as TileGrid;
         shouldRemove = grid.rows.length === 0 && !!grid.parent;
 
-        // @TODO: consider checking if the grid is like that: grid -> row -> column -> grid -> row -> column -> tile 
-        // and if so, simplify it to: grid -> column -> tile
+        if (!shouldRemove) {
+          // Check if we can simplify the grid hierarchy
+          if (grid.rows.length === 1) {
+            const row = this.getTile<TileRow>(grid.rows[0]);
+            // Just one row with a single column
+            if (row && row.columns.length === 1) {
+              const column = this.getTile<TileColumn>(row.columns[0]);
+              const child = column?.child
+              if (child) {
+                console.log(`Simplifying grid hierarchy for ${grid.id}`);
+                // @TODO: Replace the grid with the child in the parent column of the grid
+              }
+            }
+          }
+        }
 
         break;
     }
-    
+
     // Remove the tile if necessary and continue cleanup with parent
     if (shouldRemove) {
       this.removeTile(tileId);
@@ -442,23 +455,23 @@ export class Ttabs {
   simplifyGridHierarchy(gridId: string): void {
     const grid = this.getTile<TileGrid>(gridId);
     if (!grid || grid.rows.length !== 1) return;
-    
+
     // Check for grid > row > column > grid pattern
     const row = this.getTile<TileRow>(grid.rows[0]);
     if (!row || row.columns.length !== 1) return;
-    
+
     const column = this.getTile<TileColumn>(row.columns[0]);
     if (!column || !column.child) return;
-    
+
     const childTile = this.getTile(column.child);
     if (!childTile || childTile.type !== 'grid') return;
-    
+
     // We found a simplifiable pattern
     const childGrid = childTile as TileGrid;
-    
+
     // Transfer rows from child grid to parent grid
     const newRows = [...childGrid.rows];
-    
+
     // Update parent references
     newRows.forEach(childRowId => {
       const childRow = this.getTile<TileRow>(childRowId);
@@ -466,7 +479,7 @@ export class Ttabs {
         this.updateTile(childRowId, { parent: gridId });
       }
     });
-    
+
     // Update parent grid and clean up
     this.updateTile(gridId, { rows: newRows });
     this.removeTile(childGrid.id);
