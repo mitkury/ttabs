@@ -2,6 +2,8 @@
   import TileTab from './TileTab.svelte';
   import type { TtabsProps } from './props';
   import type { TilePanel as TilePanelType, TileTab as TileTabType } from '../types/tile-types';
+  import { onMount, onDestroy } from 'svelte';
+  import { browser } from '$app/environment';
   
   let { ttabs, id }: TtabsProps = $props();
   
@@ -18,6 +20,33 @@
   let dragOverTabId: string | null = $state(null);
   let dragPosition: 'before' | 'after' | null = $state(null);
   let tabBarElement: HTMLElement | null = $state(null);
+  let isDragging = $state(false);
+  
+  onMount(() => {
+    if (browser) {
+      // Add mouseup event to reset visual indicators immediately
+      document.addEventListener('mouseup', handleMouseUp);
+      // Keep dragend as backup for when mouseup might not fire
+      document.addEventListener('dragend', resetDragState);
+    }
+  });
+  
+  onDestroy(() => {
+    if (browser) {
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('dragend', resetDragState);
+    }
+  });
+  
+  function handleMouseUp() {
+    // Reset visual indicators immediately when mouse button is released
+    // We'll just clear the visual indicators but keep the drag operation going
+    // This way the drag can complete normally, but the visual indicators disappear immediately
+    if (isDragging) {
+      dragOverTabId = null;
+      dragPosition = null;
+    }
+  }
   
   // Handle tab click
   function selectTab(tabId: string) {
@@ -31,6 +60,7 @@
     // Store the dragged tab ID and panel ID
     draggedTabId = tabId;
     draggedPanelId = id;
+    isDragging = true;
     
     // Store the panel ID and tab ID in the dataTransfer
     if (e.dataTransfer) {
@@ -69,21 +99,18 @@
     
     for (const tabElement of tabElements) {
       const rect = tabElement.getBoundingClientRect();
-      
-      // Get the current tab ID
       const tabId = tabElement.getAttribute('data-tab-id');
-      
-      // If we're over the tab being dragged, mark it as found but don't set it as target
-      // This prevents the tab from being moved when dropped on itself
-      if (tabId === draggedTabId && id === draggedPanelId) {
-        foundTab = true;
-        dragOverTabId = null;
-        dragPosition = null;
-        break;
-      }
       
       // Check if mouse is over this tab
       if (mouseX >= rect.left && mouseX <= rect.right) {
+        // If we're over the dragged tab itself, don't set it as a drop target
+        if (tabId === draggedTabId && id === draggedPanelId) {
+          foundTab = true;
+          dragOverTabId = null;
+          dragPosition = null;
+          break;
+        }
+        
         // Determine left/right position
         const midpoint = rect.left + rect.width / 2;
         const position = mouseX < midpoint ? 'before' : 'after';
@@ -214,6 +241,7 @@
     draggedPanelId = null;
     dragOverTabId = null;
     dragPosition = null;
+    isDragging = false;
   }
 </script>
 
@@ -228,6 +256,12 @@
       bind:this={tabBarElement}
       on:dragover={onDragOver}
       on:dragenter|preventDefault
+      on:dragleave={() => {
+        if (isDragging) {
+          dragOverTabId = null;
+          dragPosition = null;
+        }
+      }}
       on:drop={onDrop}
     >
       {#each tabs as tabId}
@@ -314,20 +348,20 @@
   .ttabs-tab-header.drop-before::before {
     content: '';
     position: absolute;
-    left: 0;
-    top: 0;
+    left: -2px;
+    top: 0px;
     height: 100%;
-    width: 3px;
+    width: 4px;
     background-color: #4a6cf7;
   }
   
   .ttabs-tab-header.drop-after::after {
     content: '';
     position: absolute;
-    right: 0;
+    right: -2px;
     top: 0;
     height: 100%;
-    width: 3px;
+    width: 4px;
     background-color: #4a6cf7;
   }
   
