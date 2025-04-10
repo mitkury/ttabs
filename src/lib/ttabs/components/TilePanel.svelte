@@ -325,50 +325,34 @@
           // Reordering tabs within the same panel
           const sourceIndex = tabs.indexOf(sourceTabId);
           
-          // If we're not over any tab and not dragging over self, append to the end if not already there
-          if (!dragOverTabId) {
-            // Check if we're not already at the end of the list
-            if (sourceIndex !== -1 && sourceIndex !== tabs.length - 1) {
-              const newTabs = [...tabs];
-              newTabs.splice(sourceIndex, 1);
-              newTabs.push(sourceTabId);
-              ttabs.updateTile(id, { tabs: newTabs });
-            }
+          // Skip reordering if:
+          // 1. Source tab doesn't exist in this panel
+          // 2. We're dropping on the same tab that's being dragged
+          // 3. We're dropping in an area without a target tab
+          if (sourceIndex === -1 || dragOverTabId === sourceTabId || !dragOverTabId) {
             return;
           }
           
           // Find the target tab index
           const targetIndex = tabs.indexOf(dragOverTabId);
+          if (targetIndex === -1) return;
           
-          // Exit if source index is invalid or target is invalid
-          if (sourceIndex === -1 || targetIndex === -1) {
-            return;
-          }
-          
-          // Determine insert position based on drop position
+          // Calculate the insertion index
           let insertIndex = dragPosition === 'before' ? targetIndex : targetIndex + 1;
           
-          // Skip if trying to drop in the same position
-          if (sourceIndex === insertIndex || 
-              (sourceIndex === insertIndex - 1 && dragPosition === 'after')) {
+          // Skip if dropping in the same position
+          if (sourceIndex === insertIndex || (sourceIndex === insertIndex - 1 && dragPosition === 'after')) {
             return;
           }
           
-          // Create a new array of tabs
+          // Create a new array and move the tab
           const newTabs = [...tabs];
-          
-          // Remove the source tab
           newTabs.splice(sourceIndex, 1);
           
           // Adjust insert index if needed
-          if (sourceIndex < insertIndex) {
-            insertIndex--;
-          }
+          if (sourceIndex < insertIndex) insertIndex--;
           
-          // Insert at the new position
           newTabs.splice(insertIndex, 0, sourceTabId);
-          
-          // Update the panel
           ttabs.updateTile(id, { tabs: newTabs });
         }
       }
