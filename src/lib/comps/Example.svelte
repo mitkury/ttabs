@@ -1,11 +1,17 @@
 <script lang="ts">
   import { Ttabs, TileGrid } from '$lib/ttabs';
   import type { TilePanel, TileTab } from '$lib/ttabs/types/tile-types';
+  import EditorComponent from './EditorComponent.svelte';
+  import DocumentComponent from './DocumentComponent.svelte';
   
   // Initialize ttabs on component mount
   const ttabs = new Ttabs({
     storageKey: 'ttabs-layout'
   });
+  
+  // Register content components
+  ttabs.registerContentComponent('editor', EditorComponent, { readOnly: false });
+  ttabs.registerContentComponent('document', DocumentComponent);
   
   // Store panel ID for adding new tabs
   let upperPanelId = $state('');
@@ -68,22 +74,26 @@
     // Create editor tab for upper panel
     const editorTabId = ttabs.addTab(upperPanelId, 'Editor');
     
-    // Update content type for editor tab
-    const editorTab = ttabs.getTile<TileTab>(editorTabId);
-    if (editorTab && editorTab.content) {
-      ttabs.updateTile(editorTab.content, { contentType: 'editor' });
-    }
+    // Add editor component to the editor tab
+    ttabs.addComponentContent(editorTabId, 'editor', { 
+      content: 'function hello() {\n  console.log("Hello, world!");\n}',
+      language: 'javascript'
+    });
     
-    // Create additional tabs for upper panel
+    // Create document tab for upper panel
     const documentTabId = ttabs.addTab(upperPanelId, 'Document', false);
+    
+    // Add document component to the document tab
+    ttabs.addComponentContent(documentTabId, 'document', {
+      documentId: 'doc-12345',
+      title: 'Getting Started',
+      content: 'This is a sample document that demonstrates the content component system in ttabs.'
+    });
+    
+    // Create settings tab for upper panel
     const settingsTabId = ttabs.addTab(upperPanelId, 'Settings', false);
     
-    // Update content types
-    const documentTab = ttabs.getTile<TileTab>(documentTabId);
-    if (documentTab && documentTab.content) {
-      ttabs.updateTile(documentTab.content, { contentType: 'document' });
-    }
-    
+    // Update content type for settings tab
     const settingsTab = ttabs.getTile<TileTab>(settingsTabId);
     if (settingsTab && settingsTab.content) {
       ttabs.updateTile(settingsTab.content, { contentType: 'settings' });
@@ -141,11 +151,12 @@
     const tabName = `New Tab ${newTabCount}`;
     const newTabId = ttabs.addTab(upperPanelId, tabName, true); // true to make it active
     
-    // Update the content type
-    const newTab = ttabs.getTile<TileTab>(newTabId);
-    if (newTab && newTab.content) {
-      ttabs.updateTile(newTab.content, { contentType: 'custom' });
-    }
+    // Add editor content to the new tab
+    ttabs.addComponentContent(newTabId, 'editor', {
+      content: `// New tab ${newTabCount}\n// Write your code here...\n`,
+      language: 'typescript',
+      readOnly: newTabCount % 2 === 0 // Alternate between editable and read-only
+    });
     
     // Increment tab counter
     newTabCount++;
