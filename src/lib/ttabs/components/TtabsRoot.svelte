@@ -1,21 +1,22 @@
 <script lang="ts">
-  import TileGrid from './TileGrid.svelte';
-  import type { Ttabs } from '../Ttabs.svelte';
-  
-  export let ttabs: Ttabs;
-  
-  // Find the root grid ID
-  $: rootGridId = ttabs.getRootGridId();
-  
+  import TileGrid from "./TileGrid.svelte";
+  import type { Ttabs } from "../Ttabs.svelte";
+
+  let { ttabs }: { ttabs: Ttabs } = $props();
+
+  let rootGridId = $derived(ttabs.getRootGridId());
+
   // Generate CSS variable style string from theme
-  $: themeStyle = ttabs.theme?.variables ? 
-    Object.entries(ttabs.theme.variables)
-      .map(([key, value]) => `${key}: ${value};`)
-      .join(' ') 
-    : '';
+  let themeStyle = $derived.by(() =>
+    ttabs.theme?.variables
+      ? Object.entries(ttabs.theme.variables)
+          .map(([key, value]) => `${key}: ${value};`)
+          .join(" ")
+      : "",
+  );
 </script>
 
-<div 
+<div
   class="ttabs-root {ttabs.theme?.classes?.root || ''}"
   style={themeStyle}
   data-theme={ttabs.theme?.name}
@@ -23,8 +24,10 @@
   {#if rootGridId}
     <TileGrid {ttabs} id={rootGridId} />
   {:else}
-    <div class="ttabs-empty-state {ttabs.theme?.classes?.['empty-state'] || ''}">
-      <button on:click={() => ttabs.createDefaultLayout()}>
+    <div
+      class="ttabs-empty-state {ttabs.theme?.classes?.['empty-state'] || ''}"
+    >
+      <button onclick={() => ttabs.createDefaultLayout()}>
         Create Default Layout
       </button>
     </div>
@@ -39,7 +42,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    
+
     /* Default theme variables, will be overridden by inline styles */
     --ttabs-panel-bg: white;
     --ttabs-tab-bar-bg: #f5f5f5;
@@ -62,7 +65,7 @@
     --ttabs-split-indicator-color: rgba(74, 108, 247, 0.1);
     --ttabs-show-close-button: none; /* Default: hidden close button */
   }
-  
+
   .ttabs-empty-state {
     display: flex;
     align-items: center;
@@ -71,7 +74,7 @@
     color: var(--ttabs-empty-state-color);
     font-style: italic;
   }
-  
+
   button {
     padding: 8px 16px;
     background-color: var(--ttabs-active-tab-indicator);
@@ -80,8 +83,8 @@
     border-radius: 4px;
     cursor: pointer;
   }
-  
+
   button:hover {
     opacity: 0.9;
   }
-</style> 
+</style>

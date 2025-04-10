@@ -1,14 +1,18 @@
 <script lang="ts">
   import { createTtabs, TtabsRoot } from '$lib/ttabs';
   import type { TilePanel, TileTab } from '$lib/ttabs/types/tile-types';
+  import { DEFAULT_THEME, DARK_THEME } from '$lib/ttabs/themes';
   import EditorComponent from './EditorComponent.svelte';
   import DocumentComponent from './DocumentComponent.svelte';
   import SidePanelComponent from './SidePanelComponent.svelte';
   import { onMount } from 'svelte';
   
-  // Initialize ttabs with the convenience function
+  console.log('Themes available:', { DEFAULT_THEME, DARK_THEME });
+  
+  // Initialize ttabs with the convenience function and default theme
   const ttabs = createTtabs({
-    storageKey: 'ttabs-layout'
+    storageKey: 'ttabs-layout',
+    theme: DEFAULT_THEME
   });
   
   // Register content components
@@ -19,6 +23,27 @@
   // Store panel ID for adding new tabs
   let upperPanelId = $state('');
   let isInitialized = $state(false);
+  
+  // Theme state
+  let isDarkTheme = $state(false);
+  
+  // Toggle between light and dark themes
+  function toggleTheme() {
+    isDarkTheme = !isDarkTheme;
+    const newTheme = isDarkTheme ? DARK_THEME : DEFAULT_THEME;
+    console.log('Toggling theme to:', newTheme.name, 'with variables:', Object.keys(newTheme.variables).length);
+    
+    // Deep clone the theme to ensure reactivity
+    const themeClone = JSON.parse(JSON.stringify(newTheme));
+    ttabs.setTheme(themeClone);
+    
+    console.log('Current theme after toggle:', ttabs.theme.name);
+    
+    // Force a UI update by using setTimeout
+    setTimeout(() => {
+      console.log('Theme check after delay:', ttabs.theme.name);
+    }, 100);
+  }
   
   // Setup the layout on mount
   onMount(() => {
@@ -35,6 +60,7 @@
     
     isInitialized = true;
     console.log('Layout initialized, upperPanelId:', upperPanelId);
+    console.log('Current theme:', ttabs.theme);
   });
   
   // Helper function to find the upper panel in an existing layout
@@ -263,6 +289,9 @@
     <div class="actions">
       <button onclick={resetLayout}>Reset Layout</button>
       <button onclick={createNewTab} class="create-tab-btn">Create New Tab</button>
+      <button onclick={toggleTheme} class="theme-btn">
+        {isDarkTheme ? '☀️ Light Theme' : '🌙 Dark Theme'}
+      </button>
     </div>
   </header>
   
@@ -332,5 +361,13 @@
   
   .create-tab-btn:hover {
     background-color: #2f855a;
+  }
+  
+  .theme-btn {
+    background-color: #805ad5;
+  }
+  
+  .theme-btn:hover {
+    background-color: #6b46c1;
   }
 </style> 

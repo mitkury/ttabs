@@ -1472,6 +1472,11 @@ export class Ttabs {
    * Set or update the theme
    */
   setTheme(theme: TtabsTheme): void {
-    this.theme = theme;
+    console.log('Setting theme:', theme.name);
+    
+    // Ensure we're making a full replacement to trigger reactivity
+    this.theme = { ...theme };
+    
+    console.log('Theme updated:', this.theme.name);
   }
 }

@@ -20,8 +20,8 @@ export type * from './types/tile-types';
 
 // Theming system
 export type { TtabsTheme } from './types/theme-types';
-export { DEFAULT_THEME } from './types/theme-types';
-export { DARK_THEME } from './themes/dark-theme';
+// Export themes from the themes directory only
+export * from './themes';
 
 // Utilities
 export { generateId } from './utils/tile-utils';
