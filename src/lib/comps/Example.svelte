@@ -28,10 +28,51 @@
     if (!rootId) {
       // No valid layout found, create a new one
       setupCustomLayout();
+    } else {
+      // We have a stored layout, need to find the upper panel
+      findUpperPanel();
     }
     
     isInitialized = true;
+    console.log('Layout initialized, upperPanelId:', upperPanelId);
   });
+  
+  // Helper function to find the upper panel in an existing layout
+  function findUpperPanel() {
+    // Since we don't know the exact structure in a restored layout,
+    // we'll try to find a panel that looks like our upper panel
+    // by checking if it has tabs with the names we expect
+    
+    const allPanels = Object.values(ttabs.getTiles())
+      .filter(tile => tile.type === 'panel');
+      
+    console.log('Found panels:', allPanels);
+    
+    // Try to find a panel that has the "Editor" tab
+    for (const panel of allPanels) {
+      const panelObj = panel as TilePanel;
+      
+      // Look through this panel's tabs
+      const tabs = panelObj.tabs
+        .map(tabId => ttabs.getTile<TileTab>(tabId))
+        .filter(Boolean);
+        
+      // If any tab is named "Editor", this is likely our upper panel
+      if (tabs.some(tab => tab?.name === 'Editor')) {
+        upperPanelId = panelObj.id;
+        console.log('Found upper panel:', upperPanelId);
+        return;
+      }
+    }
+    
+    // If we couldn't find a matching panel, just use the first one
+    if (allPanels.length > 0) {
+      upperPanelId = allPanels[0].id;
+      console.log('Using first panel as upper panel:', upperPanelId);
+    } else {
+      console.error('No panels found in the layout!');
+    }
+  }
   
   // Setup the custom layout (no need to track root grid ID anymore)
   function setupCustomLayout() {
@@ -153,14 +194,21 @@
   
   // Function to reset the layout
   function resetLayout() {
+    console.log('Resetting layout...');
+    
     // Reset the state
     ttabs.resetState();
+    
+    // Reset the panel ID
+    upperPanelId = '';
     
     // Create a new root grid explicitly (will set the rootGridId internally)
     ttabs.addGrid();
     
     // Now set up the custom layout
     setupCustomLayout();
+    
+    console.log('Layout reset complete, new upperPanelId:', upperPanelId);
   }
   
   // Keep track of new tab count for naming
@@ -168,11 +216,34 @@
   
   // Function to create a new tab using the built-in method
   function createNewTab() {
-    if (!upperPanelId) return;
+    console.log('Creating new tab, upperPanelId:', upperPanelId);
     
-    // Create a new tab in the upper panel
+    // Fall back to active panel if upperPanelId is not available
+    let targetPanelId = upperPanelId;
+    
+    if (!targetPanelId) {
+      const activePanel = ttabs.getActivePanel();
+      if (activePanel) {
+        targetPanelId = activePanel;
+        console.log('Using active panel instead:', targetPanelId);
+      } else {
+        // If no panel is active or available, find any panel
+        const anyPanel = Object.values(ttabs.getTiles())
+          .find(tile => tile.type === 'panel')?.id;
+          
+        if (anyPanel) {
+          targetPanelId = anyPanel;
+          console.log('Using found panel:', targetPanelId);
+        } else {
+          console.error('No panels found, cannot create tab');
+          return;
+        }
+      }
+    }
+    
+    // Create a new tab in the target panel
     const tabName = `New Tab ${newTabCount}`;
-    const newTabId = ttabs.addTab(upperPanelId, tabName, true); // true to make it active
+    const newTabId = ttabs.addTab(targetPanelId, tabName, true); // true to make it active
     
     // Add editor content to the new tab
     ttabs.addComponentContent(newTabId, 'editor', {
