@@ -480,6 +480,7 @@
     height: 100%;
     overflow: hidden;
     background-color: var(--ttabs-panel-bg, white);
+    color: var(--ttabs-text-color, inherit);
   }
   
   .ttabs-panel.drop-target {
@@ -506,6 +507,7 @@
     position: relative;
     display: flex;
     align-items: center;
+    color: var(--ttabs-tab-text-color, inherit);
   }
   
   .ttabs-tab-title {
@@ -525,18 +527,19 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    color: #888;
+    color: var(--ttabs-close-button-color, #888);
   }
   
   .ttabs-tab-close:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-    color: tomato;
+    background-color: var(--ttabs-close-button-hover-bg, rgba(0, 0, 0, 0.1));
+    color: var(--ttabs-close-button-hover-color, tomato);
   }
   
   .ttabs-tab-header.active {
     background-color: var(--ttabs-active-tab-bg, white);
     border-bottom: 2px solid var(--ttabs-active-tab-indicator, #4a6cf7);
     font-weight: 500;
+    color: var(--ttabs-tab-active-text-color, inherit);
   }
   
   .ttabs-tab-header.is-dragging {
@@ -551,7 +554,7 @@
     top: 0px;
     height: 100%;
     width: 4px;
-    background-color: #4a6cf7;
+    background-color: var(--ttabs-drop-indicator-color, #4a6cf7);
   }
   
   .ttabs-tab-header.drop-after::after {
@@ -561,13 +564,14 @@
     top: 0;
     height: 100%;
     width: 4px;
-    background-color: #4a6cf7;
+    background-color: var(--ttabs-drop-indicator-color, #4a6cf7);
   }
   
   .ttabs-tab-content {
     flex: 1;
     overflow: hidden;
     position: relative;
+    background-color: var(--ttabs-content-bg, inherit);
   }
   
   /* Split indicators */
@@ -624,15 +628,15 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: #666;
+    color: var(--ttabs-empty-state-color, #666);
     font-style: italic;
   }
   
   .ttabs-error {
     padding: 1rem;
-    color: tomato;
-    background-color: #fff5f5;
-    border: 1px solid tomato;
+    color: var(--ttabs-error-color, tomato);
+    background-color: var(--ttabs-error-bg, #fff5f5);
+    border: var(--ttabs-error-border, 1px solid tomato);
     border-radius: 4px;
   }
 </style> 

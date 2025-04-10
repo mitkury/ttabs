@@ -77,14 +77,19 @@
     width: 100%;
     height: 100%;
     overflow: auto;
+    color: var(--ttabs-text-color, inherit);
+    background-color: var(--ttabs-content-bg, inherit);
   }
   
   .ttabs-content {
     height: 100%;
+    background-color: var(--ttabs-content-bg, inherit);
   }
   
   .content-container {
     padding: 1rem;
+    color: var(--ttabs-content-text-color, inherit);
+    background-color: var(--ttabs-content-bg, inherit);
   }
   
   .ttabs-empty-state {
@@ -106,11 +111,11 @@
   
   h3 {
     margin-top: 0;
-    color: inherit;
+    color: var(--ttabs-text-color, inherit);
   }
   
   p {
-    color: inherit;
+    color: var(--ttabs-text-color-secondary, inherit);
     opacity: 0.7;
     margin: 0.5rem 0;
   }

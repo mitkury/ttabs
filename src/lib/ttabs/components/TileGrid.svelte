@@ -32,6 +32,7 @@
     overflow: hidden;
     background-color: var(--ttabs-grid-bg, #f0f0f0);
     border: var(--ttabs-grid-border, 1px solid #ddd);
+    color: var(--ttabs-text-color, inherit);
   }
   
   .ttabs-error {

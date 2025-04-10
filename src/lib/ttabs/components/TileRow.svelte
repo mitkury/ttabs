@@ -116,6 +116,7 @@
     width: 100%;
     overflow: hidden;
     position: relative;
+    color: var(--ttabs-text-color, inherit);
   }
   
   .ttabs-row.is-resizing {

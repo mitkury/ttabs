@@ -165,6 +165,8 @@
     overflow: hidden;
     border-right: var(--ttabs-column-border, 1px solid #ddd);
     position: relative;
+    color: var(--ttabs-text-color, inherit);
+    background-color: var(--ttabs-panel-bg, inherit);
   }
 
   .ttabs-column:last-child {
@@ -179,6 +181,8 @@
     width: 100%;
     height: 100%;
     overflow: auto;
+    color: var(--ttabs-content-text-color, inherit);
+    background-color: var(--ttabs-content-bg, inherit);
   }
 
   .column-resizer {
