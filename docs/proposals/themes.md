@@ -50,12 +50,18 @@ Expand the existing CSS variable approach to cover all styling aspects:
 ```typescript
 // Add to TtabsOptions interface in Ttabs.svelte.ts
 export interface TtabsOptions {
-  // Existing options...
-  
   /**
    * Initial tiles state (optional)
+   * If provided, the instance will be initialized with this state
+   * If not provided, a default root grid will be created
    */
-  initialState?: Tile[];
+  initialState?: Record<string, Tile> | Tile[];
+
+  /**
+   * Auto-save storage key (optional)
+   * If provided, layout will be auto-saved to localStorage
+   */
+  storageKey?: string;
   
   /**
    * Theme configuration (optional)
@@ -68,6 +74,11 @@ export interface TtabsTheme {
   name: string;
   variables: Record<string, string>;
   classes?: Record<string, string>;
+  components?: {
+    tabHeader?: Component<any>;
+    tabHeaderProps?: Record<string, any>;
+    // Other component overrides could be added in the future
+  };
 }
 
 // Add to Ttabs class
@@ -342,6 +353,197 @@ const tailwindTheme: TtabsTheme = {
 };
 ```
 
+### 4. Component-based Customization
+
+For maximum flexibility, the theming system can be extended to allow custom component replacements. This enables applications to completely control the rendering of specific elements:
+
+```typescript
+export interface TtabsTheme {
+  name: string;
+  variables: Record<string, string>;
+  classes?: Record<string, string>;
+  components?: {
+    tabHeader?: Component<any>;
+    tabHeaderProps?: Record<string, any>;
+    // Other component replacements could be added in future
+  };
+}
+```
+
+This allows users to provide their own implementation for tab headers while keeping the core functionality:
+
+```typescript
+// Custom theme with component replacement
+const customTheme: TtabsTheme = {
+  name: 'custom',
+  variables: { /* CSS variables */ },
+  classes: { /* Class overrides */ },
+  components: {
+    tabHeader: MyCustomTabHeader,
+    tabHeaderProps: { 
+      showCloseButton: true,
+      closeIcon: CloseIcon, // Could be a string or a component
+      confirmClose: false
+    }
+  }
+};
+```
+
+The custom tab header component would follow a standard interface:
+
+```svelte
+<!-- MyCustomTabHeader.svelte -->
+<script lang="ts">
+  // Required props
+  export let tabId: string;
+  export let tabName: string;
+  export let isActive: boolean;
+  export let ttabs: Ttabs;
+  export let onSelect: () => void;
+  export let onClose: () => void;
+  export let onDragStart: (event: DragEvent) => void;
+  export let onDragEnd: (event: DragEvent) => void;
+  
+  // Optional props from theme
+  export let showCloseButton = false;
+  export let closeIcon = '×';
+  export let confirmClose = false;
+  
+  function handleClose(event: MouseEvent) {
+    event.stopPropagation();
+    
+    if (confirmClose) {
+      if (confirm(`Close tab "${tabName}"?`)) {
+        onClose();
+      }
+    } else {
+      onClose();
+    }
+  }
+</script>
+
+<div class="my-custom-tab {isActive ? 'active' : ''}" 
+     on:click={onSelect}
+     draggable="true"
+     on:dragstart={onDragStart}
+     on:dragend={onDragEnd}>
+  <!-- Custom icon could go here -->
+  <span class="tab-name">{tabName}</span>
+  
+  {#if showCloseButton}
+    <button class="close-btn" on:click={handleClose}>
+      {typeof closeIcon === 'string' ? closeIcon : <svelte:component this={closeIcon} />}
+    </button>
+  {/if}
+</div>
+
+<style>
+  /* Custom styling */
+</style>
+```
+
+The TilePanel component would check for custom components in the theme:
+
+```svelte
+{#each tabs as tabId}
+  {#if ttabs.theme?.components?.tabHeader}
+    <!-- Custom tab header component -->
+    <svelte:component 
+      this={ttabs.theme.components.tabHeader}
+      {tabId}
+      tabName={ttabs.getTile(tabId)?.name || 'Unnamed Tab'}
+      isActive={tabId === activeTab}
+      {ttabs}
+      onSelect={() => selectTab(tabId)}
+      onClose={() => closeTab(tabId)}
+      onDragStart={(e) => onDragStart(e, tabId)}
+      onDragEnd={onDragEnd}
+      {...(ttabs.theme.components.tabHeaderProps || {})}
+    />
+  {:else}
+    <!-- Default tab header implementation -->
+    <div class="ttabs-tab-header {ttabs.getThemeClass('tab-header')}" 
+         class:active={tabId === activeTab}>
+      <!-- Default implementation -->
+    </div>
+  {/if}
+{/each}
+```
+
+Benefits of component-based customization:
+1. **Complete control**: Applications can implement their own tab header design and behavior
+2. **Custom functionality**: Add application-specific features like close confirmation or special indicators
+3. **Framework compatibility**: Custom components can integrate with any UI framework
+4. **Progressive enhancement**: Simpler use cases can still use variables and classes
+
+### Supporting Tab Operations
+
+To support component-based tab headers with close buttons, the Ttabs class needs a closeTab method:
+
+```typescript
+// Add to Ttabs class
+/**
+ * Close a tab and remove it
+ * @param tabId The ID of the tab to close
+ * @returns True if successful
+ */
+closeTab(tabId: string): boolean {
+  try {
+    const tab = this.getTile<TileTab>(tabId);
+    if (!tab || tab.type !== 'tab') return false;
+    
+    const panelId = tab.parent;
+    if (!panelId) return false;
+    
+    const panel = this.getTile<TilePanel>(panelId);
+    if (!panel || panel.type !== 'panel') return false;
+    
+    // Find index of tab to remove
+    const tabIndex = panel.tabs.indexOf(tabId);
+    if (tabIndex === -1) return false;
+    
+    // Remove tab
+    this.removeTile(tabId);
+    
+    // Update panel's tabs array
+    const newTabs = [...panel.tabs];
+    newTabs.splice(tabIndex, 1);
+    
+    // If closed tab was active, activate another tab
+    let newActiveTab = panel.activeTab;
+    if (panel.activeTab === tabId) {
+      if (newTabs.length > 0) {
+        // Activate either the tab at the same index, or the last tab
+        const newActiveIndex = Math.min(tabIndex, newTabs.length - 1);
+        newActiveTab = newTabs[newActiveIndex];
+      } else {
+        newActiveTab = null;
+      }
+    }
+    
+    // Update panel
+    this.updateTile(panelId, {
+      tabs: newTabs,
+      activeTab: newActiveTab
+    });
+    
+    // Clean up empty containers
+    this.cleanupContainers(panelId);
+    
+    return true;
+  } catch (error) {
+    console.error('Error closing tab:', error);
+    return false;
+  }
+}
+```
+
+This method handles:
+1. Removing the tab from the data structure
+2. Updating the panel's tab list
+3. Selecting a new active tab if needed
+4. Cleaning up empty containers after tab removal
+
 ## UI Framework Integration
 
 ### Integrating with Skeleton UI
@@ -393,10 +595,23 @@ Combine ttabs components with Skeleton components:
   import { createTtabs, TtabsRoot } from 'ttabs';
   import { skeletonTheme } from './themes/skeleton';
   import { AppShell, AppBar } from '@skeletonlabs/skeleton';
+  import { SkeletonTabHeader } from './components/SkeletonTabHeader.svelte';
+  
+  // Create a Skeleton-compatible theme with custom tab header
+  const theme = {
+    ...skeletonTheme,
+    components: {
+      tabHeader: SkeletonTabHeader,
+      tabHeaderProps: {
+        showCloseButton: true,
+        buttonVariant: 'ghost', // Using Skeleton's button variants
+        buttonSize: 'sm'
+      }
+    }
+  };
   
   // Create ttabs with Skeleton theme
-  // Root grid is automatically created
-  const ttabs = createTtabs({ theme: skeletonTheme });
+  const ttabs = createTtabs({ theme });
 </script>
 
 <AppShell>
@@ -547,21 +762,30 @@ Using this theming approach has several advantages:
 ```svelte
 <script>
   import { createTtabs, TtabsRoot } from 'ttabs';
-  import { createSkeletonTheme } from 'ttabs/themes/skeleton';
-  import { AppShell } from '@skeletonlabs/skeleton';
+  import { skeletonTheme } from './themes/skeleton';
+  import { AppShell, AppBar } from '@skeletonlabs/skeleton';
+  import { SkeletonTabHeader } from './components/SkeletonTabHeader.svelte';
   
-  // Create a Skeleton-compatible theme with custom options
-  const theme = createSkeletonTheme({
-    classes: {
-      'tab-header': 'tab tab-border-bottom' // Use specific Skeleton classes
+  // Create a Skeleton-compatible theme with custom tab header
+  const theme = {
+    ...skeletonTheme,
+    components: {
+      tabHeader: SkeletonTabHeader,
+      tabHeaderProps: {
+        showCloseButton: true,
+        buttonVariant: 'ghost', // Using Skeleton's button variants
+        buttonSize: 'sm'
+      }
     }
-  });
+  };
   
   // Create ttabs with Skeleton theme
   const ttabs = createTtabs({ theme });
 </script>
 
 <AppShell>
+  <AppBar slot="header">My App</AppBar>
+  
   <TtabsRoot {ttabs} />
 </AppShell>
 ```
