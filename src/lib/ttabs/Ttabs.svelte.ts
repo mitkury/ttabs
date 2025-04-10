@@ -2,7 +2,7 @@ import type { Tile, TileGrid, TileRow, TileColumn, TilePanel, TileTab, TileConte
 import { generateId, serializeTiles, deserializeTiles } from './utils/tile-utils';
 import type { Component } from 'svelte';
 import type { TtabsTheme } from './types/theme-types';
-import { DEFAULT_THEME } from './types/theme-types';
+import { DEFAULT_THEME, resolveTheme } from './types/theme-types';
 
 /**
  * Type for component registry
@@ -82,9 +82,11 @@ export class Ttabs {
       this.rootGridId = this.addGrid();
     }
 
-    // Initialize theme
+    // Initialize theme with resolution for inheritance
     if (options.theme) {
-      this.theme = options.theme;
+      this.theme = resolveTheme(options.theme);
+    } else {
+      this.theme = DEFAULT_THEME;
     }
 
     this.storageKey = options.storageKey;
@@ -1474,8 +1476,11 @@ export class Ttabs {
   setTheme(theme: TtabsTheme): void {
     console.log('Setting theme:', theme.name);
     
+    // Resolve the theme to handle inheritance
+    const resolvedTheme = resolveTheme(theme);
+    
     // Ensure we're making a full replacement to trigger reactivity
-    this.theme = { ...theme };
+    this.theme = { ...resolvedTheme };
     
     console.log('Theme updated:', this.theme.name);
   }

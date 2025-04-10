@@ -19,7 +19,7 @@ export { default as TtabsRoot } from './components/TtabsRoot.svelte';
 export type * from './types/tile-types';
 
 // Theming system
-export type { TtabsTheme } from './types/theme-types';
+export type { TtabsTheme, TtabsCssVariables, TtabsElementType } from './types/theme-types';
 // Export themes from the themes directory only
 export * from './themes';
 

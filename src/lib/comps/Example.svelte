@@ -1,7 +1,8 @@
 <script lang="ts">
   import { createTtabs, TtabsRoot } from '$lib/ttabs';
   import type { TilePanel, TileTab } from '$lib/ttabs/types/tile-types';
-  import { DEFAULT_THEME, DARK_THEME } from '$lib/ttabs/themes';
+  import { DEFAULT_THEME, DARK_THEME, resolveTheme, ThemeStyles } from '../ttabs/themes';
+  import type { TtabsTheme } from '../ttabs/types/theme-types';
   import EditorComponent from './EditorComponent.svelte';
   import DocumentComponent from './DocumentComponent.svelte';
   import SidePanelComponent from './SidePanelComponent.svelte';
@@ -24,25 +25,52 @@
   let upperPanelId = $state('');
   let isInitialized = $state(false);
   
-  // Theme state
+  // Define a high contrast version of the dark theme
+  const highContrastDarkTheme = {
+    name: 'high-contrast-dark',
+    extends: DARK_THEME, // Inherit from the dark theme
+    variables: {
+      '--ttabs-text-color': '#ffffff', // Brighter white text
+      '--ttabs-active-tab-indicator': '#f59e0b', // Orange accent
+      '--ttabs-drop-indicator-color': '#f59e0b'
+    }
+  };
+  
+  // Define a blue theme that just overrides accent colors
+  const blueTheme = {
+    name: 'blue',
+    variables: {
+      '--ttabs-active-tab-indicator': '#2563eb', // Blue accent
+      '--ttabs-drop-indicator-color': '#2563eb',
+      '--ttabs-resizer-hover-color': 'rgba(37, 99, 235, 0.3)'
+    }
+  };
+  
+  // Keep track of the current theme
+  let currentTheme = $state(0); // 0 = default, 1 = dark, 2 = high contrast, 3 = blue
   let isDarkTheme = $state(false);
   
-  // Toggle between light and dark themes
+  // Toggle between themes
   function toggleTheme() {
-    isDarkTheme = !isDarkTheme;
-    const newTheme = isDarkTheme ? DARK_THEME : DEFAULT_THEME;
-    console.log('Toggling theme to:', newTheme.name, 'with variables:', Object.keys(newTheme.variables).length);
+    currentTheme = (currentTheme + 1) % 4;
     
-    // Deep clone the theme to ensure reactivity
-    const themeClone = JSON.parse(JSON.stringify(newTheme));
-    ttabs.setTheme(themeClone);
+    // Initialize with a default value to avoid undefined
+    let newTheme = DEFAULT_THEME;
     
+    // Then assign based on currentTheme
+    if (currentTheme === 0) {
+      newTheme = DEFAULT_THEME;
+    } else if (currentTheme === 1) {
+      newTheme = DARK_THEME;
+    } else if (currentTheme === 2) {
+      newTheme = highContrastDarkTheme;
+    } else if (currentTheme === 3) {
+      newTheme = blueTheme;
+    }
+    
+    console.log('Toggling to theme:', newTheme.name);
+    ttabs.setTheme(newTheme);
     console.log('Current theme after toggle:', ttabs.theme.name);
-    
-    // Force a UI update by using setTimeout
-    setTimeout(() => {
-      console.log('Theme check after delay:', ttabs.theme.name);
-    }, 100);
   }
   
   // Setup the layout on mount
@@ -283,6 +311,9 @@
   }
 </script>
 
+<!-- Include the global theme styles -->
+<ThemeStyles />
+
 <div class="example-container">
   <header>
     <h1>ttabs example</h1>
@@ -290,7 +321,7 @@
       <button onclick={resetLayout}>Reset Layout</button>
       <button onclick={createNewTab} class="create-tab-btn">Create New Tab</button>
       <button onclick={toggleTheme} class="theme-btn">
-        {isDarkTheme ? '☀️ Light Theme' : '🌙 Dark Theme'}
+        {currentTheme === 0 ? '☀️ Light Theme' : currentTheme === 1 ? '🌙 Dark Theme' : currentTheme === 2 ? '🌓 High Contrast' : '💙 Blue Theme'}
       </button>
     </div>
   </header>
