@@ -1,4 +1,4 @@
-# ttabs - Tiles with Tabs
+# ttabs - Tiled Tabs
 
 ## Overview
 

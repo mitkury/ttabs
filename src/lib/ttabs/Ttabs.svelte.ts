@@ -1,7 +1,3 @@
-/**
- * Factory function for creating ttabs instances
- */
-
 import type { Tile, TileGrid, TileRow, TileColumn, TilePanel, TileTab, TileContent, TileType } from './types/tile-types';
 import { generateId, serializeTiles, deserializeTiles } from './utils/tile-utils';
 

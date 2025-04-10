@@ -1,8 +1,4 @@
 /**
- * Type definitions for ttabs (Tiles with Tabs system)
- */
-
-/**
  * Possible tile types
  */
 export type TileType = 'grid' | 'row' | 'column' | 'panel' | 'tab' | 'content';

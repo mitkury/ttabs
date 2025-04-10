@@ -1,5 +1,5 @@
 /**
- * ttabs - tiles with tabs
+ * ttabs - tiled tabs
  * A flexible layout management system with draggable, resizable tiles and tabs
  */
 
