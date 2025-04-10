@@ -189,4 +189,104 @@ Your custom component would implement a standard interface:
 </div>
 ```
 
-This approach gives you complete control over the appearance and behavior of specific elements while maintaining the core layout functionality. 
+This approach gives you complete control over the appearance and behavior of specific elements while maintaining the core layout functionality.
+
+## Active Tab Styling
+
+ttabs provides multiple ways to customize the active tab appearance:
+
+### Using CSS Variables
+
+The simplest approach is to modify the CSS variables that control the active tab appearance:
+
+```typescript
+const theme: TtabsTheme = {
+  name: 'custom-active',
+  variables: {
+    '--ttabs-active-tab-bg': '#f0f9ff',
+    '--ttabs-active-tab-indicator': '#0ea5e9',
+    '--ttabs-tab-active-text-color': '#0369a1'
+  }
+};
+```
+
+### Using Custom Classes
+
+For complete control over the active tab styling, provide a custom class in the `classes` property:
+
+```typescript
+const theme: TtabsTheme = {
+  name: 'custom-active-class',
+  classes: {
+    'tab-header-active': 'my-custom-active-tab'
+  }
+};
+```
+
+Then in your CSS:
+
+```css
+.my-custom-active-tab {
+  /* Your completely custom active tab styling */
+  background: linear-gradient(to bottom, #e0f2fe, #f0f9ff);
+  border-top: 2px solid #0ea5e9;
+  border-bottom: none;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+}
+```
+
+This approach lets you completely redefine how active tabs look, allowing for any styling from subtle indicators to dramatic visual changes.
+
+### Using Custom Close Buttons
+
+ttabs also allows you to replace the default close button with your own component:
+
+```typescript
+import CloseButton from './CloseButton.svelte';
+
+const theme: TtabsTheme = {
+  name: 'custom-close',
+  components: {
+    closeButton: CloseButton
+  }
+};
+```
+
+Your custom close button would implement a standard interface:
+
+```svelte
+<!-- CloseButton.svelte -->
+<script lang="ts">
+  // Required props that ttabs will pass to your component
+  export let tabId: string;
+  export let ttabs: Ttabs;
+  export let onClose: () => void;
+</script>
+
+<button class="my-close-button" on:click={onClose}>
+  <svg width="14" height="14" viewBox="0 0 24 24">
+    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" />
+  </svg>
+</button>
+
+<style>
+  .my-close-button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    transition: background 0.2s, color 0.2s;
+  }
+  
+  .my-close-button:hover {
+    background: rgba(255, 0, 0, 0.1);
+    color: #f43f5e;
+  }
+</style>
+``` 
