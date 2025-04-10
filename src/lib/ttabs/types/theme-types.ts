@@ -65,6 +65,7 @@ export type TtabsElementType =
   | 'tab-bar'
   | 'tab-header'
   | 'tab-header-active'
+  | 'tab-title'
   | 'tab-close-button'
   | 'tab-content'
   
@@ -103,6 +104,18 @@ export interface TtabsTheme {
    * These will be applied to the respective elements alongside the default classes
    */
   classes?: Partial<Record<TtabsElementType, string>>;
+
+  /**
+   * Custom component overrides
+   * These will be used in place of the default components
+   */
+  components?: {
+    /**
+     * Custom close button component for tabs
+     * Will receive standard props: tabId, ttabs, onClose
+     */
+    closeButton?: any; // Svelte component
+  };
 }
 
 /**
@@ -154,8 +167,8 @@ export const DEFAULT_THEME: TtabsTheme = {
     // Controls
     '--ttabs-show-close-button': 'flex', // Show close buttons by default
     '--ttabs-close-button-color': '#888',
-    '--ttabs-close-button-hover-color': 'tomato',
-    '--ttabs-close-button-hover-bg': 'rgba(0, 0, 0, 0.1)'
+    '--ttabs-close-button-hover-color': '#666',
+    '--ttabs-close-button-hover-bg': 'rgba(0, 0, 0, 0.05)'
   }
 };
 
@@ -176,6 +189,10 @@ export function resolveTheme(theme: TtabsTheme): TtabsTheme {
     classes: theme.classes ? {
       ...baseTheme.classes,
       ...theme.classes
-    } : baseTheme.classes
+    } : baseTheme.classes,
+    components: theme.components ? {
+      ...(baseTheme.components || {}),
+      ...theme.components
+    } : baseTheme.components
   };
 } 

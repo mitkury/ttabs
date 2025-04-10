@@ -130,4 +130,63 @@ Here are the most commonly used variables that you can override in your theme:
 | `--ttabs-text-color` | Main text color | `#333` |
 | `--ttabs-tab-text-color` | Tab text color | `#555` |
 
-See the [theme reference](./theme-reference.md) for a complete list of available variables. 
+See the [theme reference](./theme-reference.md) for a complete list of available variables.
+
+## Component Customization
+
+For maximum flexibility, ttabs allows you to replace entire components with your own implementations:
+
+```typescript
+import { type TtabsTheme } from 'ttabs';
+import MyCustomTabHeader from './MyCustomTabHeader.svelte';
+
+const customTheme: TtabsTheme = {
+  name: 'custom',
+  variables: {
+    '--ttabs-active-tab-indicator': '#3b82f6',
+  },
+  components: {
+    tabHeader: MyCustomTabHeader,
+    tabHeaderProps: { 
+      showCloseButton: true,
+      closeIcon: 'x',
+      confirmClose: true
+    }
+  }
+};
+```
+
+Your custom component would implement a standard interface:
+
+```svelte
+<!-- MyCustomTabHeader.svelte -->
+<script lang="ts">
+  // Required props that ttabs will pass to your component
+  export let tabId: string;
+  export let tabName: string;
+  export let isActive: boolean;
+  export let ttabs: Ttabs;
+  export let onSelect: () => void;
+  export let onClose: () => void;
+  export let onDragStart: (event: DragEvent) => void;
+  export let onDragEnd: (event: DragEvent) => void;
+  
+  // Custom props from tabHeaderProps
+  export let showCloseButton = false;
+  export let closeIcon = '×';
+  export let confirmClose = false;
+</script>
+
+<!-- Your custom tab header implementation -->
+<div class="my-fancy-tab" class:active={isActive} on:click={onSelect}>
+  {tabName}
+  
+  {#if showCloseButton}
+    <button on:click|stopPropagation={onClose}>
+      {closeIcon}
+    </button>
+  {/if}
+</div>
+```
+
+This approach gives you complete control over the appearance and behavior of specific elements while maintaining the core layout functionality. 

@@ -454,6 +454,182 @@ Skeleton UI and similar frameworks often use CSS variants for theming (like `var
 
 This approach ensures that your ttabs components maintain visual coherence with the rest of your Skeleton UI application, while still allowing for the flexibility of the theme inheritance system.
 
+## Component-based Customization
+
+Beyond variables and classes, we can extend the theme system to allow complete component replacements. This enables applications to fully control the rendering of specific elements while maintaining the core layout functionality.
+
+### Adding Component Overrides
+
+We'll enhance the `TtabsTheme` interface to include component overrides:
+
+```typescript
+export interface TtabsTheme {
+  /**
+   * Name of the theme
+   */
+  name: string;
+  
+  /**
+   * Base theme to extend (optional)
+   * If not provided, extends DEFAULT_THEME
+   */
+  extends?: TtabsTheme;
+  
+  /**
+   * CSS variables for styling
+   * Can be partial - only overriding specific variables
+   */
+  variables: Partial<TtabsCssVariables>;
+  
+  /**
+   * Optional CSS class overrides for different elements
+   */
+  classes?: Partial<Record<TtabsElementType, string>>;
+  
+  /**
+   * Optional component replacements 
+   * These override the default rendering of specific elements
+   */
+  components?: {
+    tabHeader?: Component<any>;
+    tabHeaderProps?: Record<string, any>;
+    // Other component overrides could be added in the future
+  };
+}
+```
+
+This allows users to provide their own implementation for elements like tab headers while keeping the core functionality intact:
+
+### Example Usage
+
+```typescript
+// Custom theme with component replacement
+const customTheme: TtabsTheme = {
+  name: 'custom',
+  variables: {
+    '--ttabs-active-tab-indicator': '#3b82f6'
+  },
+  classes: {
+    'tab-header': 'custom-tab-header',
+  },
+  components: {
+    tabHeader: MyCustomTabHeader,
+    tabHeaderProps: { 
+      showCloseButton: true,
+      closeIcon: 'x', // Could be a string or a component
+      confirmClose: false
+    }
+  }
+};
+```
+
+The custom tab header component would follow a standard interface:
+
+```svelte
+<!-- MyCustomTabHeader.svelte -->
+<script lang="ts">
+  // Required props
+  export let tabId: string;
+  export let tabName: string;
+  export let isActive: boolean;
+  export let ttabs: Ttabs;
+  export let onSelect: () => void;
+  export let onClose: () => void;
+  export let onDragStart: (event: DragEvent) => void;
+  export let onDragEnd: (event: DragEvent) => void;
+  
+  // Optional props from theme
+  export let showCloseButton = false;
+  export let closeIcon = '×';
+  export let confirmClose = false;
+  
+  function handleClose(event: MouseEvent) {
+    event.stopPropagation();
+    
+    if (confirmClose) {
+      if (confirm(`Close tab "${tabName}"?`)) {
+        onClose();
+      }
+    } else {
+      onClose();
+    }
+  }
+</script>
+
+<div class="my-custom-tab {isActive ? 'active' : ''}" 
+     on:click={onSelect}
+     draggable="true"
+     on:dragstart={onDragStart}
+     on:dragend={onDragEnd}>
+  <!-- Custom icon could go here -->
+  <span class="tab-name">{tabName}</span>
+  
+  {#if showCloseButton}
+    <button class="close-btn" on:click={handleClose}>
+      {typeof closeIcon === 'string' ? closeIcon : <svelte:component this={closeIcon} />}
+    </button>
+  {/if}
+</div>
+
+<style>
+  /* Custom styling */
+</style>
+```
+
+### Implementation in TilePanel
+
+The TilePanel component would check for custom components in the theme:
+
+```svelte
+{#each tabs as tabId}
+  {#if ttabs.theme?.components?.tabHeader}
+    <!-- Custom tab header component -->
+    <svelte:component 
+      this={ttabs.theme.components.tabHeader}
+      {tabId}
+      tabName={ttabs.getTile(tabId)?.name || 'Unnamed Tab'}
+      isActive={tabId === activeTab}
+      {ttabs}
+      onSelect={() => selectTab(tabId)}
+      onClose={() => closeTab(tabId)}
+      onDragStart={(e) => onDragStart(e, tabId)}
+      onDragEnd={onDragEnd}
+      {...(ttabs.theme.components.tabHeaderProps || {})}
+    />
+  {:else}
+    <!-- Default tab header implementation -->
+    <div 
+      class="ttabs-tab-header {tabId === activeTab ? 'active' : ''} {ttabs.getThemeClass('tab-header')} {tabId === activeTab ? ttabs.getThemeClass('tab-header-active') : ''}"
+      on:click={() => selectTab(tabId)}
+      draggable="true"
+      on:dragstart={(e) => onDragStart(e, tabId)}
+      on:dragend={onDragEnd}
+      data-tab-id={tabId}
+    >
+      <!-- Default implementation -->
+      <span class="ttabs-tab-title">{ttabs.getTile(tabId)?.name || 'Unnamed Tab'}</span>
+      
+      <button 
+        class="ttabs-tab-close {ttabs.getThemeClass('tab-close-button')}" 
+        on:click|stopPropagation={() => closeTab(tabId)}
+      >
+        ×
+      </button>
+    </div>
+  {/if}
+{/each}
+```
+
+### Benefits of Component-based Customization
+
+1. **Complete control**: Applications can implement their own element designs and behaviors
+2. **Custom functionality**: Add application-specific features like close confirmation or special indicators
+3. **Framework compatibility**: Custom components can integrate with any UI framework
+4. **Progressive enhancement**: Simpler use cases can still use variables and classes
+5. **Theme inheritance**: Component overrides work alongside theme inheritance, allowing for extension
+
+This approach offers maximum flexibility while maintaining the core layout functionality of ttabs.
+
 ## Implementation Plan
 
 1. Update the `TtabsTheme` interface in `theme-types.ts`
