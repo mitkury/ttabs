@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Ttabs, TileGrid } from '$lib/ttabs';
-  import type { TilePanel } from '$lib/ttabs/types/tile-types';
+  import type { TilePanel, TileTab } from '$lib/ttabs/types/tile-types';
   
   // Initialize ttabs on component mount
   const ttabs = new Ttabs({
@@ -10,320 +10,111 @@
   // Create the root grid and store its ID
   let rootId = $state(createCustomLayout());
   
-  // Create a custom layout structure
+  // Create a custom layout structure using built-in methods
   function createCustomLayout() {
-    // Create basic structure
-    const rootId = ttabs.addTile({
-      type: 'grid',
-      rows: []
-    });
+    // Create root grid
+    const rootId = ttabs.addGrid();
     
-    const mainRowId = ttabs.addTile({
-      parent: rootId,
-      type: 'row',
-      columns: [],
-      height: 100
-    });
-    
-    // Add the row to the root grid
-    ttabs.updateTile(rootId, {
-      rows: [mainRowId]
-    });
+    // Create main row
+    const mainRowId = ttabs.addRow(rootId, 100);
     
     // Create columns
-    const leftColumnId = ttabs.addTile({
-      parent: mainRowId,
-      type: 'column',
-      child: '',
-      width: 20 // 20% width
-    });
-    
-    const rightColumnId = ttabs.addTile({
-      parent: mainRowId,
-      type: 'column',
-      child: '',
-      width: 80 // 80% width
-    });
-    
-    // Add columns to the row
-    ttabs.updateTile(mainRowId, {
-      columns: [leftColumnId, rightColumnId]
-    });
+    const leftColumnId = ttabs.addColumn(mainRowId, 20);
+    const rightColumnId = ttabs.addColumn(mainRowId, 80);
     
     // Create a panel for the left column
-    const leftPanelId = ttabs.addTile({
-      parent: leftColumnId,
-      type: 'panel',
-      tabs: [],
-      activeTab: null
-    });
+    const leftPanelId = ttabs.addPanel(leftColumnId);
     
-    // Update left column with its panel
-    ttabs.updateTile(leftColumnId, { child: leftPanelId });
+    // Create explorer tab
+    const explorerTabId = ttabs.addTab(leftPanelId, 'Explorer');
     
-    // Create explorer tab for left panel
-    const explorerTabId = ttabs.addTile({
-      parent: leftPanelId,
-      type: 'tab',
-      name: 'Explorer',
-      content: ''
-    });
-    
-    // Create content for explorer tab
-    const explorerContentId = ttabs.addTile({
-      parent: explorerTabId,
-      type: 'content',
-      contentType: 'explorer'
-    });
-    
-    // Update explorer tab with its content
-    ttabs.updateTile(explorerTabId, { content: explorerContentId });
-    
-    // Update left panel with its tab
-    ttabs.updateTile(leftPanelId, {
-      tabs: [explorerTabId],
-      activeTab: explorerTabId
-    });
+    // Update content type for explorer tab
+    const explorerTab = ttabs.getTile<TileTab>(explorerTabId);
+    if (explorerTab && explorerTab.content) {
+      ttabs.updateTile(explorerTab.content, { contentType: 'explorer' });
+    }
     
     // Create additional tabs for the left panel
-    const filesTabId = ttabs.addTile({
-      parent: leftPanelId,
-      type: 'tab',
-      name: 'Files',
-      content: ''
-    });
+    const filesTabId = ttabs.addTab(leftPanelId, 'Files', false);
+    const searchTabId = ttabs.addTab(leftPanelId, 'Search', false);
     
-    const searchTabId = ttabs.addTile({
-      parent: leftPanelId,
-      type: 'tab',
-      name: 'Search',
-      content: ''
-    });
+    // Update content types
+    const filesTab = ttabs.getTile<TileTab>(filesTabId);
+    if (filesTab && filesTab.content) {
+      ttabs.updateTile(filesTab.content, { contentType: 'files' });
+    }
     
-    // Create content for additional tabs
-    const filesContentId = ttabs.addTile({
-      parent: filesTabId,
-      type: 'content',
-      contentType: 'files'
-    });
-    
-    const searchContentId = ttabs.addTile({
-      parent: searchTabId,
-      type: 'content',
-      contentType: 'search'
-    });
-    
-    // Update additional tabs with their content
-    ttabs.updateTile(filesTabId, { content: filesContentId });
-    ttabs.updateTile(searchTabId, { content: searchContentId });
-    
-    // Add the new tabs to the left panel
-    ttabs.updateTile(leftPanelId, {
-      tabs: [explorerTabId, filesTabId, searchTabId],
-      activeTab: explorerTabId
-    });
+    const searchTab = ttabs.getTile<TileTab>(searchTabId);
+    if (searchTab && searchTab.content) {
+      ttabs.updateTile(searchTab.content, { contentType: 'search' });
+    }
     
     // Create a grid for the right column
-    const rightGridId = ttabs.addTile({
-      parent: rightColumnId,
-      type: 'grid',
-      rows: []
-    });
-    
-    // Update right column with its grid
-    ttabs.updateTile(rightColumnId, { child: rightGridId });
+    const rightGridId = ttabs.addGrid(rightColumnId);
     
     // Create two rows for the right grid
-    const upperRowId = ttabs.addTile({
-      parent: rightGridId,
-      type: 'row',
-      columns: [],
-      height: 60 // 60% height
-    });
-    
-    const lowerRowId = ttabs.addTile({
-      parent: rightGridId,
-      type: 'row',
-      columns: [],
-      height: 40 // 40% height
-    });
-    
-    // Add rows to the right grid
-    ttabs.updateTile(rightGridId, {
-      rows: [upperRowId, lowerRowId]
-    });
+    const upperRowId = ttabs.addRow(rightGridId, 60);
+    const lowerRowId = ttabs.addRow(rightGridId, 40);
     
     // Create a column for the upper row
-    const upperColumnId = ttabs.addTile({
-      parent: upperRowId,
-      type: 'column',
-      child: '',
-      width: 100 // 100% width
-    });
-    
-    // Add the column to the upper row
-    ttabs.updateTile(upperRowId, {
-      columns: [upperColumnId]
-    });
+    const upperColumnId = ttabs.addColumn(upperRowId, 100);
     
     // Create a panel for the upper column
-    const upperPanelId = ttabs.addTile({
-      parent: upperColumnId,
-      type: 'panel',
-      tabs: [],
-      activeTab: null
-    });
-    
-    // Update upper column with its panel
-    ttabs.updateTile(upperColumnId, { child: upperPanelId });
+    const upperPanelId = ttabs.addPanel(upperColumnId);
     
     // Create editor tab for upper panel
-    const editorTabId = ttabs.addTile({
-      parent: upperPanelId,
-      type: 'tab',
-      name: 'Editor',
-      content: ''
-    });
+    const editorTabId = ttabs.addTab(upperPanelId, 'Editor');
     
-    // Create content for editor tab
-    const editorContentId = ttabs.addTile({
-      parent: editorTabId,
-      type: 'content',
-      contentType: 'editor'
-    });
-    
-    // Update editor tab with its content
-    ttabs.updateTile(editorTabId, { content: editorContentId });
-    
-    // Update upper panel with its tab
-    ttabs.updateTile(upperPanelId, {
-      tabs: [editorTabId],
-      activeTab: editorTabId
-    });
+    // Update content type for editor tab
+    const editorTab = ttabs.getTile<TileTab>(editorTabId);
+    if (editorTab && editorTab.content) {
+      ttabs.updateTile(editorTab.content, { contentType: 'editor' });
+    }
     
     // Create additional tabs for upper panel
-    const documentTabId = ttabs.addTile({
-      parent: upperPanelId,
-      type: 'tab',
-      name: 'Document',
-      content: ''
-    });
+    const documentTabId = ttabs.addTab(upperPanelId, 'Document', false);
+    const settingsTabId = ttabs.addTab(upperPanelId, 'Settings', false);
     
-    const settingsTabId = ttabs.addTile({
-      parent: upperPanelId,
-      type: 'tab',
-      name: 'Settings',
-      content: ''
-    });
+    // Update content types
+    const documentTab = ttabs.getTile<TileTab>(documentTabId);
+    if (documentTab && documentTab.content) {
+      ttabs.updateTile(documentTab.content, { contentType: 'document' });
+    }
     
-    // Create content for additional tabs
-    const documentContentId = ttabs.addTile({
-      parent: documentTabId,
-      type: 'content',
-      contentType: 'document'
-    });
-    
-    const settingsContentId = ttabs.addTile({
-      parent: settingsTabId,
-      type: 'content',
-      contentType: 'settings'
-    });
-    
-    // Update additional tabs with their content
-    ttabs.updateTile(documentTabId, { content: documentContentId });
-    ttabs.updateTile(settingsTabId, { content: settingsContentId });
-    
-    // Add the new tabs to the upper panel
-    ttabs.updateTile(upperPanelId, {
-      tabs: [editorTabId, documentTabId, settingsTabId],
-      activeTab: editorTabId
-    });
+    const settingsTab = ttabs.getTile<TileTab>(settingsTabId);
+    if (settingsTab && settingsTab.content) {
+      ttabs.updateTile(settingsTab.content, { contentType: 'settings' });
+    }
     
     // Create a column for the lower row
-    const lowerColumnId = ttabs.addTile({
-      parent: lowerRowId,
-      type: 'column',
-      child: '',
-      width: 100 // 100% width
-    });
-    
-    // Add the column to the lower row
-    ttabs.updateTile(lowerRowId, {
-      columns: [lowerColumnId]
-    });
+    const lowerColumnId = ttabs.addColumn(lowerRowId, 100);
     
     // Create a panel for the lower column
-    const lowerPanelId = ttabs.addTile({
-      parent: lowerColumnId,
-      type: 'panel',
-      tabs: [],
-      activeTab: null
-    });
-    
-    // Update lower column with its panel
-    ttabs.updateTile(lowerColumnId, { child: lowerPanelId });
+    const lowerPanelId = ttabs.addPanel(lowerColumnId);
     
     // Create console tab for lower panel
-    const consoleTabId = ttabs.addTile({
-      parent: lowerPanelId,
-      type: 'tab',
-      name: 'Console',
-      content: ''
-    });
+    const consoleTabId = ttabs.addTab(lowerPanelId, 'Console');
     
-    // Create content for console tab
-    const consoleContentId = ttabs.addTile({
-      parent: consoleTabId,
-      type: 'content',
-      contentType: 'console'
-    });
-    
-    // Update console tab with its content
-    ttabs.updateTile(consoleTabId, { content: consoleContentId });
-    
-    // Update lower panel with its tab
-    ttabs.updateTile(lowerPanelId, {
-      tabs: [consoleTabId],
-      activeTab: consoleTabId
-    });
+    // Update content type for console tab
+    const consoleTab = ttabs.getTile<TileTab>(consoleTabId);
+    if (consoleTab && consoleTab.content) {
+      ttabs.updateTile(consoleTab.content, { contentType: 'console' });
+    }
     
     // Create additional tabs for lower panel
-    const outputTabId = ttabs.addTile({
-      parent: lowerPanelId,
-      type: 'tab',
-      name: 'Output',
-      content: ''
-    });
+    const outputTabId = ttabs.addTab(lowerPanelId, 'Output', false);
+    const debugTabId = ttabs.addTab(lowerPanelId, 'Debug', false);
     
-    const debugTabId = ttabs.addTile({
-      parent: lowerPanelId,
-      type: 'tab',
-      name: 'Debug',
-      content: ''
-    });
+    // Update content types
+    const outputTab = ttabs.getTile<TileTab>(outputTabId);
+    if (outputTab && outputTab.content) {
+      ttabs.updateTile(outputTab.content, { contentType: 'output' });
+    }
     
-    // Create content for additional tabs
-    const outputContentId = ttabs.addTile({
-      parent: outputTabId,
-      type: 'content',
-      contentType: 'output'
-    });
-    
-    const debugContentId = ttabs.addTile({
-      parent: debugTabId,
-      type: 'content',
-      contentType: 'debug'
-    });
-    
-    // Update additional tabs with their content
-    ttabs.updateTile(outputTabId, { content: outputContentId });
-    ttabs.updateTile(debugTabId, { content: debugContentId });
-    
-    // Add the new tabs to the lower panel
-    ttabs.updateTile(lowerPanelId, {
-      tabs: [consoleTabId, outputTabId, debugTabId],
-      activeTab: consoleTabId
-    });
+    const debugTab = ttabs.getTile<TileTab>(debugTabId);
+    if (debugTab && debugTab.content) {
+      ttabs.updateTile(debugTab.content, { contentType: 'debug' });
+    }
     
     // Set active panel
     ttabs.setActivePanel(upperPanelId);
@@ -336,41 +127,9 @@
     rootId = createCustomLayout();
   }
   
-  // Function to create a new tab
+  // Function to create a new tab using the built-in method
   function createNewTab() {
-    const allTiles = ttabs.getTiles();
-    
-    // Get all panels
-    const panels = Object.values(allTiles)
-      .filter((tile): tile is TilePanel => tile.type === 'panel');
-    
-    if (panels.length > 0) {
-      const firstPanel = panels[0];
-      
-      // Create a new tab with a unique name
-      const newTabId = ttabs.addTile({
-        parent: firstPanel.id,
-        type: 'tab',
-        name: `New Tab ${Math.floor(Math.random() * 1000)}`,
-        content: ''
-      });
-      
-      // Create content for the new tab
-      const newContentId = ttabs.addTile({
-        parent: newTabId,
-        type: 'content',
-        contentType: 'editor'
-      });
-      
-      // Update the tab with its content
-      ttabs.updateTile(newTabId, { content: newContentId });
-      
-      // Add the new tab to the panel and set it as active
-      ttabs.updateTile(firstPanel.id, {
-        tabs: [...firstPanel.tabs, newTabId],
-        activeTab: newTabId
-      });
-    }
+    ttabs.createNewTabInFirstPanel(`New Tab ${Math.floor(Math.random() * 1000)}`, 'editor');
   }
 </script>
 

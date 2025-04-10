@@ -831,20 +831,311 @@ export class Ttabs {
   }
 
   /**
-   * Reset the state to empty
+   * Reset the state
    */
   resetState(): void {
-    // In runes, we can replace the entire state
-    for (const key in this.tiles) {
-      delete this.tiles[key];
-    }
-
-    // Clear active panel
+    // With runes we can directly assign
+    this.tiles = {};
     this.activePanel = null;
   }
 
   /**
-   * Serialize the current layout to JSON
+   * Adds a grid to the layout
+   * @param parentId Optional parent column ID
+   * @returns ID of the new grid
+   * @throws Error if parent hierarchy rules are violated
+   */
+  addGrid(parentId?: string | null): string {
+    if (parentId) {
+      const parent = this.getTile(parentId);
+      if (!parent) {
+        throw new Error(`Parent tile with ID ${parentId} not found`);
+      }
+      
+      // Validate parent hierarchy rules
+      if (parent.type === 'column') {
+        // A grid can be added to a column
+      } else {
+        throw new Error(`Cannot add a grid to a parent of type ${parent.type}. Grids can only be children of columns.`);
+      }
+    }
+    
+    const gridId = this.addTile({
+      type: 'grid',
+      parent: parentId || null,
+      rows: []
+    });
+    
+    // If parent is a column, update the column's child reference
+    if (parentId) {
+      const parent = this.getTile(parentId);
+      if (parent && parent.type === 'column') {
+        this.updateTile(parentId, {
+          child: gridId
+        });
+      }
+    }
+    
+    return gridId;
+  }
+  
+  /**
+   * Adds a row to a grid
+   * @param parentId ID of the parent grid
+   * @param height Height of the row as a percentage
+   * @returns ID of the new row
+   * @throws Error if parent hierarchy rules are violated
+   */
+  addRow(parentId: string, height: number = 100): string {
+    const parent = this.getTile(parentId);
+    if (!parent) {
+      throw new Error(`Parent tile with ID ${parentId} not found`);
+    }
+    
+    // Validate parent hierarchy rules
+    if (parent.type !== 'grid') {
+      throw new Error(`Cannot add a row to a parent of type ${parent.type}. Rows can only be children of grids.`);
+    }
+    
+    const grid = parent as TileGrid;
+    
+    // Create the row
+    const rowId = this.addTile({
+      type: 'row',
+      parent: parentId,
+      columns: [],
+      height
+    });
+    
+    // Update grid's rows
+    this.updateTile(parentId, {
+      rows: [...grid.rows, rowId]
+    });
+    
+    return rowId;
+  }
+  
+  /**
+   * Adds a column to a row
+   * @param parentId ID of the parent row
+   * @param width Width of the column as a percentage
+   * @returns ID of the new column
+   * @throws Error if parent hierarchy rules are violated
+   */
+  addColumn(parentId: string, width: number = 100): string {
+    const parent = this.getTile(parentId);
+    if (!parent) {
+      throw new Error(`Parent tile with ID ${parentId} not found`);
+    }
+    
+    // Validate parent hierarchy rules
+    if (parent.type !== 'row') {
+      throw new Error(`Cannot add a column to a parent of type ${parent.type}. Columns can only be children of rows.`);
+    }
+    
+    const row = parent as TileRow;
+    
+    // Create the column
+    const columnId = this.addTile({
+      type: 'column',
+      parent: parentId,
+      child: '',
+      width
+    });
+    
+    // Update row's columns
+    this.updateTile(parentId, {
+      columns: [...row.columns, columnId]
+    });
+    
+    return columnId;
+  }
+  
+  /**
+   * Adds a panel to a column
+   * @param parentId ID of the parent column
+   * @returns ID of the new panel
+   * @throws Error if parent hierarchy rules are violated
+   */
+  addPanel(parentId: string): string {
+    const parent = this.getTile(parentId);
+    if (!parent) {
+      throw new Error(`Parent tile with ID ${parentId} not found`);
+    }
+    
+    // Validate parent hierarchy rules
+    if (parent.type !== 'column') {
+      throw new Error(`Cannot add a panel to a parent of type ${parent.type}. Panels can only be children of columns.`);
+    }
+    
+    const column = parent as TileColumn;
+    
+    // Check if column already has a child
+    if (column.child && this.getTile(column.child)) {
+      throw new Error(`Column ${parentId} already has a child. Remove it first.`);
+    }
+    
+    // Create the panel
+    const panelId = this.addTile({
+      type: 'panel',
+      parent: parentId,
+      tabs: [],
+      activeTab: null
+    });
+    
+    // Update column's child
+    this.updateTile(parentId, {
+      child: panelId
+    });
+    
+    return panelId;
+  }
+  
+  /**
+   * Adds a tab to a panel
+   * @param parentId ID of the parent panel
+   * @param name Name of the tab
+   * @param setActive Whether to set this tab as active
+   * @returns ID of the new tab
+   * @throws Error if parent hierarchy rules are violated
+   */
+  addTab(parentId: string, name: string, setActive: boolean = true): string {
+    const parent = this.getTile(parentId);
+    if (!parent) {
+      throw new Error(`Parent tile with ID ${parentId} not found`);
+    }
+    
+    // Validate parent hierarchy rules
+    if (parent.type !== 'panel') {
+      throw new Error(`Cannot add a tab to a parent of type ${parent.type}. Tabs can only be children of panels.`);
+    }
+    
+    const panel = parent as TilePanel;
+    
+    // Create the tab
+    const tabId = this.addTile({
+      type: 'tab',
+      parent: parentId,
+      name,
+      content: ''
+    });
+    
+    // Create content for the tab
+    const contentId = this.addTile({
+      type: 'content',
+      parent: tabId,
+      contentType: 'default'
+    });
+    
+    // Update tab with its content
+    this.updateTile(tabId, {
+      content: contentId
+    });
+    
+    // Update panel's tabs
+    const updatedTabs = [...panel.tabs, tabId];
+    this.updateTile(parentId, {
+      tabs: updatedTabs,
+      ...(setActive ? { activeTab: tabId } : {})
+    });
+    
+    return tabId;
+  }
+  
+  /**
+   * Adds content to a tab
+   * @param parentId ID of the parent tab
+   * @param contentType Type of content
+   * @returns ID of the new content
+   * @throws Error if parent hierarchy rules are violated
+   */
+  addContent(parentId: string, contentType: string = 'default'): string {
+    const parent = this.getTile(parentId);
+    if (!parent) {
+      throw new Error(`Parent tile with ID ${parentId} not found`);
+    }
+    
+    // Validate parent hierarchy rules
+    if (parent.type !== 'tab') {
+      throw new Error(`Cannot add content to a parent of type ${parent.type}. Content can only be child of a tab.`);
+    }
+    
+    const tab = parent as TileTab;
+    
+    // Check if tab already has content
+    if (tab.content && this.getTile(tab.content)) {
+      throw new Error(`Tab ${parentId} already has content. Remove it first.`);
+    }
+    
+    // Create the content
+    const contentId = this.addTile({
+      type: 'content',
+      parent: parentId,
+      contentType
+    });
+    
+    // Update tab's content
+    this.updateTile(parentId, {
+      content: contentId
+    });
+    
+    return contentId;
+  }
+  
+  /**
+   * Creates a new tab in the active panel
+   * @param name Name of the tab
+   * @param contentType Optional content type
+   * @returns ID of the new tab, or null if no active panel exists
+   */
+  createNewTabInActivePanel(name: string, contentType: string = 'default'): string | null {
+    const activePanel = this.getActivePanelTile();
+    if (!activePanel) return null;
+    
+    const tabId = this.addTab(activePanel.id, name, true);
+    
+    // Update tab content type
+    const tab = this.getTile<TileTab>(tabId);
+    if (tab && tab.content) {
+      this.updateTile(tab.content, {
+        contentType
+      });
+    }
+    
+    return tabId;
+  }
+  
+  /**
+   * Creates a new tab in the first available panel
+   * @param name Name of the tab
+   * @param contentType Optional content type
+   * @returns ID of the new tab, or null if no panels exist
+   */
+  createNewTabInFirstPanel(name: string, contentType: string = 'default'): string | null {
+    const allTiles = this.getTiles();
+    
+    // Find first panel
+    const panels = Object.values(allTiles)
+      .filter((tile): tile is TilePanel => tile.type === 'panel');
+    
+    if (panels.length === 0) return null;
+    
+    const firstPanel = panels[0];
+    const tabId = this.addTab(firstPanel.id, name, true);
+    
+    // Update tab content type
+    const tab = this.getTile<TileTab>(tabId);
+    if (tab && tab.content) {
+      this.updateTile(tab.content, {
+        contentType
+      });
+    }
+    
+    return tabId;
+  }
+  
+  /**
+   * Serialize the layout to JSON
    */
   serializeLayout(): string {
     return serializeTiles(this.tiles);
