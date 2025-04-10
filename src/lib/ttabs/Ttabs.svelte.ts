@@ -16,8 +16,10 @@ interface ContentComponent {
 export interface TtabsOptions {
   /**
    * Initial tiles state (optional)
+   * If provided, the instance will be initialized with this state
+   * If not provided, a default root grid will be created
    */
-  initialState?: Record<string, Tile>;
+  initialState?: Record<string, Tile> | Tile[];
 
   /**
    * Auto-save storage key (optional)
@@ -35,13 +37,38 @@ export class Ttabs {
   private activePanel = $state<string | null>(null);
   private storageKey?: string;
   
+  // Root grid tracking
+  rootGridId = $state<string | null>(null);
+  
   // Component registry
   private componentRegistry = $state<Record<string, ContentComponent>>({});
 
   constructor(options: TtabsOptions = {}) {
     // Initialize state
     if (options.initialState) {
-      this.tiles = options.initialState;
+      if (Array.isArray(options.initialState)) {
+        // Convert array to record
+        this.tiles = {}; 
+        
+        // Add each tile to the state
+        options.initialState.forEach(tile => {
+          this.tiles[tile.id] = tile;
+        });
+        
+        // Find the root grid in the initial state
+        this.rootGridId = Object.values(this.tiles)
+          .find(tile => tile.type === 'grid' && !tile.parent)?.id || null;
+      } else {
+        // Record format provided directly
+        this.tiles = options.initialState;
+        
+        // Find the root grid
+        this.rootGridId = Object.values(this.tiles)
+          .find(tile => tile.type === 'grid' && !tile.parent)?.id || null;
+      }
+    } else {
+      // Auto-create a root grid if no initial state is provided
+      this.rootGridId = this.addGrid();
     }
 
     this.storageKey = options.storageKey;
@@ -943,6 +970,7 @@ export class Ttabs {
     // With runes we can directly assign
     this.tiles = {};
     this.activePanel = null;
+    this.rootGridId = null;
   }
 
   /**
@@ -1215,7 +1243,9 @@ export class Ttabs {
    * Serialize the layout to JSON
    */
   serializeLayout(): string {
-    return serializeTiles(this.tiles);
+    // Get all tiles as an array
+    const tilesArray = Object.values(this.tiles);
+    return JSON.stringify(tilesArray);
   }
 
   /**
@@ -1223,6 +1253,29 @@ export class Ttabs {
    */
   deserializeLayout(json: string): boolean {
     try {
+      // Try to parse as array format first
+      try {
+        const parsedTiles = JSON.parse(json) as Tile[];
+        if (Array.isArray(parsedTiles)) {
+          // Reset current state
+          this.resetState();
+          
+          // Set tiles from array
+          parsedTiles.forEach(tile => {
+            this.tiles[tile.id] = tile;
+          });
+          
+          // Find the root grid
+          this.rootGridId = Object.values(this.tiles)
+            .find(tile => tile.type === 'grid' && !tile.parent)?.id || null;
+          
+          return true;
+        }
+      } catch (e) {
+        // Fall back to record format if array parsing fails
+      }
+      
+      // Try record format (legacy)
       const parsedTiles = deserializeTiles(json);
       if (!parsedTiles) return false;
 
@@ -1233,6 +1286,10 @@ export class Ttabs {
       Object.entries(parsedTiles).forEach(([key, value]) => {
         this.tiles[key] = value as Tile;
       });
+      
+      // Find the root grid
+      this.rootGridId = Object.values(this.tiles)
+        .find(tile => tile.type === 'grid' && !tile.parent)?.id || null;
 
       return true;
     } catch (e) {
@@ -1290,5 +1347,53 @@ export class Ttabs {
     });
     
     return contentId;
+  }
+
+  /**
+   * Get the root grid ID
+   */
+  getRootGridId(): string | null {
+    // If root grid ID is already set, return it
+    if (this.rootGridId) {
+      return this.rootGridId;
+    }
+    
+    // Find the grid without a parent
+    const rootGrid = Object.values(this.getTiles())
+      .find(tile => tile.type === 'grid' && !tile.parent);
+    
+    // Store it for future use
+    if (rootGrid) {
+      this.rootGridId = rootGrid.id;
+    }
+    
+    return rootGrid?.id || null;
+  }
+  
+  /**
+   * Create a default empty layout
+   * This can be called to create a standard layout if needed
+   */
+  createDefaultLayout(): string {
+    // Create root grid if it doesn't exist
+    if (!this.getRootGridId()) {
+      this.rootGridId = this.addGrid();
+    }
+    
+    const rootId = this.rootGridId as string;
+    
+    // Create a main row
+    const mainRowId = this.addRow(rootId, 100);
+    
+    // Create a column
+    const mainColumnId = this.addColumn(mainRowId, 100);
+    
+    // Create a panel
+    const mainPanelId = this.addPanel(mainColumnId);
+    
+    // Create a default tab
+    this.addTab(mainPanelId, 'New Tab');
+    
+    return rootId;
   }
 }

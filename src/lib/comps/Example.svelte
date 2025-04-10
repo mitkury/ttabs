@@ -1,12 +1,13 @@
 <script lang="ts">
-  import { Ttabs, TileGrid } from '$lib/ttabs';
+  import { createTtabs, TtabsRoot } from '$lib/ttabs';
   import type { TilePanel, TileTab } from '$lib/ttabs/types/tile-types';
   import EditorComponent from './EditorComponent.svelte';
   import DocumentComponent from './DocumentComponent.svelte';
   import SidePanelComponent from './SidePanelComponent.svelte';
+  import { onMount } from 'svelte';
   
-  // Initialize ttabs on component mount
-  const ttabs = new Ttabs({
+  // Initialize ttabs with the convenience function
+  const ttabs = createTtabs({
     storageKey: 'ttabs-layout'
   });
   
@@ -17,15 +18,46 @@
   
   // Store panel ID for adding new tabs
   let upperPanelId = $state('');
+  let isInitialized = $state(false);
   
-  // Create the root grid and store its ID
-  let rootId = $state(createCustomLayout());
-  
-  // Create a custom layout structure using built-in methods
-  function createCustomLayout() {
-    // Create root grid
-    const rootId = ttabs.addGrid();
+  // Setup the layout on mount
+  onMount(() => {
+    // Check if we have a stored layout
+    const rootId = ttabs.getRootGridId();
     
+    if (!rootId) {
+      // No valid layout found, create a new one
+      setupCustomLayout();
+    }
+    
+    isInitialized = true;
+  });
+  
+  // Setup the custom layout (no need to track root grid ID anymore)
+  function setupCustomLayout() {
+    // Get the root grid ID
+    const rootId = ttabs.getRootGridId();
+    
+    // If no root grid exists, create one
+    if (!rootId) {
+      console.error('No root grid found, creating one...');
+      const newRootId = ttabs.addGrid();
+      
+      if (!newRootId) {
+        console.error('Failed to create root grid');
+        return;
+      }
+      
+      // Continue with the new root ID
+      createLayoutStructure(newRootId);
+    } else {
+      // Use the existing root ID
+      createLayoutStructure(rootId);
+    }
+  }
+  
+  // Helper to create the actual layout structure
+  function createLayoutStructure(rootId: string) {
     // Create main row
     const mainRowId = ttabs.addRow(rootId, 100);
     
@@ -117,13 +149,18 @@
     
     // Set active panel
     ttabs.setActivePanel(upperPanelId);
-    
-    return rootId;
   }
   
   // Function to reset the layout
   function resetLayout() {
-    rootId = createCustomLayout();
+    // Reset the state
+    ttabs.resetState();
+    
+    // Create a new root grid explicitly (will set the rootGridId internally)
+    ttabs.addGrid();
+    
+    // Now set up the custom layout
+    setupCustomLayout();
   }
   
   // Keep track of new tab count for naming
@@ -159,7 +196,11 @@
   </header>
   
   <main>
-    <TileGrid ttabs={ttabs} id={rootId} />
+    {#if isInitialized}
+      <TtabsRoot {ttabs} />
+    {:else}
+      <div class="loading">Initializing layout...</div>
+    {/if}
   </main>
 </div>
 
@@ -189,6 +230,15 @@
   main {
     flex: 1;
     overflow: hidden;
+  }
+  
+  .loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-size: 1.2rem;
+    color: #666;
   }
   
   button {
