@@ -773,6 +773,7 @@ export class Ttabs {
               const parentColumn = this.getTile<TileColumn>(grid.parent);
               if (child && parentColumn) {
                 this.updateTile(parentColumn.id, { child: child });
+                this.updateTile(child, { parent: parentColumn.id });
                 this.updateTile(grid.id, { rows: [] });
                 this.removeTile(grid.id);
               }
