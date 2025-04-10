@@ -1,46 +1,50 @@
 <script lang="ts">
-  import TileTab from './TileTab.svelte';
-  import type { TtabsProps } from './props';
-  import type { TilePanel as TilePanelType, TileTab as TileTabType } from '../types/tile-types';
-  import { onMount, onDestroy } from 'svelte';
-  import { browser } from '$app/environment';
-  
+  import TileTab from "./TileTab.svelte";
+  import type { TtabsProps } from "./props";
+  import type {
+    TilePanel as TilePanelType,
+    TileTab as TileTabType,
+  } from "../types/tile-types";
+  import { onMount, onDestroy } from "svelte";
+  import { browser } from "$app/environment";
+
   let { ttabs, id }: TtabsProps = $props();
-  
+
   // Get panel data
   const panel = $derived(ttabs.getTile<TilePanelType>(id));
-  
+
   // Get tabs and active tab
-  const tabs = $derived(panel?.type === 'panel' ? panel.tabs : []);
-  const activeTab = $derived(panel?.type === 'panel' ? panel.activeTab : null);
-  
+  const tabs = $derived(panel?.type === "panel" ? panel.tabs : []);
+  const activeTab = $derived(panel?.type === "panel" ? panel.activeTab : null);
+
   // Drag state
   let draggedTabId: string | null = $state(null);
   let draggedPanelId: string | null = $state(null);
   let dragOverTabId: string | null = $state(null);
-  let dragPosition: 'before' | 'after' | null = $state(null);
+  let dragPosition: "before" | "after" | null = $state(null);
   let tabBarElement: HTMLElement | null = $state(null);
   let contentElement: HTMLElement | null = $state(null);
   let isDragging = $state(false);
-  let dragTarget: { panelId: string; area: 'tab-bar' | 'content' } | null = $state(null);
-  let splitDirection: 'top' | 'right' | 'bottom' | 'left' | null = $state(null);
-  
+  let dragTarget: { panelId: string; area: "tab-bar" | "content" } | null =
+    $state(null);
+  let splitDirection: "top" | "right" | "bottom" | "left" | null = $state(null);
+
   onMount(() => {
     if (browser) {
       // Add mouseup event to reset visual indicators immediately
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener("mouseup", handleMouseUp);
       // Keep dragend as backup for when mouseup might not fire
-      document.addEventListener('dragend', resetDragState);
+      document.addEventListener("dragend", resetDragState);
     }
   });
-  
+
   onDestroy(() => {
     if (browser) {
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('dragend', resetDragState);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("dragend", resetDragState);
     }
   });
-  
+
   function handleMouseUp() {
     // Reset visual indicators immediately when mouse button is released
     // We'll just clear the visual indicators but keep the drag operation going
@@ -51,99 +55,104 @@
       splitDirection = null;
     }
   }
-  
+
   // Helper function to determine which quadrant of the content we're hovering over
-  function getQuadrant(e: DragEvent, element: HTMLElement): 'top' | 'right' | 'bottom' | 'left' {
-    if (!element) return 'bottom'; // Default fallback
-    
+  function getQuadrant(
+    e: DragEvent,
+    element: HTMLElement,
+  ): "top" | "right" | "bottom" | "left" {
+    if (!element) return "bottom"; // Default fallback
+
     const rect = element.getBoundingClientRect();
     const x = e.clientX - rect.left; // x position within the element
-    const y = e.clientY - rect.top;  // y position within the element
+    const y = e.clientY - rect.top; // y position within the element
     const width = rect.width;
     const height = rect.height;
-    
+
     // Calculate relative position (0-1)
     const relativeX = x / width;
     const relativeY = y / height;
-    
+
     // Simple quadrant detection
     // We use a diamond-like area division rather than just rectangles
     // This creates more natural quadrants for splitting
     if (relativeY < relativeX) {
       // We're either in the top or right quadrant
       if (relativeY < 1 - relativeX) {
-        return 'top';
+        return "top";
       } else {
-        return 'right';
+        return "right";
       }
     } else {
       // We're either in the left or bottom quadrant
       if (relativeY < 1 - relativeX) {
-        return 'left';
+        return "left";
       } else {
-        return 'bottom';
+        return "bottom";
       }
     }
   }
-  
+
   // Handle tab click
   function selectTab(tabId: string) {
-    if (panel?.type === 'panel') {
+    if (panel?.type === "panel") {
       ttabs.setActiveTab(tabId);
     }
   }
-  
+
   // Drag handlers
   function onDragStart(e: DragEvent, tabId: string) {
     // Tab is already active due to mousedown event
-    
+
     // Store the dragged tab ID and panel ID
     draggedTabId = tabId;
     draggedPanelId = id;
     isDragging = true;
-    
+
     // Store the panel ID and tab ID in the dataTransfer
     if (e.dataTransfer) {
       const dragData = {
         tabId,
         panelId: id,
-        action: 'move' // Changed from 'reorder' to 'move' to indicate it can be moved between panels
+        action: "move", // Changed from 'reorder' to 'move' to indicate it can be moved between panels
       };
-      e.dataTransfer.setData('application/json', JSON.stringify(dragData));
-      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData("application/json", JSON.stringify(dragData));
+      e.dataTransfer.effectAllowed = "move";
     }
   }
-  
+
   function onDragOver(e: DragEvent) {
     // Prevent default to allow drop
     e.preventDefault();
-    
+
     // Set the current drag target to tab bar of this panel
-    dragTarget = { panelId: id, area: 'tab-bar' };
-    
+    dragTarget = { panelId: id, area: "tab-bar" };
+
     // Skip if no tab bar
     if (!tabBarElement) {
       return;
     }
-    
+
     // Find the tab we're over based on mouse position
     const mouseX = e.clientX;
-    const tabElements = Array.from(tabBarElement.querySelectorAll('.ttabs-tab-header')) as HTMLElement[];
-    
+    const tabElements = Array.from(
+      tabBarElement.querySelectorAll(".ttabs-tab-header"),
+    ) as HTMLElement[];
+
     // If no tabs, reset state
     if (tabElements.length === 0) {
       dragOverTabId = null;
       dragPosition = null;
       return;
     }
-    
+
     // Check each tab to see if we're over it
     let foundTab = false;
-    
+
     for (const tabElement of tabElements) {
       const rect = tabElement.getBoundingClientRect();
-      const tabId = tabElement.getAttribute('data-tab-id');
-      
+      const tabId = tabElement.getAttribute("data-tab-id");
+
       // Check if mouse is over this tab
       if (mouseX >= rect.left && mouseX <= rect.right) {
         // If we're over the dragged tab itself, don't set it as a drop target
@@ -153,11 +162,11 @@
           dragPosition = null;
           break;
         }
-        
+
         // Determine left/right position
         const midpoint = rect.left + rect.width / 2;
-        const position = mouseX < midpoint ? 'before' : 'after';
-        
+        const position = mouseX < midpoint ? "before" : "after";
+
         // Update state
         dragOverTabId = tabId;
         dragPosition = position;
@@ -165,208 +174,218 @@
         break;
       }
     }
-    
+
     // If we're not over any tab, see if we should append to the end
     if (!foundTab) {
       // Check if we're after the last tab
       const lastTab = tabElements[tabElements.length - 1];
       if (lastTab && mouseX > lastTab.getBoundingClientRect().right) {
-        dragOverTabId = lastTab.getAttribute('data-tab-id');
-        dragPosition = 'after';
+        dragOverTabId = lastTab.getAttribute("data-tab-id");
+        dragPosition = "after";
       } else {
         // We're not over any tab or after the last tab
         dragOverTabId = null;
         dragPosition = null;
       }
     }
-    
+
     // Reset split direction when over tab bar
     splitDirection = null;
   }
-  
+
   function onDragEnter(e: DragEvent) {
     e.preventDefault();
-    dragTarget = { panelId: id, area: 'tab-bar' };
+    dragTarget = { panelId: id, area: "tab-bar" };
     splitDirection = null;
   }
-  
+
   function onDragLeave(e: DragEvent) {
     e.preventDefault();
     // Only clear if we're the current target
-    if (dragTarget?.panelId === id && dragTarget?.area === 'tab-bar') {
+    if (dragTarget?.panelId === id && dragTarget?.area === "tab-bar") {
       dragTarget = null;
       dragOverTabId = null;
       dragPosition = null;
     }
   }
-  
+
   // Content area drag handlers
   function onContentDragEnter(e: DragEvent) {
     e.preventDefault();
-    dragTarget = { panelId: id, area: 'content' };
-    
+    dragTarget = { panelId: id, area: "content" };
+
     // Don't show split indicators if we're dragging the only tab of this panel
     if (draggedTabId && draggedPanelId === id && tabs.length === 1) {
       splitDirection = null;
       return;
     }
-    
+
     // Determine which quadrant we're in
     if (contentElement) {
       splitDirection = getQuadrant(e, contentElement);
     }
   }
-  
+
   function onContentDragLeave(e: DragEvent) {
     e.preventDefault();
     // Only clear if we're the current target
-    if (dragTarget?.panelId === id && dragTarget?.area === 'content') {
+    if (dragTarget?.panelId === id && dragTarget?.area === "content") {
       dragTarget = null;
       splitDirection = null;
     }
   }
-  
+
   function onContentDragOver(e: DragEvent) {
     e.preventDefault();
     // Set the current drag target
-    dragTarget = { panelId: id, area: 'content' };
-    
+    dragTarget = { panelId: id, area: "content" };
+
     // Don't show split indicators if we're dragging the only tab of this panel
     if (draggedTabId && draggedPanelId === id && tabs.length === 1) {
       splitDirection = null;
       return;
     }
-    
+
     // Update the split direction based on mouse position
     if (contentElement) {
       splitDirection = getQuadrant(e, contentElement);
     }
   }
-  
+
   function onContentDrop(e: DragEvent) {
     e.preventDefault();
-    
+
     try {
       // Get the drag data
-      const dataText = e.dataTransfer?.getData('application/json');
+      const dataText = e.dataTransfer?.getData("application/json");
       if (!dataText) return;
-      
+
       const dragData = JSON.parse(dataText);
-      
+
       // Check if we're dropping on the content area of a panel
-      if (dragTarget?.panelId === id && dragTarget?.area === 'content' && splitDirection) {
+      if (
+        dragTarget?.panelId === id &&
+        dragTarget?.area === "content" &&
+        splitDirection
+      ) {
         // Get the final split direction at the moment of drop
-        const finalSplitDirection = contentElement ? getQuadrant(e, contentElement) : 'bottom';
-        
+        const finalSplitDirection = contentElement
+          ? getQuadrant(e, contentElement)
+          : "bottom";
+
         // Check if we're trying to split a panel with its only tab
         if (dragData.panelId === id && tabs.length === 1) {
-          console.log('Cannot split a panel with its only tab');
+          console.log("Cannot split a panel with its only tab");
           return;
         }
-        
-        console.log('Dropping tab for split:', {
+
+        console.log("Dropping tab for split:", {
           tabId: dragData.tabId,
           targetPanelId: id,
-          splitDirection: finalSplitDirection
+          splitDirection: finalSplitDirection,
         });
-        
+
         // Call the splitPanel method in ttabs
-        if (dragData.action === 'move' && dragData.tabId) {
-          ttabs.splitPanel(
-            dragData.tabId,
-            id,
-            finalSplitDirection
-          );
+        if (dragData.action === "move" && dragData.tabId) {
+          ttabs.splitPanel(dragData.tabId, id, finalSplitDirection);
         }
       }
     } catch (error) {
-      console.error('Error processing content drop:', error);
+      console.error("Error processing content drop:", error);
     } finally {
       resetDragState();
     }
   }
-  
+
   function onDrop(e: DragEvent) {
     // Prevent default browser handling
     e.preventDefault();
-    
+
     try {
       // Get the drag data
-      const dataText = e.dataTransfer?.getData('application/json');
+      const dataText = e.dataTransfer?.getData("application/json");
       if (!dataText) return;
-      
+
       const dragData = JSON.parse(dataText);
-      
+
       // We can handle both reordering and moving between panels
-      if (dragData.action === 'move' && dragData.tabId) {
+      if (dragData.action === "move" && dragData.tabId) {
         const sourceTabId = dragData.tabId;
         const sourcePanelId = dragData.panelId;
-        
+
         // Handle tab movement across panels
         if (sourcePanelId !== id) {
           // Moving tab from a different panel to this one
           // Determine the insertion index based on drop position
           let targetIndex;
-          
+
           if (!dragOverTabId) {
             // If not hovering over a tab, append to the end
             targetIndex = tabs.length;
           } else {
             // Calculate index based on the tab we're over
             targetIndex = tabs.indexOf(dragOverTabId);
-            if (dragPosition === 'after' && targetIndex >= 0) {
+            if (dragPosition === "after" && targetIndex >= 0) {
               targetIndex += 1;
             }
           }
-          
+
           // Move the tab between panels
           ttabs.moveTab(sourceTabId, id, targetIndex);
         } else {
           // Reordering tabs within the same panel
           const sourceIndex = tabs.indexOf(sourceTabId);
-          
+
           // Skip reordering if:
           // 1. Source tab doesn't exist in this panel
           // 2. We're dropping on the same tab that's being dragged
           // 3. We're dropping in an area without a target tab
-          if (sourceIndex === -1 || dragOverTabId === sourceTabId || !dragOverTabId) {
+          if (
+            sourceIndex === -1 ||
+            dragOverTabId === sourceTabId ||
+            !dragOverTabId
+          ) {
             return;
           }
-          
+
           // Find the target tab index
           const targetIndex = tabs.indexOf(dragOverTabId);
           if (targetIndex === -1) return;
-          
+
           // Calculate the insertion index
-          let insertIndex = dragPosition === 'before' ? targetIndex : targetIndex + 1;
-          
+          let insertIndex =
+            dragPosition === "before" ? targetIndex : targetIndex + 1;
+
           // Skip if dropping in the same position
-          if (sourceIndex === insertIndex || (sourceIndex === insertIndex - 1 && dragPosition === 'after')) {
+          if (
+            sourceIndex === insertIndex ||
+            (sourceIndex === insertIndex - 1 && dragPosition === "after")
+          ) {
             return;
           }
-          
+
           // Create a new array and move the tab
           const newTabs = [...tabs];
           newTabs.splice(sourceIndex, 1);
-          
+
           // Adjust insert index if needed
           if (sourceIndex < insertIndex) insertIndex--;
-          
+
           newTabs.splice(insertIndex, 0, sourceTabId);
           ttabs.updateTile(id, { tabs: newTabs });
         }
       }
     } catch (error) {
-      console.error('Error processing drop:', error);
+      console.error("Error processing drop:", error);
     } finally {
       resetDragState();
     }
   }
-  
+
   function onDragEnd() {
     resetDragState();
   }
-  
+
   function resetDragState() {
     // Reset drag states
     draggedTabId = null;
@@ -379,15 +398,15 @@
   }
 </script>
 
-{#if panel?.type === 'panel'}
-  <div 
-    class="ttabs-panel {ttabs.theme?.classes?.panel || ''}" 
+{#if panel?.type === "panel"}
+  <div
+    class="ttabs-panel {ttabs.theme?.classes?.panel || ''}"
     data-tile-id={id}
     class:drop-target={draggedTabId && draggedPanelId !== id}
     role="tabpanel"
   >
-    <div 
-      class="ttabs-tab-bar {ttabs.theme?.classes?.['tab-bar'] || ''}" 
+    <div
+      class="ttabs-tab-bar {ttabs.theme?.classes?.['tab-bar'] || ''}"
       bind:this={tabBarElement}
       ondragover={onDragOver}
       ondragenter={onDragEnter}
@@ -399,16 +418,20 @@
     >
       {#each tabs as tabId}
         <div
-          class="ttabs-tab-header {ttabs.theme?.classes?.['tab-header'] || ''} {tabId === activeTab ? (ttabs.theme?.classes?.['tab-header-active'] || '') : ''}" 
+          class="ttabs-tab-header {ttabs.theme?.classes?.['tab-header'] ||
+            ''} {tabId === activeTab
+            ? ttabs.theme?.classes?.['tab-header-active'] || ''
+            : ''}"
           class:active={tabId === activeTab}
           class:is-dragging={tabId === draggedTabId}
-          class:drop-before={tabId === dragOverTabId && dragPosition === 'before'}
-          class:drop-after={tabId === dragOverTabId && dragPosition === 'after'}
+          class:drop-before={tabId === dragOverTabId &&
+            dragPosition === "before"}
+          class:drop-after={tabId === dragOverTabId && dragPosition === "after"}
           data-tab-id={tabId}
           draggable="true"
           onmousedown={() => selectTab(tabId)}
           onkeydown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
+            if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
               selectTab(tabId);
             }
@@ -420,15 +443,19 @@
           aria-controls="{id}-content"
           tabindex="0"
         >
-          <span class="ttabs-tab-title {ttabs.theme?.classes?.['tab-title'] || ''}">
-            {#if ttabs.getTile<TileTabType>(tabId)?.type === 'tab'}
-              {ttabs.getTile<TileTabType>(tabId)?.name || 'Unnamed Tab'}
+          <span
+            class="ttabs-tab-title {ttabs.theme?.classes?.['tab-title'] || ''}"
+          >
+            {#if ttabs.getTile<TileTabType>(tabId)?.type === "tab"}
+              {ttabs.getTile<TileTabType>(tabId)?.name || "Unnamed Tab"}
             {/if}
           </span>
-          
+
           <!-- Default close button, toggled via CSS variables -->
-          <button 
-            class="ttabs-tab-close {ttabs.theme?.classes?.['tab-close-button'] || ''}"
+          <button
+            class="ttabs-tab-close {ttabs.theme?.classes?.[
+              'tab-close-button'
+            ] || ''}"
             style="display: var(--ttabs-show-close-button, none)"
             onclick={(e) => {
               e.stopPropagation();
@@ -440,8 +467,8 @@
         </div>
       {/each}
     </div>
-    
-    <div 
+
+    <div
       class="ttabs-tab-content {ttabs.theme?.classes?.['tab-content'] || ''}"
       id="{id}-content"
       bind:this={contentElement}
@@ -452,15 +479,18 @@
       role="tabpanel"
       tabindex="0"
       aria-labelledby={activeTab ? `${activeTab}` : undefined}
-      class:split-indicator-top={splitDirection === 'top'}
-      class:split-indicator-right={splitDirection === 'right'}
-      class:split-indicator-bottom={splitDirection === 'bottom'}
-      class:split-indicator-left={splitDirection === 'left'}
+      class:split-indicator-top={splitDirection === "top"}
+      class:split-indicator-right={splitDirection === "right"}
+      class:split-indicator-bottom={splitDirection === "bottom"}
+      class:split-indicator-left={splitDirection === "left"}
     >
       {#if activeTab}
-        <TileTab ttabs={ttabs} id={activeTab} />
+        <TileTab {ttabs} id={activeTab} />
       {:else}
-        <div class="ttabs-empty-state {ttabs.theme?.classes?.['empty-state'] || ''}">
+        <div
+          class="ttabs-empty-state {ttabs.theme?.classes?.['empty-state'] ||
+            ''}"
+        >
           No active tab
         </div>
       {/if}
@@ -473,170 +503,175 @@
 {/if}
 
 <style>
-  .ttabs-panel {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background-color: var(--ttabs-panel-bg, white);
-    color: var(--ttabs-text-color, inherit);
+  :global {
+    .ttabs-panel {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--ttabs-panel-bg, white);
+      color: var(--ttabs-text-color, inherit);
+    }
+
+    .ttabs-panel.drop-target {
+      outline: var(
+        --ttabs-drop-target-outline,
+        2px dashed rgba(74, 108, 247, 0.5)
+      );
+      outline-offset: -2px;
+    }
+
+    .ttabs-tab-bar {
+      display: flex;
+      flex-direction: row;
+      background-color: var(--ttabs-tab-bar-bg, #f5f5f5);
+      border-bottom: var(--ttabs-tab-bar-border, 1px solid #ddd);
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    .ttabs-tab-header {
+      padding: var(--ttabs-tab-header-padding, 0.5rem 1rem);
+      cursor: pointer;
+      border-right: var(--ttabs-tab-header-border, 1px solid #ddd);
+      white-space: nowrap;
+      font-size: var(--ttabs-tab-header-font-size, 0.9rem);
+      transition: background-color 0.1s ease;
+      position: relative;
+      display: flex;
+      align-items: center;
+      color: var(--ttabs-tab-text-color, inherit);
+    }
+
+    .ttabs-tab-title {
+      flex-grow: 1;
+    }
+
+    .ttabs-tab-close {
+      margin-left: 8px;
+      background: none;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 0;
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: var(--ttabs-close-button-color, #888);
+    }
+
+    .ttabs-tab-close:hover {
+      background-color: var(--ttabs-close-button-hover-bg, rgba(0, 0, 0, 0.1));
+      color: var(--ttabs-close-button-hover-color, tomato);
+    }
+
+    .ttabs-tab-header.active {
+      background-color: var(--ttabs-active-tab-bg, white);
+      border-bottom: 2px solid var(--ttabs-active-tab-indicator, #4a6cf7);
+      font-weight: 500;
+      color: var(--ttabs-tab-active-text-color, inherit);
+    }
+
+    .ttabs-tab-header.is-dragging {
+      opacity: 0.7;
+      background-color: var(--ttabs-active-tab-bg, white);
+    }
+
+    .ttabs-tab-header.drop-before::before {
+      content: "";
+      position: absolute;
+      left: -2px;
+      top: 0px;
+      height: 100%;
+      width: 4px;
+      background-color: var(--ttabs-drop-indicator-color, #4a6cf7);
+    }
+
+    .ttabs-tab-header.drop-after::after {
+      content: "";
+      position: absolute;
+      right: -2px;
+      top: 0;
+      height: 100%;
+      width: 4px;
+      background-color: var(--ttabs-drop-indicator-color, #4a6cf7);
+    }
+
+    .ttabs-tab-content {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+      background-color: var(--ttabs-content-bg, inherit);
+    }
+
+    /* Split indicators */
+    .ttabs-tab-content.split-indicator-top::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 30%;
+      background-color: rgba(74, 108, 247, 0.1);
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .ttabs-tab-content.split-indicator-right::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 30%;
+      height: 100%;
+      background-color: rgba(74, 108, 247, 0.1);
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .ttabs-tab-content.split-indicator-bottom::before {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 30%;
+      background-color: rgba(74, 108, 247, 0.1);
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .ttabs-tab-content.split-indicator-left::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 30%;
+      height: 100%;
+      background-color: rgba(74, 108, 247, 0.1);
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .ttabs-empty-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--ttabs-empty-state-color, #666);
+      font-style: italic;
+    }
+
+    .ttabs-error {
+      padding: 1rem;
+      color: var(--ttabs-error-color, tomato);
+      background-color: var(--ttabs-error-bg, #fff5f5);
+      border: var(--ttabs-error-border, 1px solid tomato);
+      border-radius: 4px;
+    }
   }
-  
-  .ttabs-panel.drop-target {
-    outline: var(--ttabs-drop-target-outline, 2px dashed rgba(74, 108, 247, 0.5));
-    outline-offset: -2px;
-  }
-  
-  .ttabs-tab-bar {
-    display: flex;
-    flex-direction: row;
-    background-color: var(--ttabs-tab-bar-bg, #f5f5f5);
-    border-bottom: var(--ttabs-tab-bar-border, 1px solid #ddd);
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-  
-  .ttabs-tab-header {
-    padding: var(--ttabs-tab-header-padding, 0.5rem 1rem);
-    cursor: pointer;
-    border-right: var(--ttabs-tab-header-border, 1px solid #ddd);
-    white-space: nowrap;
-    font-size: var(--ttabs-tab-header-font-size, 0.9rem);
-    transition: background-color 0.1s ease;
-    position: relative;
-    display: flex;
-    align-items: center;
-    color: var(--ttabs-tab-text-color, inherit);
-  }
-  
-  .ttabs-tab-title {
-    flex-grow: 1;
-  }
-  
-  .ttabs-tab-close {
-    margin-left: 8px;
-    background: none;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-    padding: 0;
-    width: 16px;
-    height: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    color: var(--ttabs-close-button-color, #888);
-  }
-  
-  .ttabs-tab-close:hover {
-    background-color: var(--ttabs-close-button-hover-bg, rgba(0, 0, 0, 0.1));
-    color: var(--ttabs-close-button-hover-color, tomato);
-  }
-  
-  .ttabs-tab-header.active {
-    background-color: var(--ttabs-active-tab-bg, white);
-    border-bottom: 2px solid var(--ttabs-active-tab-indicator, #4a6cf7);
-    font-weight: 500;
-    color: var(--ttabs-tab-active-text-color, inherit);
-  }
-  
-  .ttabs-tab-header.is-dragging {
-    opacity: 0.7;
-    background-color: var(--ttabs-active-tab-bg, white);
-  }
-  
-  .ttabs-tab-header.drop-before::before {
-    content: '';
-    position: absolute;
-    left: -2px;
-    top: 0px;
-    height: 100%;
-    width: 4px;
-    background-color: var(--ttabs-drop-indicator-color, #4a6cf7);
-  }
-  
-  .ttabs-tab-header.drop-after::after {
-    content: '';
-    position: absolute;
-    right: -2px;
-    top: 0;
-    height: 100%;
-    width: 4px;
-    background-color: var(--ttabs-drop-indicator-color, #4a6cf7);
-  }
-  
-  .ttabs-tab-content {
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-    background-color: var(--ttabs-content-bg, inherit);
-  }
-  
-  /* Split indicators */
-  .ttabs-tab-content.split-indicator-top::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 30%;
-    background-color: rgba(74, 108, 247, 0.1);
-    z-index: 10;
-    pointer-events: none;
-  }
-  
-  .ttabs-tab-content.split-indicator-right::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 30%;
-    height: 100%;
-    background-color: rgba(74, 108, 247, 0.1);
-    z-index: 10;
-    pointer-events: none;
-  }
-  
-  .ttabs-tab-content.split-indicator-bottom::before {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 30%;
-    background-color: rgba(74, 108, 247, 0.1);
-    z-index: 10;
-    pointer-events: none;
-  }
-  
-  .ttabs-tab-content.split-indicator-left::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 30%;
-    height: 100%;
-    background-color: rgba(74, 108, 247, 0.1);
-    z-index: 10;
-    pointer-events: none;
-  }
-  
-  .ttabs-empty-state {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: var(--ttabs-empty-state-color, #666);
-    font-style: italic;
-  }
-  
-  .ttabs-error {
-    padding: 1rem;
-    color: var(--ttabs-error-color, tomato);
-    background-color: var(--ttabs-error-bg, #fff5f5);
-    border: var(--ttabs-error-border, 1px solid tomato);
-    border-radius: 4px;
-  }
-</style> 
+</style>

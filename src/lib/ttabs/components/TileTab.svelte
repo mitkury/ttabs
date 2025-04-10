@@ -1,34 +1,36 @@
 <script lang="ts">
-  import type { TileContent as TileContentType } from '../types/tile-types';
-  import type { TtabsProps } from './props';
-  import type { Component } from 'svelte';
-  
+  import type { TileContent as TileContentType } from "../types/tile-types";
+  import type { TtabsProps } from "./props";
+  import type { Component } from "svelte";
+
   let { ttabs, id }: TtabsProps = $props();
-  
+
   // Get tab data
   const tab = $derived(ttabs.getTile(id));
-  
+
   // Get content
-  const contentId = $derived(tab?.type === 'tab' ? tab.content : null);
-  const content = $derived(contentId ? ttabs.getTile(contentId) as TileContentType : null);
+  const contentId = $derived(tab?.type === "tab" ? tab.content : null);
+  const content = $derived(
+    contentId ? (ttabs.getTile(contentId) as TileContentType) : null,
+  );
 
   // Component storage
   let ComponentToRender = $state<Component<any> | null>(null);
   let componentProps = $state<Record<string, any>>({});
-  
+
   $effect(() => {
     if (content?.componentId) {
       const componentData = ttabs.getContentComponent(content.componentId);
       if (componentData) {
         // Set the component to render
         ComponentToRender = componentData.component;
-        
+
         // Create combined props (default + content-specific)
         componentProps = {
           ...componentData.defaultProps,
           ...content.data?.componentProps,
           ttabs,
-          contentId
+          contentId,
         };
       } else {
         ComponentToRender = null;
@@ -39,17 +41,23 @@
   });
 </script>
 
-{#if tab?.type === 'tab'}
+{#if tab?.type === "tab"}
   <div class="ttabs-tab {ttabs.theme?.classes?.tab || ''}" data-tile-id={id}>
-    {#if content?.type === 'content'}
-      <div class="ttabs-content {ttabs.theme?.classes?.content || ''}" 
-           data-content-type={content.contentType}
-           data-component-id={content.componentId}>
+    {#if content?.type === "content"}
+      <div
+        class="ttabs-content {ttabs.theme?.classes?.content || ''}"
+        data-content-type={content.contentType}
+        data-component-id={content.componentId}
+      >
         {#if ComponentToRender}
           <ComponentToRender {...componentProps} />
         {:else}
-          <div class="content-container {ttabs.theme?.classes?.['content-container'] || ''}">
-            <h3>{tab.name || 'Unnamed Tab'}</h3>
+          <div
+            class="content-container {ttabs.theme?.classes?.[
+              'content-container'
+            ] || ''}"
+          >
+            <h3>{tab.name || "Unnamed Tab"}</h3>
             {#if content.componentId}
               <p>Component '{content.componentId}' not registered</p>
             {:else}
@@ -61,7 +69,9 @@
         {/if}
       </div>
     {:else}
-      <div class="ttabs-empty-state {ttabs.theme?.classes?.['empty-state'] || ''}">
+      <div
+        class="ttabs-empty-state {ttabs.theme?.classes?.['empty-state'] || ''}"
+      >
         No content available
       </div>
     {/if}
@@ -73,50 +83,52 @@
 {/if}
 
 <style>
-  .ttabs-tab {
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    color: var(--ttabs-text-color, inherit);
-    background-color: var(--ttabs-content-bg, inherit);
-  }
-  
-  .ttabs-content {
-    height: 100%;
-    background-color: var(--ttabs-content-bg, inherit);
-  }
-  
-  .content-container {
-    padding: 1rem;
-    color: var(--ttabs-content-text-color, inherit);
-    background-color: var(--ttabs-content-bg, inherit);
-  }
-  
-  .ttabs-empty-state {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: var(--ttabs-empty-state-color, #666);
-    font-style: italic;
-  }
-  
-  .ttabs-error {
-    padding: 1rem;
-    color: var(--ttabs-error-color, tomato);
-    background-color: var(--ttabs-error-bg, #fff5f5);
-    border: var(--ttabs-error-border, 1px solid tomato);
-    border-radius: 4px;
-  }
-  
-  h3 {
-    margin-top: 0;
-    color: var(--ttabs-text-color, inherit);
-  }
-  
-  p {
-    color: var(--ttabs-text-color-secondary, inherit);
-    opacity: 0.7;
-    margin: 0.5rem 0;
+  :global {
+    .ttabs-tab {
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      color: var(--ttabs-text-color, inherit);
+      background-color: var(--ttabs-content-bg, inherit);
+    }
+
+    .ttabs-content {
+      height: 100%;
+      background-color: var(--ttabs-content-bg, inherit);
+    }
+
+    .content-container {
+      padding: 1rem;
+      color: var(--ttabs-content-text-color, inherit);
+      background-color: var(--ttabs-content-bg, inherit);
+    }
+
+    .ttabs-empty-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--ttabs-empty-state-color, #666);
+      font-style: italic;
+    }
+
+    .ttabs-error {
+      padding: 1rem;
+      color: var(--ttabs-error-color, tomato);
+      background-color: var(--ttabs-error-bg, #fff5f5);
+      border: var(--ttabs-error-border, 1px solid tomato);
+      border-radius: 4px;
+    }
+
+    .ttabs-tab h3 {
+      margin-top: 0;
+      color: var(--ttabs-text-color, inherit);
+    }
+
+    .ttabs-tab p {
+      color: var(--ttabs-text-color-secondary, inherit);
+      opacity: 0.7;
+      margin: 0.5rem 0;
+    }
   }
 </style>

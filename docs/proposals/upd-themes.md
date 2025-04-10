@@ -371,6 +371,89 @@ constructor(options: TtabsOptions = {}) {
 }
 ```
 
+## Integration with CSS Frameworks
+
+The theme system is designed to work well with CSS frameworks that also use CSS variables, such as Skeleton UI. This allows you to create themes that match your application's overall design system.
+
+### Skeleton UI Integration
+
+[Skeleton UI](https://www.skeleton.dev/) provides a comprehensive set of CSS variables for theming. You can reference these variables in your ttabs theme:
+
+```typescript
+// Create a theme that uses Skeleton's variables
+const skeletonTheme: TtabsTheme = {
+  name: 'skeleton',
+  variables: {
+    // Map ttabs variables to Skeleton variables
+    '--ttabs-panel-bg': 'var(--color-surface-100)',
+    '--ttabs-tab-bar-bg': 'var(--color-surface-200)',
+    '--ttabs-active-tab-bg': 'var(--color-surface-100)',
+    '--ttabs-active-tab-indicator': 'var(--color-primary-500)',
+    '--ttabs-grid-bg': 'var(--color-surface-200)',
+    '--ttabs-grid-border': '1px solid var(--color-surface-300)',
+    '--ttabs-column-border': '1px solid var(--color-surface-300)',
+    
+    // Text colors
+    '--ttabs-text-color': 'var(--color-text-base)',
+    '--ttabs-text-color-secondary': 'var(--color-text-muted)',
+    '--ttabs-tab-text-color': 'var(--color-text-muted)',
+    '--ttabs-tab-active-text-color': 'var(--color-text-base)',
+    
+    // Error styling
+    '--ttabs-error-bg': 'var(--color-error-100)',
+    '--ttabs-error-color': 'var(--color-error-500)',
+    '--ttabs-error-border': '1px solid var(--color-error-500)',
+    
+    // Controls
+    '--ttabs-close-button-color': 'var(--color-text-muted)',
+    '--ttabs-close-button-hover-color': 'var(--color-error-500)',
+  }
+};
+
+// Create a dark version by extending the base theme
+const skeletonDarkTheme: TtabsTheme = {
+  name: 'skeleton-dark',
+  extends: skeletonTheme,
+  variables: {
+    // Only override what's different in dark mode
+    '--ttabs-panel-bg': 'var(--color-surface-800)',
+    '--ttabs-tab-bar-bg': 'var(--color-surface-900)',
+    '--ttabs-active-tab-bg': 'var(--color-surface-800)',
+    '--ttabs-grid-bg': 'var(--color-surface-900)',
+  }
+};
+```
+
+### Using Theme Variants
+
+Skeleton UI and similar frameworks often use CSS variants for theming (like `variant="primary"` or `theme="dark"`). You can leverage this in ttabs by:
+
+1. Using the same CSS variables in your themes
+2. Creating theme-specific class variants in the `<style global>` section
+3. Using the `data-theme` attribute on the root element to trigger theme-specific styles
+
+```svelte
+<!-- In your global styles -->
+<style global>
+  /* These styles apply based on the data-theme attribute */
+  [data-theme="skeleton-dark"] .ttabs-panel {
+    /* Dark theme specific overrides */
+    background-color: var(--color-surface-800);
+  }
+  
+  /* You can also use Skeleton's theme variant approach */
+  .ttabs-root.variant-primary .ttabs-tab-header.active {
+    border-color: var(--color-primary-500);
+  }
+  
+  .ttabs-root.variant-warning .ttabs-tab-header.active {
+    border-color: var(--color-warning-500);
+  }
+</style>
+```
+
+This approach ensures that your ttabs components maintain visual coherence with the rest of your Skeleton UI application, while still allowing for the flexibility of the theme inheritance system.
+
 ## Implementation Plan
 
 1. Update the `TtabsTheme` interface in `theme-types.ts`

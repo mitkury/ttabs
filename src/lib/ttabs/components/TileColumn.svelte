@@ -142,7 +142,10 @@
     {:else if childTile?.type === "grid" && childId !== null}
       <TileGrid {ttabs} id={childId} />
     {:else if childTile?.type === "content" && DirectComponent}
-      <div class="ttabs-direct-content {ttabs.theme?.classes?.['direct-content'] || ''}">
+      <div
+        class="ttabs-direct-content {ttabs.theme?.classes?.['direct-content'] ||
+          ''}"
+      >
         <DirectComponent {...componentProps} />
       </div>
     {/if}
@@ -156,55 +159,62 @@
     {/if}
   </div>
 {:else}
-  <div class="ttabs-error {ttabs.theme?.classes?.error || ''}">Column not found or invalid type</div>
+  <div class="ttabs-error {ttabs.theme?.classes?.error || ''}">
+    Column not found or invalid type
+  </div>
 {/if}
 
 <style>
-  .ttabs-column {
-    flex-shrink: 0;
-    overflow: hidden;
-    border-right: var(--ttabs-column-border, 1px solid #ddd);
-    position: relative;
-    color: var(--ttabs-text-color, inherit);
-    background-color: var(--ttabs-panel-bg, inherit);
-  }
+  :global {
+    .ttabs-column {
+      flex-shrink: 0;
+      overflow: hidden;
+      border-right: var(--ttabs-column-border, 1px solid #ddd);
+      position: relative;
+      color: var(--ttabs-text-color, inherit);
+      background-color: var(--ttabs-panel-bg, inherit);
+    }
 
-  .ttabs-column:last-child {
-    border-right: none;
-  }
+    .ttabs-column:last-child {
+      border-right: none;
+    }
 
-  .ttabs-column.is-resizing {
-    user-select: none;
-  }
+    .ttabs-column.is-resizing {
+      user-select: none;
+    }
 
-  .ttabs-direct-content {
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    color: var(--ttabs-content-text-color, inherit);
-    background-color: var(--ttabs-content-bg, inherit);
-  }
+    .ttabs-direct-content {
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      color: var(--ttabs-content-text-color, inherit);
+      background-color: var(--ttabs-content-bg, inherit);
+    }
 
-  .column-resizer {
-    position: absolute;
-    top: 0;
-    right: -3px;
-    width: 6px;
-    height: 100%;
-    cursor: col-resize;
-    z-index: 10;
-  }
+    .column-resizer {
+      position: absolute;
+      top: 0;
+      right: -3px;
+      width: 6px;
+      height: 100%;
+      cursor: col-resize;
+      z-index: 10;
+    }
 
-  .column-resizer:hover,
-  .is-resizing .column-resizer {
-    background-color: var(--ttabs-resizer-hover-color, rgba(74, 108, 247, 0.3));
-  }
+    .column-resizer:hover,
+    .is-resizing .column-resizer {
+      background-color: var(
+        --ttabs-resizer-hover-color,
+        rgba(74, 108, 247, 0.3)
+      );
+    }
 
-  .ttabs-error {
-    padding: 1rem;
-    color: var(--ttabs-error-color, tomato);
-    background-color: var(--ttabs-error-bg, #fff5f5);
-    border: var(--ttabs-error-border, 1px solid tomato);
-    border-radius: 4px;
+    .ttabs-error {
+      padding: 1rem;
+      color: var(--ttabs-error-color, tomato);
+      background-color: var(--ttabs-error-bg, #fff5f5);
+      border: var(--ttabs-error-border, 1px solid tomato);
+      border-radius: 4px;
+    }
   }
 </style>
