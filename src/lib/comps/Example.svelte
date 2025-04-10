@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Ttabs, TileGrid } from '$lib/ttabs';
+  import type { TilePanel } from '$lib/ttabs/types/tile-types';
   
   // Initialize ttabs on component mount
   const ttabs = new Ttabs({
@@ -330,27 +331,110 @@
     return rootId;
   }
   
-  // Expose method to reset the layout
-  export function resetLayout() {
+  // Function to reset the layout
+  function resetLayout() {
     rootId = createCustomLayout();
   }
   
-  // Export the instance getter
-  export function getInstance() {
-    return ttabs;
+  // Function to create a new tab
+  function createNewTab() {
+    const allTiles = ttabs.getTiles();
+    
+    // Get all panels
+    const panels = Object.values(allTiles)
+      .filter((tile): tile is TilePanel => tile.type === 'panel');
+    
+    if (panels.length > 0) {
+      const firstPanel = panels[0];
+      
+      // Create a new tab with a unique name
+      const newTabId = ttabs.addTile({
+        parent: firstPanel.id,
+        type: 'tab',
+        name: `New Tab ${Math.floor(Math.random() * 1000)}`,
+        content: ''
+      });
+      
+      // Create content for the new tab
+      const newContentId = ttabs.addTile({
+        parent: newTabId,
+        type: 'content',
+        contentType: 'editor'
+      });
+      
+      // Update the tab with its content
+      ttabs.updateTile(newTabId, { content: newContentId });
+      
+      // Add the new tab to the panel and set it as active
+      ttabs.updateTile(firstPanel.id, {
+        tabs: [...firstPanel.tabs, newTabId],
+        activeTab: newTabId
+      });
+    }
   }
 </script>
 
-<div class="root-tile">
-  <!-- Pass the ttabs instance and root ID to our Grid component -->
-  <TileGrid ttabs={ttabs} id={rootId} />
+<div class="example-container">
+  <header>
+    <h1>ttabs example</h1>
+    <div class="actions">
+      <button onclick={resetLayout}>Reset Layout</button>
+      <button onclick={createNewTab} class="create-tab-btn">Create New Tab</button>
+    </div>
+  </header>
+  
+  <main>
+    <TileGrid ttabs={ttabs} id={rootId} />
+  </main>
 </div>
 
 <style>
-  .root-tile {
-    width: 100%;
-    height: 100%;
+  .example-container {
     display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
     overflow: hidden;
+  }
+  
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+  
+  main {
+    flex: 1;
+    overflow: hidden;
+  }
+  
+  button {
+    padding: 0.5rem 1rem;
+    background-color: #4a6cf7;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 0.5rem;
+  }
+  
+  button:hover {
+    background-color: #3a5ce7;
+  }
+  
+  .create-tab-btn {
+    background-color: #38a169;
+  }
+  
+  .create-tab-btn:hover {
+    background-color: #2f855a;
   }
 </style> 
