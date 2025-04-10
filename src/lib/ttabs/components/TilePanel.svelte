@@ -95,6 +95,8 @@
   
   // Drag handlers
   function onDragStart(e: DragEvent, tabId: string) {
+    // Tab is already active due to mousedown event
+    
     // Store the dragged tab ID and panel ID
     draggedTabId = tabId;
     draggedPanelId = id;
@@ -420,7 +422,7 @@
           class:drop-after={tabId === dragOverTabId && dragPosition === 'after'}
           data-tab-id={tabId}
           draggable="true"
-          onclick={() => selectTab(tabId)}
+          onmousedown={() => selectTab(tabId)}
           onkeydown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
@@ -513,8 +515,8 @@
   }
   
   .ttabs-tab-header.is-dragging {
-    opacity: 0.6;
-    background-color: #e0e0e0;
+    opacity: 0.7;
+    background-color: var(--ttabs-active-tab-bg, white);
   }
   
   .ttabs-tab-header.drop-before::before {
