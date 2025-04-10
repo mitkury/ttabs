@@ -132,7 +132,7 @@
 
 {#if column?.type === "column"}
   <div
-    class="ttabs-column"
+    class="ttabs-column {ttabs.theme?.classes?.column || ''}"
     class:is-resizing={isResizing}
     data-tile-id={id}
     style="width: {column.width}%;"
@@ -142,21 +142,21 @@
     {:else if childTile?.type === "grid" && childId !== null}
       <TileGrid {ttabs} id={childId} />
     {:else if childTile?.type === "content" && DirectComponent}
-      <div class="ttabs-direct-content">
+      <div class="ttabs-direct-content {ttabs.theme?.classes?.['direct-content'] || ''}">
         <DirectComponent {...componentProps} />
       </div>
     {/if}
 
     {#if !isLast}
       <div
-        class="column-resizer"
+        class="column-resizer {ttabs.theme?.classes?.['column-resizer'] || ''}"
         role="separator"
         onmousedown={onResizerMouseDown}
       ></div>
     {/if}
   </div>
 {:else}
-  <div class="ttabs-error">Column not found or invalid type</div>
+  <div class="ttabs-error {ttabs.theme?.classes?.error || ''}">Column not found or invalid type</div>
 {/if}
 
 <style>
@@ -193,14 +193,14 @@
 
   .column-resizer:hover,
   .is-resizing .column-resizer {
-    background-color: rgba(74, 108, 247, 0.3);
+    background-color: var(--ttabs-resizer-hover-color, rgba(74, 108, 247, 0.3));
   }
 
   .ttabs-error {
     padding: 1rem;
-    color: tomato;
-    background-color: #fff5f5;
-    border: 1px solid tomato;
+    color: var(--ttabs-error-color, tomato);
+    background-color: var(--ttabs-error-bg, #fff5f5);
+    border: var(--ttabs-error-border, 1px solid tomato);
     border-radius: 4px;
   }
 </style>

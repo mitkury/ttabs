@@ -1,6 +1,8 @@
 import type { Tile, TileGrid, TileRow, TileColumn, TilePanel, TileTab, TileContent, TileType } from './types/tile-types';
 import { generateId, serializeTiles, deserializeTiles } from './utils/tile-utils';
 import type { Component } from 'svelte';
+import type { TtabsTheme } from './types/theme-types';
+import { DEFAULT_THEME } from './types/theme-types';
 
 /**
  * Type for component registry
@@ -26,6 +28,12 @@ export interface TtabsOptions {
    * If provided, layout will be auto-saved to localStorage
    */
   storageKey?: string;
+  
+  /**
+   * Theme configuration (optional)
+   * If not provided, the default theme will be used
+   */
+  theme?: TtabsTheme;
 }
 
 /**
@@ -42,6 +50,9 @@ export class Ttabs {
   
   // Component registry
   private componentRegistry = $state<Record<string, ContentComponent>>({});
+  
+  // Theme state
+  theme = $state<TtabsTheme>(DEFAULT_THEME);
 
   constructor(options: TtabsOptions = {}) {
     // Initialize state
@@ -69,6 +80,11 @@ export class Ttabs {
     } else {
       // Auto-create a root grid if no initial state is provided
       this.rootGridId = this.addGrid();
+    }
+
+    // Initialize theme
+    if (options.theme) {
+      this.theme = options.theme;
     }
 
     this.storageKey = options.storageKey;
@@ -1367,7 +1383,7 @@ export class Ttabs {
       this.rootGridId = rootGrid.id;
     }
     
-    return rootGrid?.id || null;
+    return this.rootGridId;
   }
   
   /**
@@ -1395,5 +1411,67 @@ export class Ttabs {
     this.addTab(mainPanelId, 'New Tab');
     
     return rootId;
+  }
+
+  /**
+   * Close a tab and remove it
+   * @param tabId The ID of the tab to close
+   * @returns True if successful
+   */
+  closeTab(tabId: string): boolean {
+    try {
+      const tab = this.getTile<TileTab>(tabId);
+      if (!tab || tab.type !== 'tab') return false;
+      
+      const panelId = tab.parent;
+      if (!panelId) return false;
+      
+      const panel = this.getTile<TilePanel>(panelId);
+      if (!panel || panel.type !== 'panel') return false;
+      
+      // Find index of tab to remove
+      const tabIndex = panel.tabs.indexOf(tabId);
+      if (tabIndex === -1) return false;
+      
+      // Remove tab
+      this.removeTile(tabId);
+      
+      // Update panel's tabs array
+      const newTabs = [...panel.tabs];
+      newTabs.splice(tabIndex, 1);
+      
+      // If closed tab was active, activate another tab
+      let newActiveTab = panel.activeTab;
+      if (panel.activeTab === tabId) {
+        if (newTabs.length > 0) {
+          // Activate either the tab at the same index, or the last tab
+          const newActiveIndex = Math.min(tabIndex, newTabs.length - 1);
+          newActiveTab = newTabs[newActiveIndex];
+        } else {
+          newActiveTab = null;
+        }
+      }
+      
+      // Update panel
+      this.updateTile(panelId, {
+        tabs: newTabs,
+        activeTab: newActiveTab
+      });
+      
+      // Clean up empty containers
+      this.cleanupContainers(panelId);
+      
+      return true;
+    } catch (error) {
+      console.error('Error closing tab:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Set or update the theme
+   */
+  setTheme(theme: TtabsTheme): void {
+    this.theme = theme;
   }
 }

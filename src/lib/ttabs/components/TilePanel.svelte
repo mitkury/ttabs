@@ -381,13 +381,13 @@
 
 {#if panel?.type === 'panel'}
   <div 
-    class="ttabs-panel" 
+    class="ttabs-panel {ttabs.theme?.classes?.panel || ''}" 
     data-tile-id={id}
     class:drop-target={draggedTabId && draggedPanelId !== id}
     role="tabpanel"
   >
     <div 
-      class="ttabs-tab-bar" 
+      class="ttabs-tab-bar {ttabs.theme?.classes?.['tab-bar'] || ''}" 
       bind:this={tabBarElement}
       ondragover={onDragOver}
       ondragenter={onDragEnter}
@@ -399,7 +399,7 @@
     >
       {#each tabs as tabId}
         <div
-          class="ttabs-tab-header" 
+          class="ttabs-tab-header {ttabs.theme?.classes?.['tab-header'] || ''} {tabId === activeTab ? (ttabs.theme?.classes?.['tab-header-active'] || '') : ''}" 
           class:active={tabId === activeTab}
           class:is-dragging={tabId === draggedTabId}
           class:drop-before={tabId === dragOverTabId && dragPosition === 'before'}
@@ -420,15 +420,29 @@
           aria-controls="{id}-content"
           tabindex="0"
         >
-          {#if ttabs.getTile<TileTabType>(tabId)?.type === 'tab'}
-            {ttabs.getTile<TileTabType>(tabId)?.name || 'Unnamed Tab'}
-          {/if}
+          <span class="ttabs-tab-title {ttabs.theme?.classes?.['tab-title'] || ''}">
+            {#if ttabs.getTile<TileTabType>(tabId)?.type === 'tab'}
+              {ttabs.getTile<TileTabType>(tabId)?.name || 'Unnamed Tab'}
+            {/if}
+          </span>
+          
+          <!-- Default close button, toggled via CSS variables -->
+          <button 
+            class="ttabs-tab-close {ttabs.theme?.classes?.['tab-close-button'] || ''}"
+            style="display: var(--ttabs-show-close-button, none)"
+            onclick={(e) => {
+              e.stopPropagation();
+              ttabs.closeTab(tabId);
+            }}
+          >
+            ✕
+          </button>
         </div>
       {/each}
     </div>
     
     <div 
-      class="ttabs-tab-content"
+      class="ttabs-tab-content {ttabs.theme?.classes?.['tab-content'] || ''}"
       id="{id}-content"
       bind:this={contentElement}
       ondragenter={onContentDragEnter}
@@ -446,14 +460,14 @@
       {#if activeTab}
         <TileTab ttabs={ttabs} id={activeTab} />
       {:else}
-        <div class="ttabs-empty-state">
+        <div class="ttabs-empty-state {ttabs.theme?.classes?.['empty-state'] || ''}">
           No active tab
         </div>
       {/if}
     </div>
   </div>
 {:else}
-  <div class="ttabs-error">
+  <div class="ttabs-error {ttabs.theme?.classes?.error || ''}">
     Panel not found or invalid type
   </div>
 {/if}
@@ -469,7 +483,7 @@
   }
   
   .ttabs-panel.drop-target {
-    outline: 2px dashed rgba(74, 108, 247, 0.5);
+    outline: var(--ttabs-drop-target-outline, 2px dashed rgba(74, 108, 247, 0.5));
     outline-offset: -2px;
   }
   
@@ -483,13 +497,40 @@
   }
   
   .ttabs-tab-header {
-    padding: 0.5rem 1rem;
+    padding: var(--ttabs-tab-header-padding, 0.5rem 1rem);
     cursor: pointer;
-    border-right: 1px solid #ddd;
+    border-right: var(--ttabs-tab-header-border, 1px solid #ddd);
     white-space: nowrap;
-    font-size: 0.9rem;
+    font-size: var(--ttabs-tab-header-font-size, 0.9rem);
     transition: background-color 0.1s ease;
     position: relative;
+    display: flex;
+    align-items: center;
+  }
+  
+  .ttabs-tab-title {
+    flex-grow: 1;
+  }
+  
+  .ttabs-tab-close {
+    margin-left: 8px;
+    background: none;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #888;
+  }
+  
+  .ttabs-tab-close:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: tomato;
   }
   
   .ttabs-tab-header.active {

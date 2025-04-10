@@ -90,7 +90,7 @@
 
 {#if row?.type === 'row'}
   <div 
-    class="ttabs-row" 
+    class="ttabs-row {ttabs.theme?.classes?.row || ''}" 
     class:is-resizing={isResizing}
     data-tile-id={id} 
     style="height: {row.height}%;"
@@ -100,11 +100,11 @@
     {/each}
     
     {#if !isLast}
-      <div class="row-resizer" on:mousedown={onResizerMouseDown}></div>
+      <div class="row-resizer {ttabs.theme?.classes?.['row-resizer'] || ''}" on:mousedown={onResizerMouseDown}></div>
     {/if}
   </div>
 {:else}
-  <div class="ttabs-error">
+  <div class="ttabs-error {ttabs.theme?.classes?.error || ''}">
     Row not found or invalid type
   </div>
 {/if}
@@ -134,14 +134,14 @@
   
   .row-resizer:hover,
   .is-resizing .row-resizer {
-    background-color: rgba(74, 108, 247, 0.3);
+    background-color: var(--ttabs-resizer-hover-color, rgba(74, 108, 247, 0.3));
   }
   
   .ttabs-error {
     padding: 1rem;
-    color: tomato;
-    background-color: #fff5f5;
-    border: 1px solid tomato;
+    color: var(--ttabs-error-color, tomato);
+    background-color: var(--ttabs-error-bg, #fff5f5);
+    border: var(--ttabs-error-border, 1px solid tomato);
     border-radius: 4px;
   }
 </style> 

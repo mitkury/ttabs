@@ -12,13 +12,13 @@
 </script>
 
 {#if grid?.type === 'grid'}
-  <div class="ttabs-grid" data-tile-id={id}>
+  <div class="ttabs-grid {ttabs.theme?.classes?.grid || ''}" data-tile-id={id}>
     {#each rows as rowId (rowId)}
       <TileRow ttabs={ttabs} id={rowId} />
     {/each}
   </div>
 {:else}
-  <div class="ttabs-error">
+  <div class="ttabs-error {ttabs.theme?.classes?.error || ''}">
     Grid not found or invalid type
   </div>
 {/if}
@@ -36,9 +36,9 @@
   
   .ttabs-error {
     padding: 1rem;
-    color: tomato;
-    background-color: #fff5f5;
-    border: 1px solid tomato;
+    color: var(--ttabs-error-color, tomato);
+    background-color: var(--ttabs-error-bg, #fff5f5);
+    border: var(--ttabs-error-border, 1px solid tomato);
     border-radius: 4px;
   }
 </style> 

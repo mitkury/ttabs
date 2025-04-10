@@ -40,15 +40,15 @@
 </script>
 
 {#if tab?.type === 'tab'}
-  <div class="ttabs-tab" data-tile-id={id}>
+  <div class="ttabs-tab {ttabs.theme?.classes?.tab || ''}" data-tile-id={id}>
     {#if content?.type === 'content'}
-      <div class="ttabs-content" 
+      <div class="ttabs-content {ttabs.theme?.classes?.content || ''}" 
            data-content-type={content.contentType}
            data-component-id={content.componentId}>
         {#if ComponentToRender}
           <ComponentToRender {...componentProps} />
         {:else}
-          <div class="content-container">
+          <div class="content-container {ttabs.theme?.classes?.['content-container'] || ''}">
             <h3>{tab.name || 'Unnamed Tab'}</h3>
             {#if content.componentId}
               <p>Component '{content.componentId}' not registered</p>
@@ -61,13 +61,13 @@
         {/if}
       </div>
     {:else}
-      <div class="ttabs-empty-state">
+      <div class="ttabs-empty-state {ttabs.theme?.classes?.['empty-state'] || ''}">
         No content available
       </div>
     {/if}
   </div>
 {:else}
-  <div class="ttabs-error">
+  <div class="ttabs-error {ttabs.theme?.classes?.error || ''}">
     Tab not found or invalid type
   </div>
 {/if}
@@ -92,25 +92,26 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: #666;
+    color: var(--ttabs-empty-state-color, #666);
     font-style: italic;
   }
   
   .ttabs-error {
     padding: 1rem;
-    color: tomato;
-    background-color: #fff5f5;
-    border: 1px solid tomato;
+    color: var(--ttabs-error-color, tomato);
+    background-color: var(--ttabs-error-bg, #fff5f5);
+    border: var(--ttabs-error-border, 1px solid tomato);
     border-radius: 4px;
   }
   
   h3 {
     margin-top: 0;
-    color: #333;
+    color: inherit;
   }
   
   p {
-    color: #666;
+    color: inherit;
+    opacity: 0.7;
     margin: 0.5rem 0;
   }
 </style>
