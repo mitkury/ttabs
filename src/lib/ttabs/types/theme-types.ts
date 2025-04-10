@@ -76,7 +76,9 @@ export type TtabsElementType =
   
   // Utility/state elements
   | 'empty-state'
-  | 'error';
+  | 'error'
+  | 'row-resizer'
+  | 'column-resizer';
 
 /**
  * Theme configuration for ttabs
