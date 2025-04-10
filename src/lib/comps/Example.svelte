@@ -129,7 +129,7 @@
   
   // Function to create a new tab using the built-in method
   function createNewTab() {
-    ttabs.createNewTabInFirstPanel(`New Tab ${Math.floor(Math.random() * 1000)}`, 'editor');
+    // @TODO: implement
   }
 </script>
 

@@ -1106,35 +1106,6 @@ export class Ttabs {
   }
   
   /**
-   * Creates a new tab in the first available panel
-   * @param name Name of the tab
-   * @param contentType Optional content type
-   * @returns ID of the new tab, or null if no panels exist
-   */
-  createNewTabInFirstPanel(name: string, contentType: string = 'default'): string | null {
-    const allTiles = this.getTiles();
-    
-    // Find first panel
-    const panels = Object.values(allTiles)
-      .filter((tile): tile is TilePanel => tile.type === 'panel');
-    
-    if (panels.length === 0) return null;
-    
-    const firstPanel = panels[0];
-    const tabId = this.addTab(firstPanel.id, name, true);
-    
-    // Update tab content type
-    const tab = this.getTile<TileTab>(tabId);
-    if (tab && tab.content) {
-      this.updateTile(tab.content, {
-        contentType
-      });
-    }
-    
-    return tabId;
-  }
-  
-  /**
    * Serialize the layout to JSON
    */
   serializeLayout(): string {
