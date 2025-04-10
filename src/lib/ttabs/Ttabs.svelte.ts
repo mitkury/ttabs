@@ -1240,4 +1240,55 @@ export class Ttabs {
       return false;
     }
   }
+
+  /**
+   * Add component content directly to a column without a panel
+   * @param columnId ID of the column to add content to
+   * @param componentId ID of the registered component
+   * @param props Props to pass to the component
+   * @returns ID of the new content
+   */
+  addColumnComponent(
+    columnId: string, 
+    componentId: string, 
+    props: Record<string, any> = {}
+  ): string {
+    // Verify component exists
+    if (!this.hasContentComponent(componentId)) {
+      throw new Error(`Component with ID ${componentId} is not registered`);
+    }
+
+    // Verify the column exists
+    const column = this.getTile<TileColumn>(columnId);
+    if (!column) {
+      throw new Error(`Column with ID ${columnId} not found`);
+    }
+    
+    if (column.type !== 'column') {
+      throw new Error(`Tile with ID ${columnId} is not a column`);
+    }
+    
+    // Check if column already has a child
+    if (column.child && this.getTile(column.child)) {
+      // Remove existing child
+      this.removeTile(column.child);
+    }
+    
+    // Create the content
+    const contentId = this.addTile({
+      type: 'content',
+      parent: columnId,
+      componentId,
+      data: {
+        componentProps: props
+      }
+    });
+    
+    // Update column's child reference
+    this.updateTile(columnId, {
+      child: contentId
+    });
+    
+    return contentId;
+  }
 }

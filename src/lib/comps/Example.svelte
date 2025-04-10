@@ -3,6 +3,7 @@
   import type { TilePanel, TileTab } from '$lib/ttabs/types/tile-types';
   import EditorComponent from './EditorComponent.svelte';
   import DocumentComponent from './DocumentComponent.svelte';
+  import SidePanelComponent from './SidePanelComponent.svelte';
   
   // Initialize ttabs on component mount
   const ttabs = new Ttabs({
@@ -12,6 +13,7 @@
   // Register content components
   ttabs.registerContentComponent('editor', EditorComponent, { readOnly: false });
   ttabs.registerContentComponent('document', DocumentComponent);
+  ttabs.registerContentComponent('sidepanel', SidePanelComponent);
   
   // Store panel ID for adding new tabs
   let upperPanelId = $state('');
@@ -31,32 +33,16 @@
     const leftColumnId = ttabs.addColumn(mainRowId, 20);
     const rightColumnId = ttabs.addColumn(mainRowId, 80);
     
-    // Create a panel for the left column
-    const leftPanelId = ttabs.addPanel(leftColumnId);
-    
-    // Create explorer tab
-    const explorerTabId = ttabs.addTab(leftPanelId, 'Explorer');
-    
-    // Update content type for explorer tab
-    const explorerTab = ttabs.getTile<TileTab>(explorerTabId);
-    if (explorerTab && explorerTab.content) {
-      ttabs.updateTile(explorerTab.content, { contentType: 'explorer' });
-    }
-    
-    // Create additional tabs for the left panel
-    const filesTabId = ttabs.addTab(leftPanelId, 'Files', false);
-    const searchTabId = ttabs.addTab(leftPanelId, 'Search', false);
-    
-    // Update content types
-    const filesTab = ttabs.getTile<TileTab>(filesTabId);
-    if (filesTab && filesTab.content) {
-      ttabs.updateTile(filesTab.content, { contentType: 'files' });
-    }
-    
-    const searchTab = ttabs.getTile<TileTab>(searchTabId);
-    if (searchTab && searchTab.content) {
-      ttabs.updateTile(searchTab.content, { contentType: 'search' });
-    }
+    // Add side panel directly to left column (no panel/tabs)
+    ttabs.addColumnComponent(leftColumnId, 'sidepanel', {
+      title: 'Navigation',
+      items: [
+        { id: 'files', label: 'Files', icon: '📁' },
+        { id: 'search', label: 'Search', icon: '🔍' },
+        { id: 'extensions', label: 'Extensions', icon: '🧩' },
+        { id: 'settings', label: 'Settings', icon: '⚙️' }
+      ]
+    });
     
     // Create a grid for the right column
     const rightGridId = ttabs.addGrid(rightColumnId);

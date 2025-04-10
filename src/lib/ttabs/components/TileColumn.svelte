@@ -5,7 +5,9 @@
   import type {
     TileColumn as TileColumnType,
     TileRow,
+    TileContent,
   } from "../types/tile-types";
+  import type { Component } from 'svelte';
 
   let { ttabs, id }: TtabsProps = $props();
 
@@ -28,9 +30,36 @@
       : false,
   );
 
-  // Get the child panel or grid
+  // Get the child panel, grid, or content
   const childId = $derived(column?.type === "column" ? column.child : null);
   const childTile = $derived(childId ? ttabs.getTile(childId) : null);
+
+  // Component instance for direct content
+  let DirectComponent = $state<Component<any> | null>(null);
+  let componentProps = $state<Record<string, any>>({});
+
+  $effect(() => {
+    // Check if child is content with componentId
+    if (childTile?.type === 'content' && childTile.componentId) {
+      const componentData = ttabs.getContentComponent(childTile.componentId);
+      if (componentData) {
+        // Set the component to render
+        DirectComponent = componentData.component;
+        
+        // Create combined props
+        componentProps = {
+          ...componentData.defaultProps,
+          ...childTile.data?.componentProps,
+          ttabs,
+          contentId: childId
+        };
+      } else {
+        DirectComponent = null;
+      }
+    } else {
+      DirectComponent = null;
+    }
+  });
 
   // Resizing state
   let isResizing = $state(false);
@@ -112,6 +141,11 @@
       <TilePanel {ttabs} id={childId} />
     {:else if childTile?.type === "grid" && childId !== null}
       <TileGrid {ttabs} id={childId} />
+    {:else if childTile?.type === "content" && DirectComponent}
+      <!-- Render direct content component -->
+      <div class="ttabs-direct-content">
+        <DirectComponent {...componentProps} />
+      </div>
     {/if}
 
     {#if !isLast}
@@ -136,6 +170,12 @@
 
   .ttabs-column.is-resizing {
     user-select: none;
+  }
+
+  .ttabs-direct-content {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
   }
 
   .column-resizer {
