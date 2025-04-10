@@ -128,7 +128,7 @@
       width: 100%;
       overflow: hidden;
       position: relative;
-      color: var(--ttabs-text-color, inherit);
+      color: var(--ttabs-text-color);
     }
 
     .ttabs-row.is-resizing {
@@ -147,17 +147,14 @@
 
     .row-resizer:hover,
     .is-resizing .row-resizer {
-      background-color: var(
-        --ttabs-resizer-hover-color,
-        rgba(74, 108, 247, 0.3)
-      );
+      background-color: var(--ttabs-resizer-hover-color);
     }
 
     .ttabs-error {
       padding: 1rem;
-      color: var(--ttabs-error-color, tomato);
-      background-color: var(--ttabs-error-bg, #fff5f5);
-      border: var(--ttabs-error-border, 1px solid tomato);
+      color: var(--ttabs-error-color);
+      background-color: var(--ttabs-error-bg);
+      border: var(--ttabs-error-border);
       border-radius: 4px;
     }
   }

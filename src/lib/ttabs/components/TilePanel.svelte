@@ -425,10 +425,7 @@
       {#each tabs as tabId}
         <!-- Default tab header implementation -->
         <div
-          class="ttabs-tab-header {ttabs.theme?.classes?.['tab-header'] ||
-            ''} {tabId === activeTab
-            ? ttabs.theme?.classes?.['tab-header-active'] || ''
-            : ''}"
+          class="ttabs-tab-header {ttabs.theme?.classes?.['tab-header'] || ''} {tabId === activeTab ? `ttabs-tab-header-active ${ttabs.theme?.classes?.['tab-header-active'] || ''}` : ''}"
           class:active={tabId === activeTab}
           class:is-dragging={tabId === draggedTabId}
           class:drop-before={tabId === dragOverTabId &&
@@ -528,38 +525,35 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background-color: var(--ttabs-panel-bg, white);
-      color: var(--ttabs-text-color, inherit);
+      background-color: var(--ttabs-panel-bg);
+      color: var(--ttabs-text-color);
     }
 
     .ttabs-panel.drop-target {
-      outline: var(
-        --ttabs-drop-target-outline,
-        2px dashed rgba(74, 108, 247, 0.5)
-      );
+      outline: var(--ttabs-drop-target-outline);
       outline-offset: -2px;
     }
 
     .ttabs-tab-bar {
       display: flex;
       flex-direction: row;
-      background-color: var(--ttabs-tab-bar-bg, #f5f5f5);
-      border-bottom: var(--ttabs-tab-bar-border, 1px solid #ddd);
+      background-color: var(--ttabs-tab-bar-bg);
+      border-bottom: var(--ttabs-tab-bar-border);
       overflow-x: auto;
       overflow-y: hidden;
     }
 
     .ttabs-tab-header {
-      padding: var(--ttabs-tab-header-padding, 0.5rem 1rem);
+      padding: var(--ttabs-tab-header-padding);
       cursor: pointer;
-      border-right: var(--ttabs-tab-header-border, 1px solid #ddd);
+      border-right: var(--ttabs-tab-header-border);
       white-space: nowrap;
-      font-size: var(--ttabs-tab-header-font-size, 0.9rem);
+      font-size: var(--ttabs-tab-header-font-size);
       transition: background-color 0.1s ease;
       position: relative;
       display: flex;
       align-items: center;
-      color: var(--ttabs-tab-text-color, inherit);
+      color: var(--ttabs-tab-text-color);
     }
 
     .ttabs-tab-title {
@@ -579,24 +573,33 @@
       align-items: center;
       justify-content: center;
       border-radius: 50%;
-      color: var(--ttabs-close-button-color, #888);
+      color: var(--ttabs-close-button-color);
     }
 
     .ttabs-tab-close:hover {
-      background-color: var(--ttabs-close-button-hover-bg, rgba(0, 0, 0, 0.1));
-      color: var(--ttabs-close-button-hover-color, tomato);
+      background-color: var(--ttabs-close-button-hover-bg);
+      color: var(--ttabs-close-button-hover-color);
     }
 
-    .ttabs-tab-header.active {
-      background-color: var(--ttabs-active-tab-bg, white);
-      border-bottom: 2px solid var(--ttabs-active-tab-indicator, #4a6cf7);
+    /* Active tab styling - default implementation */
+    .ttabs-tab-header-active {
+      background-color: var(--ttabs-active-tab-bg);
+      border-bottom: 2px solid var(--ttabs-active-tab-indicator);
       font-weight: 500;
-      color: var(--ttabs-tab-active-text-color, inherit);
+      color: var(--ttabs-tab-active-text-color);
+    }
+
+    /* Active tab - for backward compatibility with .active */
+    .ttabs-tab-header.active:not(.ttabs-tab-header-active) {
+      background-color: var(--ttabs-active-tab-bg);
+      border-bottom: 2px solid var(--ttabs-active-tab-indicator);
+      font-weight: 500;
+      color: var(--ttabs-tab-active-text-color);
     }
 
     .ttabs-tab-header.is-dragging {
       opacity: 0.7;
-      background-color: var(--ttabs-active-tab-bg, white);
+      background-color: var(--ttabs-active-tab-bg);
     }
 
     .ttabs-tab-header.drop-before::before {
@@ -606,7 +609,7 @@
       top: 0px;
       height: 100%;
       width: 4px;
-      background-color: var(--ttabs-drop-indicator-color, #4a6cf7);
+      background-color: var(--ttabs-drop-indicator-color);
     }
 
     .ttabs-tab-header.drop-after::after {
@@ -616,14 +619,14 @@
       top: 0;
       height: 100%;
       width: 4px;
-      background-color: var(--ttabs-drop-indicator-color, #4a6cf7);
+      background-color: var(--ttabs-drop-indicator-color);
     }
 
     .ttabs-tab-content {
       flex: 1;
       overflow: hidden;
       position: relative;
-      background-color: var(--ttabs-content-bg, inherit);
+      background-color: var(--ttabs-content-bg);
     }
 
     /* Split indicators */
@@ -634,7 +637,7 @@
       left: 0;
       width: 100%;
       height: 30%;
-      background-color: rgba(74, 108, 247, 0.1);
+      background-color: var(--ttabs-split-indicator-color);
       z-index: 10;
       pointer-events: none;
     }
@@ -646,7 +649,7 @@
       right: 0;
       width: 30%;
       height: 100%;
-      background-color: rgba(74, 108, 247, 0.1);
+      background-color: var(--ttabs-split-indicator-color);
       z-index: 10;
       pointer-events: none;
     }
@@ -658,7 +661,7 @@
       left: 0;
       width: 100%;
       height: 30%;
-      background-color: rgba(74, 108, 247, 0.1);
+      background-color: var(--ttabs-split-indicator-color);
       z-index: 10;
       pointer-events: none;
     }
@@ -670,7 +673,7 @@
       left: 0;
       width: 30%;
       height: 100%;
-      background-color: rgba(74, 108, 247, 0.1);
+      background-color: var(--ttabs-split-indicator-color);
       z-index: 10;
       pointer-events: none;
     }
@@ -680,15 +683,15 @@
       align-items: center;
       justify-content: center;
       height: 100%;
-      color: var(--ttabs-empty-state-color, #666);
+      color: var(--ttabs-empty-state-color);
       font-style: italic;
     }
 
     .ttabs-error {
       padding: 1rem;
-      color: var(--ttabs-error-color, tomato);
-      background-color: var(--ttabs-error-bg, #fff5f5);
-      border: var(--ttabs-error-border, 1px solid tomato);
+      color: var(--ttabs-error-color);
+      background-color: var(--ttabs-error-bg);
+      border: var(--ttabs-error-border);
       border-radius: 4px;
     }
   }

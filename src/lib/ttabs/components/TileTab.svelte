@@ -88,19 +88,19 @@
       width: 100%;
       height: 100%;
       overflow: auto;
-      color: var(--ttabs-text-color, inherit);
-      background-color: var(--ttabs-content-bg, inherit);
+      color: var(--ttabs-text-color);
+      background-color: var(--ttabs-content-bg);
     }
 
     .ttabs-content {
       height: 100%;
-      background-color: var(--ttabs-content-bg, inherit);
+      background-color: var(--ttabs-content-bg);
     }
 
     .content-container {
       padding: 1rem;
-      color: var(--ttabs-content-text-color, inherit);
-      background-color: var(--ttabs-content-bg, inherit);
+      color: var(--ttabs-content-text-color);
+      background-color: var(--ttabs-content-bg);
     }
 
     .ttabs-empty-state {
@@ -108,25 +108,25 @@
       align-items: center;
       justify-content: center;
       height: 100%;
-      color: var(--ttabs-empty-state-color, #666);
+      color: var(--ttabs-empty-state-color);
       font-style: italic;
     }
 
     .ttabs-error {
       padding: 1rem;
-      color: var(--ttabs-error-color, tomato);
-      background-color: var(--ttabs-error-bg, #fff5f5);
-      border: var(--ttabs-error-border, 1px solid tomato);
+      color: var(--ttabs-error-color);
+      background-color: var(--ttabs-error-bg);
+      border: var(--ttabs-error-border);
       border-radius: 4px;
     }
 
     .ttabs-tab h3 {
       margin-top: 0;
-      color: var(--ttabs-text-color, inherit);
+      color: var(--ttabs-text-color);
     }
 
     .ttabs-tab p {
-      color: var(--ttabs-text-color-secondary, inherit);
+      color: var(--ttabs-text-color-secondary);
       opacity: 0.7;
       margin: 0.5rem 0;
     }

@@ -169,10 +169,10 @@
     .ttabs-column {
       flex-shrink: 0;
       overflow: hidden;
-      border-right: var(--ttabs-column-border, 1px solid #ddd);
+      border-right: var(--ttabs-column-border);
       position: relative;
-      color: var(--ttabs-text-color, inherit);
-      background-color: var(--ttabs-panel-bg, inherit);
+      color: var(--ttabs-text-color);
+      background-color: var(--ttabs-panel-bg);
     }
 
     .ttabs-column:last-child {
@@ -187,8 +187,8 @@
       width: 100%;
       height: 100%;
       overflow: auto;
-      color: var(--ttabs-content-text-color, inherit);
-      background-color: var(--ttabs-content-bg, inherit);
+      color: var(--ttabs-content-text-color);
+      background-color: var(--ttabs-content-bg);
     }
 
     .column-resizer {
@@ -203,17 +203,14 @@
 
     .column-resizer:hover,
     .is-resizing .column-resizer {
-      background-color: var(
-        --ttabs-resizer-hover-color,
-        rgba(74, 108, 247, 0.3)
-      );
+      background-color: var(--ttabs-resizer-hover-color);
     }
 
     .ttabs-error {
       padding: 1rem;
-      color: var(--ttabs-error-color, tomato);
-      background-color: var(--ttabs-error-bg, #fff5f5);
-      border: var(--ttabs-error-border, 1px solid tomato);
+      color: var(--ttabs-error-color);
+      background-color: var(--ttabs-error-bg);
+      border: var(--ttabs-error-border);
       border-radius: 4px;
     }
   }
