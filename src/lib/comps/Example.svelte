@@ -7,6 +7,9 @@
     storageKey: 'ttabs-layout'
   });
   
+  // Store panel ID for adding new tabs
+  let upperPanelId = $state('');
+  
   // Create the root grid and store its ID
   let rootId = $state(createCustomLayout());
   
@@ -60,7 +63,7 @@
     const upperColumnId = ttabs.addColumn(upperRowId, 100);
     
     // Create a panel for the upper column
-    const upperPanelId = ttabs.addPanel(upperColumnId);
+    upperPanelId = ttabs.addPanel(upperColumnId);
     
     // Create editor tab for upper panel
     const editorTabId = ttabs.addTab(upperPanelId, 'Editor');
@@ -127,9 +130,25 @@
     rootId = createCustomLayout();
   }
   
+  // Keep track of new tab count for naming
+  let newTabCount = $state(1);
+  
   // Function to create a new tab using the built-in method
   function createNewTab() {
-    // @TODO: implement
+    if (!upperPanelId) return;
+    
+    // Create a new tab in the upper panel
+    const tabName = `New Tab ${newTabCount}`;
+    const newTabId = ttabs.addTab(upperPanelId, tabName, true); // true to make it active
+    
+    // Update the content type
+    const newTab = ttabs.getTile<TileTab>(newTabId);
+    if (newTab && newTab.content) {
+      ttabs.updateTile(newTab.content, { contentType: 'custom' });
+    }
+    
+    // Increment tab counter
+    newTabCount++;
   }
 </script>
 
