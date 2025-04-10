@@ -7,7 +7,7 @@
     TileRow,
     TileContent,
   } from "../types/tile-types";
-  import type { Component } from 'svelte';
+  import type { Component } from "svelte";
 
   let { ttabs, id }: TtabsProps = $props();
 
@@ -40,18 +40,18 @@
 
   $effect(() => {
     // Check if child is content with componentId
-    if (childTile?.type === 'content' && childTile.componentId) {
+    if (childTile?.type === "content" && childTile.componentId) {
       const componentData = ttabs.getContentComponent(childTile.componentId);
       if (componentData) {
         // Set the component to render
         DirectComponent = componentData.component;
-        
+
         // Create combined props
         componentProps = {
           ...componentData.defaultProps,
           ...childTile.data?.componentProps,
           ttabs,
-          contentId: childId
+          contentId: childId,
         };
       } else {
         DirectComponent = null;
@@ -142,14 +142,17 @@
     {:else if childTile?.type === "grid" && childId !== null}
       <TileGrid {ttabs} id={childId} />
     {:else if childTile?.type === "content" && DirectComponent}
-      <!-- Render direct content component -->
       <div class="ttabs-direct-content">
         <DirectComponent {...componentProps} />
       </div>
     {/if}
 
     {#if !isLast}
-      <div class="column-resizer" on:mousedown={onResizerMouseDown}></div>
+      <div
+        class="column-resizer"
+        role="separator"
+        onmousedown={onResizerMouseDown}
+      ></div>
     {/if}
   </div>
 {:else}
