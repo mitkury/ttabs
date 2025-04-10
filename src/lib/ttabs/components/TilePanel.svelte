@@ -431,7 +431,7 @@
           ondragend={onDragEnd}
           role="tab"
           aria-selected={tabId === activeTab}
-          aria-controls="panel-{id}-content"
+          aria-controls="{id}-content"
           tabindex="0"
         >
           {#if ttabs.getTile<TileTabType>(tabId)?.type === 'tab'}
@@ -443,7 +443,7 @@
     
     <div 
       class="ttabs-tab-content"
-      id="panel-{id}-content"
+      id="{id}-content"
       bind:this={contentElement}
       ondragenter={onContentDragEnter}
       ondragleave={onContentDragLeave}
@@ -451,7 +451,7 @@
       ondrop={onContentDrop}
       role="tabpanel"
       tabindex="0"
-      aria-labelledby={activeTab ? `tab-${activeTab}` : undefined}
+      aria-labelledby={activeTab ? `${activeTab}` : undefined}
       class:split-indicator-top={splitDirection === 'top'}
       class:split-indicator-right={splitDirection === 'right'}
       class:split-indicator-bottom={splitDirection === 'bottom'}
