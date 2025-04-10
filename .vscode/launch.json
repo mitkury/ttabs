@@ -1,0 +1,28 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "_server",
+			"request": "launch",
+			"runtimeArgs": ["run-script", "dev"],
+			"runtimeExecutable": "npm",
+			"skipFiles": ["<node_internals>/**"],
+			"type": "node",
+			"console": "integratedTerminal"
+		},
+
+		{
+			"type": "chrome",
+			"request": "launch",
+			"name": "_chrome",
+			"url": "http://localhost:5173",
+			"webRoot": "${workspaceFolder}"
+		}
+	],
+	"compounds": [
+		{
+			"name": "👉 Start debugging",
+			"configurations": ["_server", "_chrome"]
+		}
+	]
+} 
