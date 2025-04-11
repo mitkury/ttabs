@@ -1,6 +1,3 @@
-// This file is used to ignore files which are generated
-// ----------------------------------------------------------------------------
-
 .DS_Store
 node_modules
 dist
