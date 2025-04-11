@@ -13,21 +13,26 @@ interface ContentComponent {
 }
 
 /**
+ * Type for state change callback
+ */
+export type StateChangeCallback = (state: Record<string, Tile>) => void;
+
+/**
  * Options for creating a ttabs instance
  */
 export interface TtabsOptions {
   /**
    * Initial tiles state (optional)
-   * If provided, the instance will be initialized with this state
+   * If provided, the instance will be initialized with these tiles
    * If not provided, a default root grid will be created
    */
-  initialState?: Record<string, Tile> | Tile[];
-
+  tiles?: Record<string, Tile> | Tile[];
+  
   /**
-   * Auto-save storage key (optional)
-   * If provided, layout will be auto-saved to localStorage
+   * Initially focused tab (optional)
+   * If provided, this tab will be set as the focused active tab
    */
-  storageKey?: string;
+  focusedTab?: string;
   
   /**
    * Theme configuration (optional)
@@ -44,7 +49,6 @@ export class Ttabs {
   private tiles = $state<Record<string, Tile>>({});
   private activePanel = $state<string | null>(null);
   private focusedActiveTabInternal = $state<string | null>(null);
-  private storageKey?: string;
   
   // Root grid tracking
   rootGridId = $state<string | null>(null);
@@ -55,18 +59,21 @@ export class Ttabs {
   // Theme state
   theme = $state<TtabsTheme>(DEFAULT_THEME);
 
+  // State change listeners
+  private stateChangeListeners: StateChangeCallback[] = [];
+
   // Public read-only derived value for focused tab
   focusedActiveTab = $derived(this.focusedActiveTabInternal);
 
   constructor(options: TtabsOptions = {}) {
     // Initialize state
-    if (options.initialState) {
-      if (Array.isArray(options.initialState)) {
+    if (options.tiles) {
+      if (Array.isArray(options.tiles)) {
         // Convert array to record
         this.tiles = {}; 
         
         // Add each tile to the state
-        options.initialState.forEach(tile => {
+        options.tiles.forEach(tile => {
           this.tiles[tile.id] = tile;
         });
         
@@ -75,7 +82,7 @@ export class Ttabs {
           .find(tile => tile.type === 'grid' && !tile.parent)?.id || null;
       } else {
         // Record format provided directly
-        this.tiles = options.initialState;
+        this.tiles = options.tiles;
         
         // Find the root grid
         this.rootGridId = Object.values(this.tiles)
@@ -93,23 +100,45 @@ export class Ttabs {
       this.theme = DEFAULT_THEME;
     }
 
-    this.storageKey = options.storageKey;
-
-    // Setup auto-save if requested
-    if (this.storageKey && typeof window !== 'undefined' && window.localStorage) {
-      // Load saved layout if it exists
-      const savedLayout = localStorage.getItem(this.storageKey);
-      if (savedLayout) {
-        this.deserializeLayout(savedLayout);
-      }
-
-      // Setup auto-save effect
-      $effect(() => {
-        if (typeof window !== 'undefined' && window.localStorage) {
-          localStorage.setItem(this.storageKey!, this.serializeLayout());
-        }
-      });
+    // Set focused tab if provided
+    if (options.focusedTab && this.getTile<TileTab>(options.focusedTab)) {
+      this.focusedActiveTabInternal = options.focusedTab;
     }
+
+    // Setup notification effect to call subscribers when tiles change
+    $effect(() => {
+      // Access tiles to trigger the effect when they change
+      const currentTiles = this.tiles;
+      
+      // Notify listeners
+      this.notifyStateChange();
+    });
+  }
+
+  /**
+   * Subscribe to state changes
+   * @param callback Function to call when state changes
+   * @returns Unsubscribe function
+   */
+  subscribe(callback: StateChangeCallback): () => void {
+    this.stateChangeListeners.push(callback);
+    
+    // Call immediately with current state
+    callback(this.tiles);
+    
+    // Return unsubscribe function
+    return () => {
+      this.stateChangeListeners = this.stateChangeListeners.filter(cb => cb !== callback);
+    };
+  }
+  
+  /**
+   * Notify all subscribers of state change
+   */
+  private notifyStateChange(): void {
+    this.stateChangeListeners.forEach(callback => {
+      callback(this.tiles);
+    });
   }
 
   /**
@@ -338,92 +367,125 @@ export class Ttabs {
   }
 
   /**
-   * Add a new tile to the state
+   * Add a new tile to the layout
+   * @param tile Tile to add (requires type property)
+   * @returns ID of the new tile
    */
   addTile<T extends Tile>(tile: Partial<T> & { type: T['type'] }): string {
     // Generate ID if not provided
-    const id = tile.id || generateId(tile.type);
-
-    // Create the complete tile with defaults
+    const id = tile.id || generateId();
+    
+    // Create a new tile with the ID
     const newTile = {
       id,
-      parent: null,
-      ...tile,
-    } as Tile;
-
-    // Add to state - with runes we can directly mutate
+      ...tile
+    } as T;
+    
+    // Add to state
     this.tiles[id] = newTile;
+    
+    // Notify state changes
+    this.notifyStateChange();
+    
     return id;
   }
 
   /**
-   * Update an existing tile
+   * Update a tile with the given changes
+   * @param id ID of the tile to update
+   * @param updates Changes to apply
+   * @returns True if successful
    */
   updateTile<T extends Tile>(id: string, updates: Partial<T>): boolean {
-    if (!this.tiles[id]) return false;
-
-    // With runes we can directly update properties
-    this.tiles[id] = { ...this.tiles[id], ...updates } as Tile;
+    const tile = this.getTile(id);
+    if (!tile) return false;
+    
+    this.tiles[id] = { ...tile, ...updates };
+    
+    // Notify state changes
+    this.notifyStateChange();
+    
     return true;
   }
 
   /**
-   * Remove a tile and all its descendants
+   * Find all tiles that reference the specified tile
+   * @param tileId ID of the tile to find references to
+   * @returns Array of tiles that reference the specified tile
+   */
+  private findTilesReferencingTile(tileId: string): Tile[] {
+    return Object.values(this.tiles).filter(tile => {
+      if (tile.type === 'grid' && tile.rows.includes(tileId)) {
+        return true;
+      }
+      if (tile.type === 'row' && tile.columns.includes(tileId)) {
+        return true;
+      }
+      if (tile.type === 'column' && tile.child === tileId) {
+        return true;
+      }
+      if (tile.type === 'panel' && tile.tabs.includes(tileId)) {
+        return true;
+      }
+      if (tile.type === 'tab' && tile.content === tileId) {
+        return true;
+      }
+      return false;
+    });
+  }
+
+  /**
+   * Remove a tile from the layout
+   * @param id ID of the tile to remove
+   * @returns True if successful
    */
   removeTile(id: string): boolean {
-    const tile = this.tiles[id];
+    const tile = this.getTile(id);
     if (!tile) return false;
 
-    // Handle cleanup based on tile type
-    if (tile.type === 'grid') {
-      [...(tile as TileGrid).rows].forEach(rowId => this.removeTile(rowId));
-    } else if (tile.type === 'row') {
-      [...(tile as TileRow).columns].forEach(colId => this.removeTile(colId));
-    } else if (tile.type === 'column') {
-      const childId = (tile as TileColumn).child;
-      if (childId && this.tiles[childId]) {
-        this.removeTile(childId);
-      }
-    } else if (tile.type === 'panel') {
-      [...(tile as TilePanel).tabs].forEach(tabId => this.removeTile(tabId));
-    } else if (tile.type === 'tab') {
-      const contentId = (tile as TileTab).content;
-      if (contentId && this.tiles[contentId]) {
-        this.removeTile(contentId);
-      }
-    }
-
-    // Remove from parent's children array
-    if (tile.parent && this.tiles[tile.parent]) {
-      const parent = this.tiles[tile.parent];
-
-      if (parent.type === 'grid') {
-        this.updateTile(parent.id, {
-          rows: (parent as TileGrid).rows.filter(rowId => rowId !== id)
-        });
-      } else if (parent.type === 'row') {
-        this.updateTile(parent.id, {
-          columns: (parent as TileRow).columns.filter(colId => colId !== id)
-        });
-      } else if (parent.type === 'panel') {
-        const panelTile = parent as TilePanel;
-        this.updateTile(parent.id, {
-          tabs: panelTile.tabs.filter(tabId => tabId !== id),
-          // If we removed the active tab, select another one if available
-          activeTab: panelTile.activeTab === id
-            ? (panelTile.tabs.length > 1 ? panelTile.tabs.find(t => t !== id) || null : null)
-            : panelTile.activeTab
+    // Check for references to this tile throughout the layout
+    const referencingTiles = this.findTilesReferencingTile(id);
+    
+    // Remove references to this tile
+    referencingTiles.forEach((referencingTile: Tile) => {
+      if (referencingTile.type === 'grid' && 'rows' in referencingTile) {
+        this.updateTile(referencingTile.id, {
+          rows: referencingTile.rows.filter((rowId: string) => rowId !== id)
         });
       }
-    }
-
-    // If the active panel is being removed, clear it
-    if (id === this.activePanel) {
-      this.activePanel = null;
-    }
-
-    // Delete the tile - with runes we can directly delete
+      else if (referencingTile.type === 'row' && 'columns' in referencingTile) {
+        this.updateTile(referencingTile.id, {
+          columns: referencingTile.columns.filter((colId: string) => colId !== id)
+        });
+      }
+      else if (referencingTile.type === 'column' && 'child' in referencingTile) {
+        if (referencingTile.child === id) {
+          this.updateTile(referencingTile.id, {
+            child: ''
+          });
+        }
+      }
+      else if (referencingTile.type === 'panel' && 'tabs' in referencingTile) {
+        this.updateTile(referencingTile.id, {
+          tabs: referencingTile.tabs.filter((tabId: string) => tabId !== id),
+          activeTab: referencingTile.activeTab === id ? null : referencingTile.activeTab
+        });
+      }
+      else if (referencingTile.type === 'tab' && 'content' in referencingTile) {
+        if (referencingTile.content === id) {
+          this.updateTile(referencingTile.id, {
+            content: ''
+          });
+        }
+      }
+    });
+    
+    // Delete the tile itself
     delete this.tiles[id];
+    
+    // Notify state changes
+    this.notifyStateChange();
+    
     return true;
   }
 
@@ -1527,7 +1589,13 @@ export class Ttabs {
     const mainPanelId = this.addPanel(mainColumnId);
     
     // Create a default tab
-    this.addTab(mainPanelId, 'New Tab');
+    const tabId = this.addTab(mainPanelId, 'New Tab');
+    
+    // Set the focused tab to the new tab
+    this.focusedActiveTabInternal = tabId;
+    
+    // Notify state changes
+    this.notifyStateChange();
     
     return rootId;
   }

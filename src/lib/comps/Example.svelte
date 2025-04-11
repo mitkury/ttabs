@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createTtabs, TtabsRoot } from '$lib/ttabs';
+  import { createTtabs, TtabsRoot, LocalStorageAdapter } from '$lib/ttabs';
   import type { TilePanel, TileTab } from '$lib/ttabs/types/tile-types';
   import { DEFAULT_THEME, DARK_THEME, resolveTheme, ThemeStyles } from '../ttabs/themes';
   import type { TtabsTheme } from '../ttabs/types/theme-types';
@@ -10,10 +10,22 @@
   
   console.log('Themes available:', { DEFAULT_THEME, DARK_THEME });
   
-  // Initialize ttabs with the convenience function and default theme
+  // Create a storage adapter
+  const storageAdapter = new LocalStorageAdapter('ttabs-layout');
+  
+  // Load saved state
+  const savedData = storageAdapter.load();
+  
+  // Initialize ttabs with the loaded state
   const ttabs = createTtabs({
-    storageKey: 'ttabs-layout',
+    tiles: savedData?.tiles,
+    focusedTab: savedData?.focusedTab,
     theme: DEFAULT_THEME
+  });
+  
+  // Connect storage adapter
+  const unsubscribe = ttabs.subscribe((state) => {
+    storageAdapter.save(state);
   });
   
   // Register content components
@@ -89,6 +101,11 @@
     isInitialized = true;
     console.log('Layout initialized, upperPanelId:', upperPanelId);
     console.log('Current theme:', ttabs.theme);
+    
+    // Cleanup on destroy
+    return () => {
+      unsubscribe();
+    };
   });
   
   // Helper function to find the upper panel in an existing layout
@@ -316,7 +333,7 @@
 
 <div class="example-container">
   <header>
-    <h1>ttabs example</h1>
+    <h1>ttabs advanced example</h1>
     <div class="actions">
       <button onclick={resetLayout}>Reset Layout</button>
       <button onclick={createNewTab} class="create-tab-btn">Create New Tab</button>

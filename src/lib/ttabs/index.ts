@@ -5,7 +5,7 @@
 
 // Main class export
 export { Ttabs } from './Ttabs.svelte';
-export type { TtabsOptions } from './Ttabs.svelte';
+export type { TtabsOptions, StateChangeCallback } from './Ttabs.svelte';
 
 // Tile components
 export { default as TileGrid } from './components/TileGrid.svelte';
@@ -22,6 +22,10 @@ export type * from './types/tile-types';
 export type { TtabsTheme, TtabsCssVariables, TtabsElementType } from './types/theme-types';
 // Export themes from the themes directory only
 export * from './themes';
+
+// Storage adapters and interfaces
+export type { TtabsStorageAdapter, TtabsStorageData } from './storage/adapter';
+export { LocalStorageAdapter } from './storage/local-storage';
 
 // Utilities
 export { generateId } from './utils/tile-utils';

@@ -261,3 +261,46 @@ storage.connect(ttabs);
 ## Conclusion
 
 This proposal aims to make the Ttabs library more flexible and maintainable by separating storage concerns from the core functionality. By implementing a subscription mechanism and adapter pattern, we enable users to customize storage behavior according to their specific needs while maintaining a clean and simple API. The improved parameter naming, initialization flow, and streamlined interfaces make the library more intuitive and easier to use. 
+
+## Implementation Considerations and Gotchas
+
+When implementing the storage adapter pattern, keep these important considerations in mind:
+
+1. **Server-Side Rendering**: Always check for the existence of `window` and `localStorage` before using them:
+   ```typescript
+   if (typeof window !== 'undefined' && window.localStorage) {
+     localStorage.getItem(...);
+   }
+   ```
+
+2. **Proper Type Handling**: Ensure storage adapter interface and implementation match:
+   ```typescript
+   // In interface
+   save(state: TtabsStorageData): void;
+   
+   // In implementation
+   save(state: TtabsStorageData): void {
+     // Implementation matches interface
+   }
+   ```
+
+3. **Direct Property Access**: Use direct property access for reactive properties rather than getter methods:
+   ```typescript
+   // AVOID: Breaking reactivity with getter methods
+   getTiles() { return this.tiles; }
+   
+   // PREFER: Direct property access for reactivity
+   this.tiles // Access directly
+   ```
+
+4. **Debounce Storage Operations**: Add debounce to storage operations to avoid excessive writes:
+   ```typescript
+   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+   
+   save(state: TtabsStorageData): void {
+     if (this.debounceTimer) clearTimeout(this.debounceTimer);
+     this.debounceTimer = setTimeout(() => {
+       // Actual save logic
+     }, 500); // 500ms debounce
+   }
+   ``` 
