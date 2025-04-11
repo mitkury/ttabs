@@ -3,7 +3,7 @@
  * A flexible layout management system with draggable, resizable tiles and tabs
  */
 
-import { TtabsOptions } from './TtabsInternal';
+import type { TtabsOptions } from './TtabsInternal';
 import { Ttabs } from './Ttabs.svelte';
 
 // Export tile types
@@ -21,6 +21,9 @@ export type {
 // Export theme types
 export type { TtabsTheme } from './types/theme-types';
 export { DEFAULT_THEME } from './types/theme-types';
+
+// Export options type
+export type { TtabsOptions } from './TtabsInternal';
 
 // Tile components
 export { default as TileGridComponent } from './components/TileGrid.svelte';

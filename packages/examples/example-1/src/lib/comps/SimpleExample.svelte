@@ -22,7 +22,7 @@
   
   // Connect the storage adapter to save changes
   const unsubscribe = ttabs.subscribe((state) => {
-    storageAdapter.save(state);
+    storageAdapter.save(state.tiles);
   });
   
   // Register cleanup on component destroy
