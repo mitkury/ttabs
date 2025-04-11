@@ -18,12 +18,6 @@
   const activeTab = $derived(panel?.type === "panel" ? panel.activeTab : null);
   const focusedTab = $derived(ttabs.focusedActiveTab);
 
-  // Helper function to get tab name with type safety
-  function getTabName(tabId: string): string {
-    const tab = ttabs.getTile<TileTabType>(tabId);
-    return tab?.type === "tab" ? tab.name || "Unnamed Tab" : "Unnamed Tab";
-  }
-
   // Drag state
   let draggedTabId: string | null = $state(null);
   let draggedPanelId: string | null = $state(null);
