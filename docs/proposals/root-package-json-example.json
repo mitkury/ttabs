@@ -1,0 +1,45 @@
+{
+  "name": "ttabs-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "ttabs-svelte monorepo for development",
+  "type": "module",
+  "scripts": {
+    "dev:package": "cd packages/ttabs-svelte && npm run dev",
+    "dev:basic": "cd examples/basic && npm run dev",
+    "dev:advanced": "cd examples/advanced && npm run dev",
+    "build": "cd packages/ttabs-svelte && npm run build",
+    "test": "cd packages/ttabs-svelte && npm run test",
+    "test:watch": "cd packages/ttabs-svelte && npm run test:watch",
+    "test:coverage": "cd packages/ttabs-svelte && npm run test:coverage",
+    "typecheck": "cd packages/ttabs-svelte && npm run typecheck",
+    "lint": "cd packages/ttabs-svelte && npm run lint",
+    "prepare-examples": "cd packages/ttabs-svelte && npm run build && cd ../.. && npm run link-examples",
+    "link-examples": "cd examples/basic && npm link ../../packages/ttabs-svelte && cd ../advanced && npm link ../../packages/ttabs-svelte",
+    "clean": "rm -rf node_modules && rm -rf packages/*/node_modules && rm -rf examples/*/node_modules",
+    "preversion": "npm run typecheck && npm run lint && npm test",
+    "version": "cd packages/ttabs-svelte && npm version ${npm_package_version} && cd ../.. && git add -A",
+    "postversion": "git push && git push --tags"
+  },
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "author": "Dmitry Kury (d@dkury.com)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mitkury/ttabs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mitkury/ttabs/issues"
+  },
+  "homepage": "https://github.com/mitkury/ttabs#readme",
+  "devDependencies": {
+    "concurrently": "^8.0.0"
+  }
+} 
