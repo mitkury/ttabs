@@ -1,71 +1,58 @@
-# ttabs-svelte
+# Svelte library
 
-A flexible layout management system with draggable, resizable tiles and tabs for Svelte applications.
+Everything you need to build a Svelte library, powered by [`sv`](https://npmjs.com/package/sv).
 
-## Features
+Read more about creating a library [in the docs](https://svelte.dev/docs/kit/packaging).
 
-- Hierarchical tile grid system
-- Draggable and resizable tiles
-- Tabbed interface
-- Customizable themes
-- State persistence
+## Creating a project
 
-## Installation
+If you're seeing this, you've probably already done this step. Congrats!
 
 ```bash
-npm install ttabs-svelte
+# create a new project in the current directory
+npx sv create
+
+# create a new project in my-app
+npx sv create my-app
 ```
 
-## Quick Start
+## Developing
 
-```svelte
-<script>
-  import { createTtabs, TtabsRoot } from 'ttabs-svelte';
-  
-  // Create a ttabs instance
-  const ttabs = createTtabs();
-  
-  // Add a grid to serve as the root
-  const rootGridId = ttabs.addGrid();
-  
-  // Add a row to the grid
-  const rowId = ttabs.addRow(rootGridId, 100);
-  
-  // Add a column to the row
-  const columnId = ttabs.addColumn(rowId, 100);
-  
-  // Add a panel to the column
-  const panelId = ttabs.addPanel(columnId);
-  
-  // Add a tab to the panel
-  const tabId = ttabs.addTab(panelId, 'My Tab');
-</script>
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
 
-<div style="width: 100%; height: 500px;">
-  <TtabsRoot {ttabs} />
-</div>
+```bash
+npm run dev
+
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
 ```
 
-## Documentation
+Everything inside `src/lib` is part of your library, everything inside `src/routes` can be used as a showcase or preview app.
 
-For full documentation and examples, visit [ttabs documentation](https://github.com/mitkury/ttabs).
+## Building
 
-## Hierarchical Structure
+To build your library:
 
-```
-TileGrid -> TileRow[] -> TileColumn[] -> TileContent | TilePanel | TileGrid
-
-TilePanel -> TileTab[] -> TileContnet
+```bash
+npm run package
 ```
 
-Each level follows strict containment rules:
-- **TileGrid** contains only TileRows
-- **TileRow** contains only TileColumns 
-- **TileColumn** contains exactly one of: TileContent, TilePanel, or nested TileGrid
-- **TilePanel** contains TileTabs
-- **TileTab** contains TileContent
-- **TileContent** contains reference to any content to be displayed in a tab or a column
+To create a production version of your showcase app:
 
-## License
+```bash
+npm run build
+```
 
-MIT 
+You can preview the production build with `npm run preview`.
+
+> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+
+## Publishing
+
+Go into the `package.json` and give your package the desired name through the `"name"` option. Also consider adding a `"license"` field and point it to a `LICENSE` file which you can create from a template (one popular option is the [MIT license](https://opensource.org/license/mit/)).
+
+To publish your library to [npm](https://www.npmjs.com):
+
+```bash
+npm publish
+```
