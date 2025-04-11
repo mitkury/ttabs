@@ -592,7 +592,8 @@
 
     /* Focused tab styling */
     .ttabs-tab-header-focused {
-      border-bottom: 3px solid var(--ttabs-active-tab-indicator);
+      border-bottom: none;
+      box-shadow: inset 0 3px 0 var(--ttabs-active-tab-indicator);
     }
 
     /* Active tab - for backward compatibility with .active */
