@@ -149,7 +149,7 @@ export class TtabsInternal {
    * Get all tiles
    */
   getTiles(): Record<string, Tile> {
-    return { ...this._tiles };
+    return this._tiles;
   }
 
   /**

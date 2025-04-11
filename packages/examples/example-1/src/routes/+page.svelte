@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createTtabs, TtabsRoot, LocalStorageAdapter } from "$lib/ttabs";
+  import { createTtabs, TtabsRoot, LocalStorageAdapter } from "ttabs-svelte";
   import { onMount } from "svelte";
   import Example from "$lib/comps/Example.svelte";
   import SimpleExample from "$lib/comps/SimpleExample.svelte";

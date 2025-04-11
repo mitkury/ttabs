@@ -1,6 +1,7 @@
 {
-	"name": "ttabs",
+	"name": "ttabs-svelte",
 	"version": "0.0.1",
+	"description": "A flexible layout management system with draggable, resizable tiles and tabs for Svelte applications",
 	"scripts": {
 		"dev": "vite dev",
 		"build": "svelte-kit sync && svelte-package",
@@ -43,6 +44,14 @@
 		"vite": "^6.2.5"
 	},
 	"keywords": [
-		"svelte"
+		"svelte",
+		"sveltekit",
+		"tiles",
+		"tabs",
+		"layout",
+		"ui",
+		"drag-and-drop",
+		"resizable",
+		"component-library"
 	]
 }
