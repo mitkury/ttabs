@@ -1,0 +1,75 @@
+{
+	"name": "ttabs-svelte",
+	"version": "0.0.1",
+	"description": "A flexible layout management system with draggable, resizable tiles and tabs for Svelte applications",
+	"author": "Dmitry Kury (https://dkury.com)",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/mitkury/ttabs.git"
+	},
+	"bugs": {
+		"url": "https://github.com/mitkury/ttabs/issues"
+	},
+	"homepage": "https://github.com/mitkury/ttabs#readme",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "svelte-kit sync && svelte-package",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"prepack": "svelte-kit sync && publint",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+	},
+	"files": [
+		"dist",
+		"!dist/**/*.test.*",
+		"!dist/**/*.spec.*"
+	],
+	"sideEffects": [
+		"**/*.css"
+	],
+	"svelte": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"svelte": "./dist/index.js"
+		}
+	},
+	"peerDependencies": {
+		"svelte": "^5.0.0"
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-auto": "^4.0.0",
+		"@sveltejs/adapter-static": "^3.0.8",
+		"@sveltejs/kit": "^2.16.0",
+		"@sveltejs/package": "^2.0.0",
+		"@sveltejs/vite-plugin-svelte": "^5.0.0",
+		"publint": "^0.3.2",
+		"svelte": "^5.0.0",
+		"svelte-check": "^4.0.0",
+		"typescript": "^5.0.0",
+		"vite": "^6.2.5"
+	},
+	"keywords": [
+		"svelte",
+		"sveltekit",
+		"tiles",
+		"tabs",
+		"layout",
+		"ui",
+		"drag-and-drop",
+		"resizable",
+		"component-library",
+		"grid-layout",
+		"tab-management",
+		"panel-system",
+		"workspace",
+		"interface-builder",
+		"flexible-layout",
+		"hierarchical-layout",
+		"tiling-window-manager"
+	]
+}

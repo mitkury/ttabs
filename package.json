@@ -1,23 +1,46 @@
 {
-	"name": "ttabs",
-	"private": true,
-	"version": "0.0.1",
-	"type": "module",
-	"scripts": {
-		"dev": "vite dev",
-		"build": "vite build",
-		"preview": "vite preview",
-		"prepare": "svelte-kit sync || echo ''",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
-	},
-	"devDependencies": {
-		"@sveltejs/adapter-auto": "^4.0.0",
-		"@sveltejs/kit": "^2.16.0",
-		"@sveltejs/vite-plugin-svelte": "^5.0.0",
-		"svelte": "^5.0.0",
-		"svelte-check": "^4.0.0",
-		"typescript": "^5.0.0",
-		"vite": "^6.2.5"
-	}
-}
+  "name": "ttabs-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "ttabs monorepo for development",
+  "type": "module",
+  "scripts": {
+    "dev:package": "cd packages/ttabs && npm run dev",
+    "dev:basic": "cd examples/basic && npm run dev",
+    "dev:advanced": "cd examples/advanced && npm run dev",
+    "build": "cd packages/ttabs && npm run build",
+    "package": "cd packages/ttabs && npm run package",
+    "test": "cd packages/ttabs && npm run test",
+    "test:watch": "cd packages/ttabs && npm run test:watch",
+    "test:coverage": "cd packages/ttabs && npm run test:coverage",
+    "typecheck": "cd packages/ttabs && npm run typecheck",
+    "lint": "cd packages/ttabs && npm run lint",
+    "prepare-examples": "cd packages/ttabs && npm run package && cd ../.. && npm run link-examples",
+    "link-examples": "cd examples/basic && npm link ../../packages/ttabs && cd ../advanced && npm link ../../packages/ttabs",
+    "clean": "rm -rf node_modules && rm -rf packages/*/node_modules && rm -rf examples/*/node_modules",
+    "preversion": "npm run typecheck && npm run lint && npm test",
+    "version": "cd packages/ttabs && npm version ${npm_package_version} && cd ../.. && git add -A",
+    "postversion": "git push && git push --tags"
+  },
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "author": "Dmitry Kury (d@dkury.com)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mitkury/ttabs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mitkury/ttabs/issues"
+  },
+  "homepage": "https://github.com/mitkury/ttabs#readme",
+  "devDependencies": {
+    "concurrently": "^8.0.0"
+  }
+} 

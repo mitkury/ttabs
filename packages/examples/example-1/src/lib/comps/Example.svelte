@@ -1,8 +1,7 @@
 <script lang="ts">
-  import { createTtabs, TtabsRoot, LocalStorageAdapter } from '$lib/ttabs';
-  import type { TilePanel, TileTab } from '$lib/ttabs/types/tile-types';
-  import { DEFAULT_THEME, DARK_THEME, resolveTheme, ThemeStyles } from '../ttabs/themes';
-  import type { TtabsTheme } from '../ttabs/types/theme-types';
+  import { createTtabs, TtabsRoot, LocalStorageAdapter, defaultTheme as DEFAULT_THEME, darkTheme as DARK_THEME } from 'ttabs-svelte';
+  import type { TilePanel, TileTab } from 'ttabs-svelte';
+  import type { TtabsTheme } from 'ttabs-svelte';
   import EditorComponent from './EditorComponent.svelte';
   import DocumentComponent from './DocumentComponent.svelte';
   import SidePanelComponent from './SidePanelComponent.svelte';
@@ -327,9 +326,6 @@
     newTabCount++;
   }
 </script>
-
-<!-- Include the global theme styles -->
-<ThemeStyles />
 
 <div class="example-container">
   <header>

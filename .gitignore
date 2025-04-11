@@ -1,4 +1,39 @@
+.DS_Store
 node_modules
+dist
+.svelte-kit
+packages/*/dist
+packages/*/node_modules
+examples/*/node_modules
+examples/*/.svelte-kit
+examples/*/build
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 # Output
 .output
@@ -9,11 +44,9 @@ node_modules
 /build
 
 # OS
-.DS_Store
 Thumbs.db
 
 # Env
-.env
 .env.*
 !.env.example
 !.env.test
