@@ -131,14 +131,29 @@ Here's a simple editor component example:
 <!-- EditorComponent.svelte -->
 <script lang="ts">
   let { content = '', language = 'text', readOnly = false } = $props();
+  
+  // Additional state handling if needed
+  let editorFocused = $state(false);
+  
+  function handleFocus() {
+    editorFocused = true;
+  }
+  
+  function handleBlur() {
+    editorFocused = false;
+  }
 </script>
 
-<div class="editor">
+<div class="editor" class:focused={editorFocused}>
   <div class="header">{language}</div>
   {#if readOnly}
     <pre><code>{content}</code></pre>
   {:else}
-    <textarea bind:value={content}></textarea>
+    <textarea 
+      value={content} 
+      onfocus={handleFocus}
+      onblur={handleBlur}
+    ></textarea>
   {/if}
 </div>
 
@@ -159,13 +174,20 @@ And a sidebar component example:
 
   // Track selected item
   let selectedItem = $state(items.length > 0 ? items[0].id : null);
+  
+  function selectItem(id) {
+    selectedItem = id;
+  }
 </script>
 
 <div class="sidepanel">
   <h3>{title}</h3>
   <ul>
     {#each items as item}
-      <li class:active={selectedItem === item.id}>
+      <li 
+        class:active={selectedItem === item.id}
+        onclick={() => selectItem(item.id)}
+      >
         {#if item.icon}<span>{item.icon}</span>{/if}
         {item.label}
       </li>
@@ -181,6 +203,8 @@ And a sidebar component example:
 3. **Default Props**: Provide sensible defaults in both the registration and the component itself.
 4. **Error Handling**: Components should gracefully handle missing or invalid props.
 5. **Sidebar Components**: For components added directly to columns, design them to fill the entire space.
+6. **Reactivity**: Use `$state()` for reactive variables and `$derived()` for computed values.
+7. **Event Handling**: Use `onclick`, `onfocus`, etc. instead of `on:click`, `on:focus` in Svelte 5.
 
 ---
 
