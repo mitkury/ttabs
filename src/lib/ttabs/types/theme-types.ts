@@ -65,6 +65,7 @@ export type TtabsElementType =
   | 'tab-bar'
   | 'tab-header'
   | 'tab-header-active'
+  | 'tab-header-focused'
   | 'tab-title'
   | 'tab-close-button'
   | 'tab-content'

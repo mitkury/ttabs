@@ -43,6 +43,7 @@ export class Ttabs {
 
   private tiles = $state<Record<string, Tile>>({});
   private activePanel = $state<string | null>(null);
+  private focusedActiveTabInternal = $state<string | null>(null);
   private storageKey?: string;
   
   // Root grid tracking
@@ -53,6 +54,9 @@ export class Ttabs {
   
   // Theme state
   theme = $state<TtabsTheme>(DEFAULT_THEME);
+
+  // Public read-only derived value for focused tab
+  focusedActiveTab = $derived(this.focusedActiveTabInternal);
 
   constructor(options: TtabsOptions = {}) {
     // Initialize state
@@ -450,7 +454,50 @@ export class Ttabs {
 
     this.updateTile(panelId, { activeTab: tabId });
     this.setActivePanel(panelId);
+    
+    // Also set as focused tab
+    this.focusedActiveTabInternal = tabId;
+    
     return true;
+  }
+
+  /**
+   * Set the focused active tab
+   * @param tabId ID of the tab to focus
+   * @returns True if successful
+   */
+  setFocusedActiveTab(tabId: string): boolean {
+    const tab = this.getTile<TileTab>(tabId);
+    if (!tab || tab.type !== 'tab') return false;
+    
+    // Ensure the tab is active in its panel
+    const panelId = tab.parent;
+    if (!panelId) return false;
+    
+    const panel = this.getTile<TilePanel>(panelId);
+    if (!panel || panel.type !== 'panel') return false;
+    
+    // If the tab is not the active one in its panel, make it active
+    if (panel.activeTab !== tabId) {
+      this.updateTile(panelId, { activeTab: tabId });
+    }
+    
+    // Set the panel as active if it's not already
+    if (this.activePanel !== panelId) {
+      this.setActivePanel(panelId);
+    }
+    
+    // Set the focused tab
+    this.focusedActiveTabInternal = tabId;
+    
+    return true;
+  }
+
+  /**
+   * Get the focused active tab
+   */
+  getFocusedActiveTabTile(): TileTab | null {
+    return this.focusedActiveTabInternal ? this.getTile<TileTab>(this.focusedActiveTabInternal) : null;
   }
 
   /**
@@ -988,6 +1035,7 @@ export class Ttabs {
     // With runes we can directly assign
     this.tiles = {};
     this.activePanel = null;
+    this.focusedActiveTabInternal = null;
     this.rootGridId = null;
   }
 
@@ -1263,7 +1311,16 @@ export class Ttabs {
   serializeLayout(): string {
     // Get all tiles as an array
     const tilesArray = Object.values(this.tiles);
-    return JSON.stringify(tilesArray);
+    
+    // Add metadata for focused tab
+    const metadata = {
+      focusedActiveTab: this.focusedActiveTabInternal
+    };
+    
+    return JSON.stringify({
+      tiles: tilesArray,
+      metadata
+    });
   }
 
   /**
@@ -1271,7 +1328,37 @@ export class Ttabs {
    */
   deserializeLayout(json: string): boolean {
     try {
-      // Try to parse as array format first
+      // Try to parse as new format first (with metadata)
+      try {
+        const parsed = JSON.parse(json);
+        if (parsed && typeof parsed === 'object' && 'tiles' in parsed && Array.isArray(parsed.tiles)) {
+          // Reset current state
+          this.resetState();
+          
+          // Set tiles from array
+          parsed.tiles.forEach((tile: Tile) => {
+            this.tiles[tile.id] = tile;
+          });
+          
+          // Find the root grid
+          this.rootGridId = Object.values(this.tiles)
+            .find(tile => tile.type === 'grid' && !tile.parent)?.id || null;
+          
+          // Restore metadata
+          if (parsed.metadata && 'focusedActiveTab' in parsed.metadata) {
+            const focusedTabId = parsed.metadata.focusedActiveTab;
+            if (focusedTabId && this.getTile<TileTab>(focusedTabId)) {
+              this.focusedActiveTabInternal = focusedTabId;
+            }
+          }
+          
+          return true;
+        }
+      } catch (e) {
+        // Fall back to older formats
+      }
+      
+      // Try to parse as array format (without metadata)
       try {
         const parsedTiles = JSON.parse(json) as Tile[];
         if (Array.isArray(parsedTiles)) {
@@ -1286,6 +1373,9 @@ export class Ttabs {
           // Find the root grid
           this.rootGridId = Object.values(this.tiles)
             .find(tile => tile.type === 'grid' && !tile.parent)?.id || null;
+          
+          // Try to find a suitable tab to focus
+          this.findAndSetDefaultFocusedTab();
           
           return true;
         }
@@ -1309,10 +1399,37 @@ export class Ttabs {
       this.rootGridId = Object.values(this.tiles)
         .find(tile => tile.type === 'grid' && !tile.parent)?.id || null;
 
+      // Try to find a suitable tab to focus
+      this.findAndSetDefaultFocusedTab();
+
       return true;
     } catch (e) {
       console.error('Failed to deserialize layout:', e);
       return false;
+    }
+  }
+
+  /**
+   * Find and set a default focused tab when none is specified
+   * Used after deserializing older layouts
+   */
+  private findAndSetDefaultFocusedTab(): void {
+    // If active panel exists, try to use its active tab
+    if (this.activePanel) {
+      const panel = this.getTile<TilePanel>(this.activePanel);
+      if (panel && panel.activeTab) {
+        this.focusedActiveTabInternal = panel.activeTab;
+        return;
+      }
+    }
+    
+    // Otherwise find the first panel with an active tab
+    const panelsWithActiveTabs = Object.values(this.tiles)
+      .filter((tile): tile is TilePanel => 
+        tile.type === 'panel' && tile.activeTab !== null && !!this.getTile(tile.activeTab));
+    
+    if (panelsWithActiveTabs.length > 0 && panelsWithActiveTabs[0].activeTab) {
+      this.focusedActiveTabInternal = panelsWithActiveTabs[0].activeTab;
     }
   }
 
@@ -1435,6 +1552,32 @@ export class Ttabs {
       const tabIndex = panel.tabs.indexOf(tabId);
       if (tabIndex === -1) return false;
       
+      // If we're closing the focused tab, we need to find a new tab to focus
+      let newFocusedTab: string | null = null;
+      if (this.focusedActiveTabInternal === tabId) {
+        // First try to find another tab in the same panel
+        if (panel.tabs.length > 1) {
+          // Use the same logic as for activeTab - get next or previous tab
+          const newTabIndex = Math.min(tabIndex, panel.tabs.length - 2);
+          newFocusedTab = panel.tabs[newTabIndex];
+          if (newFocusedTab === tabId) {
+            // Extra safety check
+            newFocusedTab = panel.tabs.find(t => t !== tabId) || null;
+          }
+        } else {
+          // Look for a tab in another panel
+          const otherPanels = Object.values(this.tiles)
+            .filter((tile): tile is TilePanel => 
+              tile.type === 'panel' && tile.id !== panelId && tile.tabs.length > 0);
+          
+          // Find the first panel with tabs and use its active tab
+          const otherPanel = otherPanels[0];
+          if (otherPanel && otherPanel.activeTab) {
+            newFocusedTab = otherPanel.activeTab;
+          }
+        }
+      }
+      
       // Remove tab
       this.removeTile(tabId);
       
@@ -1459,6 +1602,11 @@ export class Ttabs {
         tabs: newTabs,
         activeTab: newActiveTab
       });
+      
+      // Update the focused tab if needed
+      if (newFocusedTab) {
+        this.focusedActiveTabInternal = newFocusedTab;
+      }
       
       // Clean up empty containers
       this.cleanupContainers(panelId);

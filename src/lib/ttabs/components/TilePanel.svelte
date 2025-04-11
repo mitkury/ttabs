@@ -16,6 +16,7 @@
   // Get tabs and active tab
   const tabs = $derived(panel?.type === "panel" ? panel.tabs : []);
   const activeTab = $derived(panel?.type === "panel" ? panel.activeTab : null);
+  const focusedTab = $derived(ttabs.focusedActiveTab);
 
   // Helper function to get tab name with type safety
   function getTabName(tabId: string): string {
@@ -425,8 +426,9 @@
       {#each tabs as tabId}
         <!-- Default tab header implementation -->
         <div
-          class="ttabs-tab-header {ttabs.theme?.classes?.['tab-header'] || ''} {tabId === activeTab ? `ttabs-tab-header-active ${ttabs.theme?.classes?.['tab-header-active'] || ''}` : ''}"
+          class="ttabs-tab-header {ttabs.theme?.classes?.['tab-header'] || ''} {tabId === activeTab ? `ttabs-tab-header-active ${ttabs.theme?.classes?.['tab-header-active'] || ''}` : ''} {tabId === focusedTab ? `ttabs-tab-header-focused ${ttabs.theme?.classes?.['tab-header-focused'] || ''}` : ''}"
           class:active={tabId === activeTab}
+          class:focused={tabId === focusedTab}
           class:is-dragging={tabId === draggedTabId}
           class:drop-before={tabId === dragOverTabId &&
             dragPosition === "before"}
@@ -584,15 +586,18 @@
     /* Active tab styling - default implementation */
     .ttabs-tab-header-active {
       background-color: var(--ttabs-active-tab-bg);
-      border-bottom: 2px solid var(--ttabs-active-tab-indicator);
       font-weight: 500;
       color: var(--ttabs-tab-active-text-color);
+    }
+
+    /* Focused tab styling */
+    .ttabs-tab-header-focused {
+      border-bottom: 3px solid var(--ttabs-active-tab-indicator);
     }
 
     /* Active tab - for backward compatibility with .active */
     .ttabs-tab-header.active:not(.ttabs-tab-header-active) {
       background-color: var(--ttabs-active-tab-bg);
-      border-bottom: 2px solid var(--ttabs-active-tab-indicator);
       font-weight: 500;
       color: var(--ttabs-tab-active-text-color);
     }
