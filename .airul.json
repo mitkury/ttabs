@@ -3,7 +3,8 @@
   "how": "Edit 'sources' to include your important docs (supports glob patterns like 'docs/*.md') and enable/disable AI tools in 'output'",
   "sources": [
     "README.md",
-    "docs/for-ai/rules.md"
+    "docs/for-ai/rules.md",
+    "docs/for-ai/svelte-5.md"
   ],
   "output": {
     "cursor": true,
