@@ -6,7 +6,7 @@
     TileTab as TileTabType,
   } from "../types/tile-types";
   import { onMount, onDestroy } from "svelte";
-  import { browser } from "$app/environment";
+  import { BROWSER } from 'esm-env';
 
   let { ttabs, id }: TtabsProps = $props();
 
@@ -31,7 +31,7 @@
   let splitDirection: "top" | "right" | "bottom" | "left" | null = $state(null);
 
   onMount(() => {
-    if (browser) {
+    if (BROWSER) {
       // Add mouseup event to reset visual indicators immediately
       document.addEventListener("mouseup", handleMouseUp);
       // Keep dragend as backup for when mouseup might not fire
@@ -40,7 +40,7 @@
   });
 
   onDestroy(() => {
-    if (browser) {
+    if (BROWSER) {
       document.removeEventListener("mouseup", handleMouseUp);
       document.removeEventListener("dragend", resetDragState);
     }

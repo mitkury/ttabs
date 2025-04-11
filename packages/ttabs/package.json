@@ -38,7 +38,9 @@
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run package"
   },
-  "sideEffects": ["**/*.css"],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "keywords": [
     "svelte",
     "sveltekit",
@@ -76,6 +78,7 @@
     "@vitest/coverage-v8": "^1.0.0",
     "eslint": "^8.0.0",
     "eslint-plugin-svelte": "^2.0.0",
+    "esm-env": "^1.2.2",
     "publint": "^0.2.0",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
@@ -84,4 +87,4 @@
     "vite": "^6.2.5",
     "vitest": "^1.0.0"
   }
-} 
+}

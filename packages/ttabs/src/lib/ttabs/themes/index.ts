@@ -8,9 +8,12 @@ console.log('DEBUG - Themes importing in themes/index.ts:', {
   DARK_THEME
 });
 
-export {
-  DEFAULT_THEME,
-  DARK_THEME,
-  resolveTheme,
-  ThemeStyles
-}; 
+// Re-export the themes
+export { default as defaultTheme } from './default';
+export { default as darkTheme } from './dark';
+
+// Export utilities
+export { resolveTheme, ThemeStyles };
+
+// Export types
+export type { TtabsTheme, TtabsCssVariables, TtabsElementType } from '../types/theme-types'; 
