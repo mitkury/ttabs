@@ -2,6 +2,16 @@
 	"name": "ttabs-svelte",
 	"version": "0.0.1",
 	"description": "A flexible layout management system with draggable, resizable tiles and tabs for Svelte applications",
+	"author": "Dmitry Kury (https://dkury.com)",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/mitkury/ttabs.git"
+	},
+	"bugs": {
+		"url": "https://github.com/mitkury/ttabs/issues"
+	},
+	"homepage": "https://github.com/mitkury/ttabs#readme",
 	"scripts": {
 		"dev": "vite dev",
 		"build": "svelte-kit sync && svelte-package",
@@ -52,6 +62,14 @@
 		"ui",
 		"drag-and-drop",
 		"resizable",
-		"component-library"
+		"component-library",
+		"grid-layout",
+		"tab-management",
+		"panel-system",
+		"workspace",
+		"interface-builder",
+		"flexible-layout",
+		"hierarchical-layout",
+		"tiling-window-manager"
 	]
 }
