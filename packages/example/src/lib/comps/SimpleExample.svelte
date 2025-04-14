@@ -18,7 +18,7 @@
   });
   
   // Register the text component
-  ttabs.registerContentComponent('text', SimpleTextComponent);
+  ttabs.registerComponent('text', SimpleTextComponent);
   
   // Connect the storage adapter to save changes
   const unsubscribe = ttabs.subscribe((state) => {

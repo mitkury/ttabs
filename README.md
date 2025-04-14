@@ -52,7 +52,7 @@ ttabs.splitPanel(tabId, panelId, 'right'); // directions: 'top', 'right', 'botto
 ```javascript
 // Register components
 import MyComponent from './MyComponent.svelte';
-ttabs.registerContentComponent('my-component', MyComponent, { defaultProp: 'value' });
+ttabs.registerComponent('my-component', MyComponent, { defaultProp: 'value' });
 
 // Add component to a tab
 ttabs.setComponent(tabId, 'my-component', { prop1: 'value1' });

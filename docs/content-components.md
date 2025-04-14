@@ -26,9 +26,9 @@ import SidePanelComponent from './SidePanelComponent.svelte';
 const ttabs = new Ttabs();
 
 // Register components with unique IDs
-ttabs.registerContentComponent('editor', EditorComponent, { readOnly: false });
-ttabs.registerContentComponent('document', DocumentComponent);
-ttabs.registerContentComponent('sidepanel', SidePanelComponent);
+ttabs.registerComponent('editor', EditorComponent, { readOnly: false });
+ttabs.registerComponent('document', DocumentComponent);
+ttabs.registerComponent('sidepanel', SidePanelComponent);
 ```
 
 The last parameter is optional and allows you to set default props for the component.
@@ -61,7 +61,7 @@ ttabs.setComponent(docTabId, 'document', {
 
 ### 3. Update Existing Content
 
-You can update the content of an existing tab by calling `addComponentContent` again with the same tab ID:
+You can update the content of an existing tab by calling `setComponent` again with the same tab ID:
 
 ```typescript
 // Update the editor content
@@ -84,7 +84,7 @@ const sidebarColumnId = ttabs.addColumn(rowId, 20); // 20% width
 const mainColumnId = ttabs.addColumn(rowId, 80);    // 80% width
 
 // Add sidebar component directly to the column (no panel or tabs)
-ttabs.addColumnComponent(sidebarColumnId, 'sidepanel', {
+ttabs.setComponent(sidebarColumnId, 'sidepanel', {
   title: 'Navigation',
   items: [
     { id: 'files', label: 'Files', icon: '📁' },
@@ -99,6 +99,21 @@ const panelId = ttabs.addPanel(mainColumnId);
 ```
 
 This is perfect for creating IDE-like interfaces with sidebars, navigation panels, or other persistent UI elements.
+
+### 5. Add a New Tab to Active Panel
+
+To quickly add a new tab to the currently active panel:
+
+```typescript
+// Add a new tab to the active panel
+const newTabId = ttabs.addTabInActivePanel('New Tab');
+
+// Add component to the new tab
+ttabs.setComponent(newTabId, 'editor', { 
+  content: '// New document',
+  language: 'javascript'
+});
+```
 
 ## Creating Content Components
 
@@ -121,7 +136,7 @@ When creating components for use with ttabs, follow these guidelines:
    - `ttabs`: Reference to the ttabs instance
    - `contentId`: ID of the content tile this component is rendering
 
-3. Any props you pass to `addComponentContent` or `addColumnComponent` will be available to your component.
+3. Any props you pass to `setComponent` will be available to your component.
 
 ## Example Components
 

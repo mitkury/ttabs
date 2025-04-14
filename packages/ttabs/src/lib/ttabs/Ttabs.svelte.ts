@@ -162,7 +162,7 @@ export class Ttabs {
    * @param component Svelte component to render
    * @param defaultProps Optional default props for the component
    */
-  registerContentComponent(
+  registerComponent(
     componentId: string, 
     component: Component<any>, 
     defaultProps: Record<string, any> = {}

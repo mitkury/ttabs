@@ -28,9 +28,9 @@
   });
   
   // Register content components
-  ttabs.registerContentComponent('editor', EditorComponent, { readOnly: false });
-  ttabs.registerContentComponent('document', DocumentComponent);
-  ttabs.registerContentComponent('sidepanel', SidePanelComponent);
+  ttabs.registerComponent('editor', EditorComponent, { readOnly: false });
+  ttabs.registerComponent('document', DocumentComponent);
+  ttabs.registerComponent('sidepanel', SidePanelComponent);
   
   // Store panel ID for adding new tabs
   let upperPanelId = $state('');
@@ -221,12 +221,6 @@
     
     // Create settings tab for upper panel
     const settingsTabId = ttabs.addTab(upperPanelId, 'Settings', false);
-    
-    // Update content type for settings tab
-    const settingsTab = ttabs.getTile<TileTab>(settingsTabId);
-    if (settingsTab && settingsTab.content) {
-      //ttabs.updateTile(settingsTab.content, { contentType: 'settings' });
-    }
     
     // Create a column for the lower row
     const lowerColumnId = ttabs.addColumn(lowerRowId, 100);

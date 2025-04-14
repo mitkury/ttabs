@@ -86,8 +86,8 @@ Panel splitting works seamlessly with content components:
 
 ```typescript
 // Register your components first
-ttabs.registerContentComponent('editor', EditorComponent);
-ttabs.registerContentComponent('preview', PreviewComponent);
+ttabs.registerComponent('editor', EditorComponent);
+ttabs.registerComponent('preview', PreviewComponent);
 
 // Create tabs with content
 const codeTab = ttabs.addTab(panelId, 'Code');
