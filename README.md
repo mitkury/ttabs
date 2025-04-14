@@ -4,6 +4,10 @@
 
 ttabs is a layout system that allows users to create resizable and rearrangeable interfaces with tiles and tabs.
 
+### How it Works
+
+You create an instance of ttabs, register your components (can be any Svelte component), create a layout, and add instances of your components to tabs and columns.
+
 ## API
 
 ### Installation
