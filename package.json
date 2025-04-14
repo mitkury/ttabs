@@ -5,26 +5,17 @@
   "description": "ttabs monorepo for development",
   "type": "module",
   "scripts": {
-    "dev:package": "cd packages/ttabs && npm run dev",
-    "dev:basic": "cd examples/basic && npm run dev",
-    "dev:advanced": "cd examples/advanced && npm run dev",
     "build": "cd packages/ttabs && npm run build",
-    "package": "cd packages/ttabs && npm run package",
-    "test": "cd packages/ttabs && npm run test",
-    "test:watch": "cd packages/ttabs && npm run test:watch",
-    "test:coverage": "cd packages/ttabs && npm run test:coverage",
-    "typecheck": "cd packages/ttabs && npm run typecheck",
-    "lint": "cd packages/ttabs && npm run lint",
-    "prepare-examples": "cd packages/ttabs && npm run package && cd ../.. && npm run link-examples",
-    "link-examples": "cd examples/basic && npm link ../../packages/ttabs && cd ../advanced && npm link ../../packages/ttabs",
-    "clean": "rm -rf node_modules && rm -rf packages/*/node_modules && rm -rf examples/*/node_modules",
+    "example": "npm run build && cd packages/example && npm run dev",
+    "publish": "npm run build && cd packages/ttabs && npm publish",
+    "patch-and-publish": "cd packages/ttabs && npm run build && npm version patch && git push --tags && npm publish",
+    "clean": "rm -rf node_modules && rm -rf packages/*/node_modules",
     "preversion": "npm run typecheck && npm run lint && npm test",
     "version": "cd packages/ttabs && npm version ${npm_package_version} && cd ../.. && git add -A",
     "postversion": "git push && git push --tags"
   },
   "workspaces": [
-    "packages/*",
-    "examples/*"
+    "packages/*"
   ],
   "engines": {
     "node": ">=18.0.0",
