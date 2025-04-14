@@ -41,28 +41,43 @@
   // Function to reset the layout
   function resetLayout() {
     ttabs.resetState();
-    ttabs.createDefaultLayout();
     
-    // Find the default tab and update its content
-    const panels = Object.values(ttabs.getTiles())
-      .filter(tile => tile.type === 'panel');
+    // Create the layout directly instead of using createDefaultLayout
+    // Create root grid if it doesn't exist
+    if (!ttabs.getRootGridId()) {
+      ttabs.rootGridId = ttabs.addGrid();
+    }
     
-    if (panels.length > 0) {
-      const panel = panels[0];
-      if (panel.tabs && panel.tabs.length > 0) {
-        const tabId = panel.tabs[0];
-        const tab = ttabs.getTile(tabId);
-        
-        if (tab?.type === 'tab' && tab.content) {
-          // Tab already has content, just update it
-          ttabs.updateTile(tab.content, {
-            contentType: 'text',
-            data: {
-              text: "Welcome to ttabs simple example!\n\nThis is a basic demo showing how ttabs layout system works with storage."
-            }
-          });
+    const rootId = ttabs.getRootGridId();
+    if (!rootId) {
+      console.error("Failed to get or create root grid");
+      return;
+    }
+    
+    // Create a main row
+    const mainRowId = ttabs.addRow(rootId, 100);
+    
+    // Create a column
+    const mainColumnId = ttabs.addColumn(mainRowId, 100);
+    
+    // Create a panel
+    const mainPanelId = ttabs.addPanel(mainColumnId);
+    
+    // Create a default tab with welcome text
+    const tabId = ttabs.addTab(mainPanelId, 'Welcome', true);
+    
+    // Set the focused tab to the new tab
+    ttabs.setFocusedActiveTab(tabId);
+    
+    // Find the tab content and update it
+    const tab = ttabs.getTile(tabId);
+    if (tab?.type === 'tab' && tab.content) {
+      ttabs.updateTile(tab.content, {
+        contentType: 'text',
+        data: {
+          text: "Welcome to ttabs simple example!\n\nThis is a basic demo showing how ttabs layout system works with storage."
         }
-      }
+      });
     }
   }
   
@@ -118,15 +133,13 @@
     console.log("Creating tab with name:", tabName, "in panel:", panelId);
     
     try {
-      // Create the tab and update the content
+      // Create the tab
       const tabId = ttabs.addTab(panelId, tabName, true);
       console.log("Created tab with ID:", tabId);
       
-      // Get the tab and update its content
+      // Get the tab and set its content
       const tab = ttabs.getTile(tabId);
       if (tab?.type === 'tab' && tab.content) {
-        console.log("Updating content for tab", tabId, "content ID:", tab.content);
-        
         // Update the content
         ttabs.updateTile(tab.content, {
           contentType: 'text',

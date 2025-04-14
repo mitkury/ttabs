@@ -4,8 +4,6 @@
 
   let { ttabs }: { ttabs: Ttabs } = $props();
 
-  let rootGridId = $derived(ttabs.getRootGridId());
-
   // Generate CSS variable style string from theme
   let themeStyle = $derived.by(() =>
     ttabs.theme?.variables
@@ -21,15 +19,15 @@
   style={themeStyle}
   data-theme={ttabs.theme?.name}
 >
-  {#if rootGridId}
-    <TileGrid {ttabs} id={rootGridId} />
+  {#if ttabs.rootGridId}
+    <TileGrid {ttabs} id={ttabs.rootGridId} />
   {:else}
     <div
       class="ttabs-empty-state {ttabs.theme?.classes?.['empty-state'] || ''}"
     >
-      <button onclick={() => ttabs.createDefaultLayout()}>
-        Create Default Layout
-      </button>
+      <div class="error-message">
+        No root grid found. Need to create one.
+      </div>
     </div>
   {/if}
 </div>

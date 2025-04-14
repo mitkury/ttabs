@@ -51,7 +51,7 @@ export class Ttabs {
   private focusedActiveTabInternal = $state<string | null>(null);
   
   // Root grid tracking
-  rootGridId = $state<string | null>(null);
+  rootGridId = $state<string>('');
   
   // Component registry
   private componentRegistry = $state<Record<string, ContentComponent>>({});
@@ -64,6 +64,23 @@ export class Ttabs {
 
   // Public read-only derived value for focused tab
   focusedActiveTab = $derived(this.focusedActiveTabInternal);
+
+  /**
+   * Find the root grid ID from the current tiles
+   * @returns The ID of the root grid
+   * @throws Error if no root grid is found
+   * @private
+   */
+  private findRootGridId(): string {
+    const rootGridId = Object.values(this.tiles)
+      .find(tile => tile.type === 'grid' && !tile.parent)?.id || '';
+    
+    if (rootGridId === '') {
+      throw new Error('No root grid found');
+    }
+    
+    return rootGridId;
+  }
 
   constructor(options: TtabsOptions = {}) {
     // Initialize state
@@ -78,15 +95,13 @@ export class Ttabs {
         });
         
         // Find the root grid in the initial state
-        this.rootGridId = Object.values(this.tiles)
-          .find(tile => tile.type === 'grid' && !tile.parent)?.id || null;
+        this.rootGridId = this.findRootGridId();
       } else {
         // Record format provided directly
         this.tiles = options.tiles;
         
         // Find the root grid
-        this.rootGridId = Object.values(this.tiles)
-          .find(tile => tile.type === 'grid' && !tile.parent)?.id || null;
+        this.rootGridId = this.findRootGridId();
       }
     } else {
       // Auto-create a root grid if no initial state is provided
@@ -1098,7 +1113,7 @@ export class Ttabs {
     this.tiles = {};
     this.activePanel = null;
     this.focusedActiveTabInternal = null;
-    this.rootGridId = null;
+    this.rootGridId = this.addGrid();
   }
 
   /**
@@ -1403,8 +1418,7 @@ export class Ttabs {
           });
           
           // Find the root grid
-          this.rootGridId = Object.values(this.tiles)
-            .find(tile => tile.type === 'grid' && !tile.parent)?.id || null;
+          this.rootGridId = this.findRootGridId();
           
           // Restore metadata
           if (parsed.metadata && 'focusedActiveTab' in parsed.metadata) {
@@ -1433,8 +1447,7 @@ export class Ttabs {
           });
           
           // Find the root grid
-          this.rootGridId = Object.values(this.tiles)
-            .find(tile => tile.type === 'grid' && !tile.parent)?.id || null;
+          this.rootGridId = this.findRootGridId();
           
           // Try to find a suitable tab to focus
           this.findAndSetDefaultFocusedTab();
@@ -1458,8 +1471,7 @@ export class Ttabs {
       });
       
       // Find the root grid
-      this.rootGridId = Object.values(this.tiles)
-        .find(tile => tile.type === 'grid' && !tile.parent)?.id || null;
+      this.rootGridId = this.findRootGridId();
 
       // Try to find a suitable tab to focus
       this.findAndSetDefaultFocusedTab();
@@ -1544,60 +1556,6 @@ export class Ttabs {
     });
     
     return contentId;
-  }
-
-  /**
-   * Get the root grid ID
-   */
-  getRootGridId(): string | null {
-    // If root grid ID is already set, return it
-    if (this.rootGridId) {
-      return this.rootGridId;
-    }
-    
-    // Find the grid without a parent
-    const rootGrid = Object.values(this.getTiles())
-      .find(tile => tile.type === 'grid' && !tile.parent);
-    
-    // Store it for future use
-    if (rootGrid) {
-      this.rootGridId = rootGrid.id;
-    }
-    
-    return this.rootGridId;
-  }
-  
-  /**
-   * Create a default empty layout
-   * This can be called to create a standard layout if needed
-   */
-  createDefaultLayout(): string {
-    // Create root grid if it doesn't exist
-    if (!this.getRootGridId()) {
-      this.rootGridId = this.addGrid();
-    }
-    
-    const rootId = this.rootGridId as string;
-    
-    // Create a main row
-    const mainRowId = this.addRow(rootId, 100);
-    
-    // Create a column
-    const mainColumnId = this.addColumn(mainRowId, 100);
-    
-    // Create a panel
-    const mainPanelId = this.addPanel(mainColumnId);
-    
-    // Create a default tab
-    const tabId = this.addTab(mainPanelId, 'New Tab');
-    
-    // Set the focused tab to the new tab
-    this.focusedActiveTabInternal = tabId;
-    
-    // Notify state changes
-    this.notifyStateChange();
-    
-    return rootId;
   }
 
   /**
