@@ -26,12 +26,7 @@
   });
   
   // Register cleanup on component destroy
-  onMount(() => {
-    // If no layout exists, create default
-    if (!ttabs.getRootGridId()) {
-      resetLayout();
-    }
-    
+  onMount(() => {    
     return () => {
       // Unsubscribe from state changes when component is destroyed
       unsubscribe();
@@ -42,17 +37,7 @@
   function resetLayout() {
     ttabs.resetState();
     
-    // Create the layout directly instead of using createDefaultLayout
-    // Create root grid if it doesn't exist
-    if (!ttabs.getRootGridId()) {
-      ttabs.rootGridId = ttabs.addGrid();
-    }
-    
-    const rootId = ttabs.getRootGridId();
-    if (!rootId) {
-      console.error("Failed to get or create root grid");
-      return;
-    }
+    const rootId = ttabs.rootGridId;
     
     // Create a main row
     const mainRowId = ttabs.addRow(rootId, 100);
@@ -73,7 +58,6 @@
     const tab = ttabs.getTile(tabId);
     if (tab?.type === 'tab' && tab.content) {
       ttabs.updateTile(tab.content, {
-        contentType: 'text',
         data: {
           text: "Welcome to ttabs simple example!\n\nThis is a basic demo showing how ttabs layout system works with storage."
         }
@@ -142,7 +126,6 @@
       if (tab?.type === 'tab' && tab.content) {
         // Update the content
         ttabs.updateTile(tab.content, {
-          contentType: 'text',
           data: {
             text: `Content for ${tabName}\nCreated at ${new Date().toISOString()}`
           }

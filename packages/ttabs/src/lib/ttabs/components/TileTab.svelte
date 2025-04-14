@@ -46,7 +46,6 @@
     {#if content?.type === "content"}
       <div
         class="ttabs-content {ttabs.theme?.classes?.content || ''}"
-        data-content-type={content.contentType}
         data-component-id={content.componentId}
       >
         {#if ComponentToRender}
@@ -60,8 +59,6 @@
             <h3>{tab.name || "Unnamed Tab"}</h3>
             {#if content.componentId}
               <p>Component '{content.componentId}' not registered</p>
-            {:else}
-              <p>Content Type: {content.contentType}</p>
             {/if}
             <p>Tab ID: {id}</p>
             <p>Content ID: {contentId}</p>

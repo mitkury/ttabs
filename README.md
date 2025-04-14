@@ -55,7 +55,7 @@ import MyComponent from './MyComponent.svelte';
 ttabs.registerContentComponent('my-component', MyComponent, { defaultProp: 'value' });
 
 // Add component to a tab
-ttabs.addComponentContent(tabId, 'my-component', { prop1: 'value1' });
+ttabs.setComponent(tabId, 'my-component', { prop1: 'value1' });
 
 // Add component directly to a column (without a panel)
 ttabs.addColumnComponent(columnId, 'my-component', { prop1: 'value1' });

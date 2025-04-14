@@ -91,10 +91,10 @@ ttabs.registerContentComponent('preview', PreviewComponent);
 
 // Create tabs with content
 const codeTab = ttabs.addTab(panelId, 'Code');
-ttabs.addComponentContent(codeTab, 'editor', { language: 'javascript' });
+ttabs.setComponent(codeTab, 'editor', { language: 'javascript' });
 
 const previewTab = ttabs.addTab(panelId, 'Preview');
-ttabs.addComponentContent(previewTab, 'preview');
+ttabs.setComponent(previewTab, 'preview');
 
 // Split the panel to show code and preview side by side
 ttabs.splitPanel(previewTab, panelId, 'right');

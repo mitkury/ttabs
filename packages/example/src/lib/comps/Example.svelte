@@ -87,7 +87,7 @@
   // Setup the layout on mount
   onMount(() => {
     // Check if we have a stored layout
-    const rootId = ttabs.getRootGridId();
+    const rootId = ttabs.rootGridId;
     
     if (!rootId) {
       // No valid layout found, create a new one
@@ -147,7 +147,7 @@
   // Setup the custom layout (no need to track root grid ID anymore)
   function setupCustomLayout() {
     // Get the root grid ID
-    const rootId = ttabs.getRootGridId();
+    const rootId = ttabs.rootGridId;
     
     // If no root grid exists, create one
     if (!rootId) {
@@ -177,7 +177,7 @@
     const rightColumnId = ttabs.addColumn(mainRowId, 80);
     
     // Add side panel directly to left column (no panel/tabs)
-    ttabs.addColumnComponent(leftColumnId, 'sidepanel', {
+    ttabs.setComponent(leftColumnId, 'sidepanel', {
       title: 'Navigation',
       items: [
         { id: 'files', label: 'Files', icon: '📁' },
@@ -204,7 +204,7 @@
     const editorTabId = ttabs.addTab(upperPanelId, 'Editor');
     
     // Add editor component to the editor tab
-    ttabs.addComponentContent(editorTabId, 'editor', { 
+    ttabs.setComponent(editorTabId, 'editor', { 
       content: 'function hello() {\n  console.log("Hello, world!");\n}',
       language: 'javascript'
     });
@@ -213,7 +213,7 @@
     const documentTabId = ttabs.addTab(upperPanelId, 'Document', false);
     
     // Add document component to the document tab
-    ttabs.addComponentContent(documentTabId, 'document', {
+    ttabs.setComponent(documentTabId, 'document', {
       documentId: 'doc-12345',
       title: 'Getting Started',
       content: 'This is a sample document that demonstrates the content component system in ttabs.'
@@ -225,7 +225,7 @@
     // Update content type for settings tab
     const settingsTab = ttabs.getTile<TileTab>(settingsTabId);
     if (settingsTab && settingsTab.content) {
-      ttabs.updateTile(settingsTab.content, { contentType: 'settings' });
+      //ttabs.updateTile(settingsTab.content, { contentType: 'settings' });
     }
     
     // Create a column for the lower row
@@ -237,26 +237,9 @@
     // Create console tab for lower panel
     const consoleTabId = ttabs.addTab(lowerPanelId, 'Console');
     
-    // Update content type for console tab
-    const consoleTab = ttabs.getTile<TileTab>(consoleTabId);
-    if (consoleTab && consoleTab.content) {
-      ttabs.updateTile(consoleTab.content, { contentType: 'console' });
-    }
-    
     // Create additional tabs for lower panel
     const outputTabId = ttabs.addTab(lowerPanelId, 'Output', false);
     const debugTabId = ttabs.addTab(lowerPanelId, 'Debug', false);
-    
-    // Update content types
-    const outputTab = ttabs.getTile<TileTab>(outputTabId);
-    if (outputTab && outputTab.content) {
-      ttabs.updateTile(outputTab.content, { contentType: 'output' });
-    }
-    
-    const debugTab = ttabs.getTile<TileTab>(debugTabId);
-    if (debugTab && debugTab.content) {
-      ttabs.updateTile(debugTab.content, { contentType: 'debug' });
-    }
     
     // Set active panel
     ttabs.setActivePanel(upperPanelId);
@@ -316,7 +299,7 @@
     const newTabId = ttabs.addTab(targetPanelId, tabName, true); // true to make it active
     
     // Add editor content to the new tab
-    ttabs.addComponentContent(newTabId, 'editor', {
+    ttabs.setComponent(newTabId, 'editor', {
       content: `// New tab ${newTabCount}\n// Write your code here...\n`,
       language: 'typescript',
       readOnly: newTabCount % 2 === 0 // Alternate between editable and read-only

@@ -46,14 +46,14 @@ const panelId = ttabs.addPanel(columnId);
 
 // Create a tab and add editor component to it
 const editorTabId = ttabs.addTab(panelId, 'Editor');
-ttabs.addComponentContent(editorTabId, 'editor', { 
+ttabs.setComponent(editorTabId, 'editor', { 
   content: 'console.log("Hello World!");',
   language: 'javascript'
 });
 
 // Create another tab with document component
 const docTabId = ttabs.addTab(panelId, 'Document');
-ttabs.addComponentContent(docTabId, 'document', { 
+ttabs.setComponent(docTabId, 'document', { 
   documentId: 'doc-12345',
   title: 'Getting Started'
 });
@@ -65,7 +65,7 @@ You can update the content of an existing tab by calling `addComponentContent` a
 
 ```typescript
 // Update the editor content
-ttabs.addComponentContent(editorTabId, 'editor', { 
+ttabs.setComponent(editorTabId, 'editor', { 
   content: 'console.log("Updated content");',
   language: 'javascript',
   readOnly: true

@@ -62,7 +62,6 @@ export interface TileTab extends TileBase {
  */
 export interface TileContent extends TileBase {
   type: 'content';
-  contentType?: string;      // Optional type for content rendering (kept for backward compatibility)
   componentId?: string;      // ID of the component to render this content
   data?: Record<string, any>; // Data payload as key-value pairs
 }

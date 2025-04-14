@@ -189,13 +189,13 @@ export class Ttabs {
   }
 
   /**
-   * Add content with component reference
-   * @param parentId ID of the parent tab
+   * Set component to a column or a tab
+   * @param parentId ID of the parent column or tab
    * @param componentId ID of the registered component
    * @param props Props to pass to the component
-   * @returns ID of the new content
+   * @returns ID of the new content with component
    */
-  addComponentContent(
+  setComponent(
     parentId: string, 
     componentId: string, 
     props: Record<string, any> = {}
@@ -205,49 +205,92 @@ export class Ttabs {
       throw new Error(`Component with ID ${componentId} is not registered`);
     }
 
-    // Create content with component reference and props
+    // Get parent tile
     const parent = this.getTile(parentId);
     if (!parent) {
       throw new Error(`Parent tile with ID ${parentId} not found`);
     }
     
-    if (parent.type !== 'tab') {
-      throw new Error(`Cannot add content to a parent of type ${parent.type}. Content can only be child of a tab.`);
-    }
-    
-    const tab = parent as TileTab;
-    
-    // Check if tab already has content - update it instead of creating new
-    if (tab.content && this.getTile(tab.content)) {
-      const existingContent = this.getTile<TileContent>(tab.content);
-      if (existingContent && existingContent.type === 'content') {
-        this.updateTile(tab.content, {
-          componentId,
-          data: {
-            ...existingContent.data,
-            componentProps: props
-          }
-        });
-        return tab.content;
+    // Handle different parent types
+    if (parent.type === 'tab') {
+      // Tab content handling
+      const tab = parent as TileTab;
+      
+      // Check if tab already has content - update it instead of creating new
+      if (tab.content && this.getTile(tab.content)) {
+        const existingContent = this.getTile<TileContent>(tab.content);
+        if (existingContent && existingContent.type === 'content') {
+          this.updateTile(tab.content, {
+            componentId,
+            data: {
+              ...existingContent.data,
+              componentProps: props
+            }
+          });
+          return tab.content;
+        }
       }
-    }
-    
-    // Create the content
-    const contentId = this.addTile({
-      type: 'content',
-      parent: parentId,
-      componentId,
-      data: {
-        componentProps: props
+      
+      // Create the content
+      const contentId = this.addTile({
+        type: 'content',
+        parent: parentId,
+        componentId,
+        data: {
+          componentProps: props
+        }
+      });
+      
+      // Update tab's content
+      this.updateTile(parentId, {
+        content: contentId
+      });
+      
+      return contentId;
+    } 
+    else if (parent.type === 'column') {
+      // Column content handling
+      const column = parent as TileColumn;
+      
+      // Check if column already has a child
+      if (column.child && this.getTile(column.child)) {
+        // Remove existing child if it's content type
+        const existingChild = this.getTile(column.child);
+        if (existingChild && existingChild.type === 'content') {
+          // Update existing content instead of creating new
+          this.updateTile(column.child, {
+            componentId,
+            data: {
+              componentProps: props
+            }
+          });
+          return column.child;
+        } else {
+          // Remove existing child that's not content type
+          this.removeTile(column.child);
+        }
       }
-    });
-    
-    // Update tab's content
-    this.updateTile(parentId, {
-      content: contentId
-    });
-    
-    return contentId;
+      
+      // Create the content
+      const contentId = this.addTile({
+        type: 'content',
+        parent: parentId,
+        componentId,
+        data: {
+          componentProps: props
+        }
+      });
+      
+      // Update column's child reference
+      this.updateTile(parentId, {
+        child: contentId
+      });
+      
+      return contentId;
+    }
+    else {
+      throw new Error(`Cannot add content to a parent of type ${parent.type}. Content can only be child of a tab or column.`);
+    }
   }
 
   /**
@@ -1301,7 +1344,6 @@ export class Ttabs {
     const contentId = this.addTile({
       type: 'content',
       parent: tabId,
-      contentType: 'default'
     });
     
     // Update tab with its content
@@ -1320,65 +1362,16 @@ export class Ttabs {
   }
   
   /**
-   * Adds content to a tab
-   * @param parentId ID of the parent tab
-   * @param contentType Type of content
-   * @returns ID of the new content
-   * @throws Error if parent hierarchy rules are violated
-   */
-  addContent(parentId: string, contentType: string = 'default'): string {
-    const parent = this.getTile(parentId);
-    if (!parent) {
-      throw new Error(`Parent tile with ID ${parentId} not found`);
-    }
-    
-    // Validate parent hierarchy rules
-    if (parent.type !== 'tab') {
-      throw new Error(`Cannot add content to a parent of type ${parent.type}. Content can only be child of a tab.`);
-    }
-    
-    const tab = parent as TileTab;
-    
-    // Check if tab already has content
-    if (tab.content && this.getTile(tab.content)) {
-      throw new Error(`Tab ${parentId} already has content. Remove it first.`);
-    }
-    
-    // Create the content
-    const contentId = this.addTile({
-      type: 'content',
-      parent: parentId,
-      contentType
-    });
-    
-    // Update tab's content
-    this.updateTile(parentId, {
-      content: contentId
-    });
-    
-    return contentId;
-  }
-  
-  /**
-   * Creates a new tab in the active panel
+   * Ads a new tab in the active panel
    * @param name Name of the tab
-   * @param contentType Optional content type
    * @returns ID of the new tab, or null if no active panel exists
    */
-  createNewTabInActivePanel(name: string, contentType: string = 'default'): string | null {
+ addTabInActivePanel(name: string, setActive: boolean = true): string | null {
     const activePanel = this.getActivePanelTile();
     if (!activePanel) return null;
     
-    const tabId = this.addTab(activePanel.id, name, true);
-    
-    // Update tab content type
-    const tab = this.getTile<TileTab>(tabId);
-    if (tab && tab.content) {
-      this.updateTile(tab.content, {
-        contentType
-      });
-    }
-    
+    const tabId = this.addTab(activePanel.id, name, setActive);
+        
     return tabId;
   }
   
@@ -1505,57 +1498,6 @@ export class Ttabs {
     if (panelsWithActiveTabs.length > 0 && panelsWithActiveTabs[0].activeTab) {
       this.focusedActiveTabInternal = panelsWithActiveTabs[0].activeTab;
     }
-  }
-
-  /**
-   * Add component content directly to a column without a panel
-   * @param columnId ID of the column to add content to
-   * @param componentId ID of the registered component
-   * @param props Props to pass to the component
-   * @returns ID of the new content
-   */
-  addColumnComponent(
-    columnId: string, 
-    componentId: string, 
-    props: Record<string, any> = {}
-  ): string {
-    // Verify component exists
-    if (!this.hasContentComponent(componentId)) {
-      throw new Error(`Component with ID ${componentId} is not registered`);
-    }
-
-    // Verify the column exists
-    const column = this.getTile<TileColumn>(columnId);
-    if (!column) {
-      throw new Error(`Column with ID ${columnId} not found`);
-    }
-    
-    if (column.type !== 'column') {
-      throw new Error(`Tile with ID ${columnId} is not a column`);
-    }
-    
-    // Check if column already has a child
-    if (column.child && this.getTile(column.child)) {
-      // Remove existing child
-      this.removeTile(column.child);
-    }
-    
-    // Create the content
-    const contentId = this.addTile({
-      type: 'content',
-      parent: columnId,
-      componentId,
-      data: {
-        componentProps: props
-      }
-    });
-    
-    // Update column's child reference
-    this.updateTile(columnId, {
-      child: contentId
-    });
-    
-    return contentId;
   }
 
   /**
