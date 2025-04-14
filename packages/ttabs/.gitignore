@@ -1,5 +1,8 @@
 node_modules
 
+# Ignore readme in the package because we copy it from the root of our monorepo
+README.md
+
 # Output
 .output
 .vercel
