@@ -57,22 +57,3 @@ function generateUuidWithRandomValues(): string {
 export function isBrowser(): boolean {
   return typeof window !== 'undefined';
 }
-
-/**
- * Safely serialize tile state to JSON
- */
-export function serializeTiles(tiles: Record<string, any>): string {
-  return JSON.stringify(tiles);
-}
-
-/**
- * Safely parse tile state from JSON
- */
-export function deserializeTiles(json: string): Record<string, any> | null {
-  try {
-    return JSON.parse(json);
-  } catch (e) {
-    console.error('Failed to deserialize tiles:', e);
-    return null;
-  }
-} 
