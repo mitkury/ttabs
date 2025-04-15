@@ -1077,13 +1077,13 @@ export class Ttabs {
           // In case if we have a grid with a single row and a single column, we can remove 
           // the grid and replace it with the only child of the column from that grid.
           if (grid.rows.length === 1) {
-            const row = this.getTile<TileRow>(grid.rows[0]);
+            const row = this.getRow(grid.rows[0]);
             // Just one row with a single column
-            if (row && row.columns.length === 1) {
-              const column = this.getTile<TileColumn>(row.columns[0]);
-              const child = column?.child;
-              const parentColumn = this.getTile<TileColumn>(grid.parent);
-              if (child && parentColumn) {
+            if (row.columns.length === 1) {
+              const column = this.getColumn(row.columns[0]);
+              const child = column.child;
+              if (child) {
+                const parentColumn = this.getColumn(grid.parent);
                 this.updateTile(parentColumn.id, { child: child });
                 this.updateTile(child, { parent: parentColumn.id });
                 this.updateTile(grid.id, { rows: [] });

@@ -49,11 +49,3 @@ function generateUuidWithRandomValues(): string {
   
   return uuid;
 }
-
-/**
- * Check if the browser environment is available
- * Useful for SSR compatibility
- */
-export function isBrowser(): boolean {
-  return typeof window !== 'undefined';
-}
