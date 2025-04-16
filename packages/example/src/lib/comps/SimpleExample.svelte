@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createTtabs, TtabsRoot, LocalStorageAdapter } from "ttabs-svelte";
+  import { createTtabs, Ttabs, TtabsRoot, LocalStorageAdapter } from "ttabs-svelte";
   import { onMount } from "svelte";
   import SimpleTextComponent from "./SimpleTextComponent.svelte";
 
@@ -10,12 +10,12 @@
   const savedData = storageAdapter.load();
   
   // Initialize ttabs with the loaded state
-  const ttabs = $state(createTtabs({
+  const ttabs = createTtabs({
     // Use saved tiles if available, otherwise use empty state
     tiles: savedData?.tiles,
     // Use saved focused tab if available
     focusedTab: savedData?.focusedTab
-  }));
+  });
   
   // Register the text component
   ttabs.registerComponent('text', SimpleTextComponent);

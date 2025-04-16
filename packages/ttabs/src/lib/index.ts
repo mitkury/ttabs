@@ -6,4 +6,4 @@
 export * from './ttabs';
 
 // Explicitly export the main Ttabs class
-export { Ttabs } from './ttabs/Ttabs';
+export { Ttabs } from './ttabs/Ttabs.svelte';

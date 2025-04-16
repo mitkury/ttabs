@@ -46,18 +46,12 @@ export interface TtabsOptions {
  */
 export class Ttabs {
 
-  tiles: Record<string, Tile> = {};
-  activePanel: string | null = null;
-  focusedActiveTab: string | null = null;
-
-  // Root grid tracking
-  rootGridId: string = '';
-
-  // Component registry
-  componentRegistry: Record<string, ContentComponent> = {};
-
-  // Theme state
-  theme: TtabsTheme = DEFAULT_THEME;
+  tiles = $state<Record<string, Tile>>({});
+  activePanel = $state<string | null>(null);
+  focusedActiveTab = $state<string | null>(null);
+  rootGridId = $state<string>('');
+  componentRegistry = $state<Record<string, ContentComponent>>({});
+  theme = $state<TtabsTheme>(DEFAULT_THEME);
 
   // State change listeners
   stateChangeListeners: StateChangeCallback[] = [];

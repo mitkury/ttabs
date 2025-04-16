@@ -1,7 +1,7 @@
 /**
  * Common props interface for ttabs components
  */
-import { Ttabs } from '../Ttabs';
+import { Ttabs } from '../Ttabs.svelte';
 
 export interface TtabsProps {
   ttabs: Ttabs;
