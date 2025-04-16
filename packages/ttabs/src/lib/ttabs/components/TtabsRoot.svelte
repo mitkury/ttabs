@@ -51,18 +51,5 @@
       color: var(--ttabs-empty-state-color);
       font-style: italic;
     }
-
-    button {
-      padding: 8px 16px;
-      background-color: var(--ttabs-active-tab-indicator);
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
   }
 </style>
