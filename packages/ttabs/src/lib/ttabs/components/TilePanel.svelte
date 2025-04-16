@@ -538,6 +538,7 @@
       border-bottom: var(--ttabs-tab-bar-border);
       overflow-x: auto;
       overflow-y: hidden;
+      scrollbar-width: none;
     }
 
     .ttabs-tab-header {
