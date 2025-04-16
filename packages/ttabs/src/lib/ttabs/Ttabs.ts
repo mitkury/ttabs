@@ -46,24 +46,21 @@ export interface TtabsOptions {
  */
 export class Ttabs {
 
-  private tiles = $state<Record<string, Tile>>({});
-  private activePanel = $state<string | null>(null);
-  private focusedActiveTabInternal = $state<string | null>(null);
+  tiles: Record<string, Tile> = {};
+  activePanel: string | null = null;
+  focusedActiveTab: string | null = null;
 
   // Root grid tracking
-  rootGridId = $state<string>('');
+  rootGridId: string = '';
 
   // Component registry
-  private componentRegistry = $state<Record<string, ContentComponent>>({});
+  componentRegistry: Record<string, ContentComponent> = {};
 
   // Theme state
-  theme = $state<TtabsTheme>(DEFAULT_THEME);
+  theme: TtabsTheme = DEFAULT_THEME;
 
   // State change listeners
-  private stateChangeListeners: StateChangeCallback[] = [];
-
-  // Public read-only derived value for focused tab
-  focusedActiveTab = $derived(this.focusedActiveTabInternal);
+  stateChangeListeners: StateChangeCallback[] = [];
 
   /**
    * Find the root grid ID from the current tiles
@@ -117,17 +114,8 @@ export class Ttabs {
 
     // Set focused tab if provided
     if (options.focusedTab && this.getTile<TileTab>(options.focusedTab)) {
-      this.focusedActiveTabInternal = options.focusedTab;
+      this.focusedActiveTab = options.focusedTab;
     }
-
-    // Setup notification effect to call subscribers when tiles change
-    $effect(() => {
-      // Access tiles to trigger the effect when they change
-      const currentTiles = this.tiles;
-
-      // Notify listeners
-      this.notifyStateChange();
-    });
   }
 
   /**
@@ -576,7 +564,7 @@ export class Ttabs {
     this.setActivePanel(panelId);
 
     // Also set as focused tab
-    this.focusedActiveTabInternal = tabId;
+    this.focusedActiveTab = tabId;
 
     return true;
   }
@@ -608,7 +596,7 @@ export class Ttabs {
     }
 
     // Set the focused tab
-    this.focusedActiveTabInternal = tabId;
+    this.focusedActiveTab = tabId;
 
     return true;
   }
@@ -617,7 +605,7 @@ export class Ttabs {
    * Get the focused active tab
    */
   getFocusedActiveTabTile(): TileTab | null {
-    return this.focusedActiveTabInternal ? this.getTile<TileTab>(this.focusedActiveTabInternal) : null;
+    return this.focusedActiveTab ? this.getTile<TileTab>(this.focusedActiveTab) : null;
   }
 
   /**
@@ -1153,7 +1141,7 @@ export class Ttabs {
     // With runes we can directly assign
     this.tiles = {};
     this.activePanel = null;
-    this.focusedActiveTabInternal = null;
+    this.focusedActiveTab = null;
     this.rootGridId = this.addGrid();
   }
 
@@ -1382,7 +1370,7 @@ export class Ttabs {
 
     // Add metadata for focused tab
     const metadata = {
-      focusedActiveTab: this.focusedActiveTabInternal
+      focusedActiveTab: this.focusedActiveTab
     };
 
     return JSON.stringify({
@@ -1415,7 +1403,7 @@ export class Ttabs {
           if (parsed.metadata && 'focusedActiveTab' in parsed.metadata) {
             const focusedTabId = parsed.metadata.focusedActiveTab;
             if (focusedTabId && this.getTile<TileTab>(focusedTabId)) {
-              this.focusedActiveTabInternal = focusedTabId;
+              this.focusedActiveTab = focusedTabId;
             }
           }
 
@@ -1467,7 +1455,7 @@ export class Ttabs {
     if (this.activePanel) {
       const panel = this.getTile<TilePanel>(this.activePanel);
       if (panel && panel.activeTab) {
-        this.focusedActiveTabInternal = panel.activeTab;
+        this.focusedActiveTab = panel.activeTab;
         return;
       }
     }
@@ -1478,7 +1466,7 @@ export class Ttabs {
         tile.type === 'panel' && tile.activeTab !== null && !!this.getTile(tile.activeTab));
 
     if (panelsWithActiveTabs.length > 0 && panelsWithActiveTabs[0].activeTab) {
-      this.focusedActiveTabInternal = panelsWithActiveTabs[0].activeTab;
+      this.focusedActiveTab = panelsWithActiveTabs[0].activeTab;
     }
   }
 
@@ -1504,7 +1492,7 @@ export class Ttabs {
 
       // If we're closing the focused tab, we need to find a new tab to focus
       let newFocusedTab: string | null = null;
-      if (this.focusedActiveTabInternal === tabId) {
+      if (this.focusedActiveTab === tabId) {
         // First try to find another tab in the same panel
         if (panel.tabs.length > 1) {
           // Use the same logic as for activeTab - get next or previous tab
@@ -1555,7 +1543,7 @@ export class Ttabs {
 
       // Update the focused tab if needed
       if (newFocusedTab) {
-        this.focusedActiveTabInternal = newFocusedTab;
+        this.focusedActiveTab = newFocusedTab;
       }
 
       // Clean up empty containers

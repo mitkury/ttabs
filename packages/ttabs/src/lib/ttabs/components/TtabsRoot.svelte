@@ -1,6 +1,6 @@
 <script lang="ts">
   import TileGrid from "./TileGrid.svelte";
-  import type { Ttabs } from "../Ttabs.svelte";
+  import type { Ttabs } from "../Ttabs.ts";
 
   let { ttabs }: { ttabs: Ttabs } = $props();
 

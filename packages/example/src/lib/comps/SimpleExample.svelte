@@ -10,12 +10,12 @@
   const savedData = storageAdapter.load();
   
   // Initialize ttabs with the loaded state
-  const ttabs = createTtabs({
+  const ttabs = $state(createTtabs({
     // Use saved tiles if available, otherwise use empty state
     tiles: savedData?.tiles,
     // Use saved focused tab if available
     focusedTab: savedData?.focusedTab
-  });
+  }));
   
   // Register the text component
   ttabs.registerComponent('text', SimpleTextComponent);
@@ -147,8 +147,8 @@
   <header>
     <h1>ttabs simple example</h1>
     <div class="actions">
-      <button on:click={resetLayout}>Reset Layout</button>
-      <button on:click={addTab}>Add Tab</button>
+      <button onclick={resetLayout}>Reset Layout</button>
+      <button onclick={addTab}>Add Tab</button>
     </div>
   </header>
   

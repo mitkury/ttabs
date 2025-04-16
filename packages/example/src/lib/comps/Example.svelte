@@ -16,11 +16,11 @@
   const savedData = storageAdapter.load();
   
   // Initialize ttabs with the loaded state
-  const ttabs = createTtabs({
+  const ttabs = $state(createTtabs({
     tiles: savedData?.tiles,
     focusedTab: savedData?.focusedTab,
     theme: DEFAULT_THEME
-  });
+  }));
   
   // Connect storage adapter
   const unsubscribe = ttabs.subscribe((state) => {
