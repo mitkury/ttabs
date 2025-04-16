@@ -10,6 +10,7 @@ export interface TileBase {
   id: string;
   parent: string | null;
   type: TileType;
+  dontClean?: boolean;
 }
 
 /**

@@ -1007,6 +1007,16 @@ export class Ttabs {
     if (!tile) return;
 
     let parentId = tile.parent;
+
+    if (tile.dontClean) {
+      if (parentId) {
+        // If the tile is marked as dontClean, we don't try to clean it but 
+        // go up the hierarchy in case if the parent's parent needs cleaning.
+        this.cleanupContainers(parentId);
+      }
+      return;
+    }
+
     let shouldRemove = false;
 
     // Check if the tile should be removed based on its type
