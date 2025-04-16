@@ -1303,29 +1303,17 @@ export class Ttabs {
 
   /**
    * Adds a tab to a panel
-   * @param parentId ID of the parent panel
+   * @param panelId ID of the parent panel
    * @param name Name of the tab
    * @param setActive Whether to set this tab as active
    * @returns ID of the new tab
    * @throws Error if parent hierarchy rules are violated
    */
-  addTab(parentId: string, name: string, setActive: boolean = true): string {
-    const parent = this.getTile(parentId);
-    if (!parent) {
-      throw new Error(`Parent tile with ID ${parentId} not found`);
-    }
-
-    // Validate parent hierarchy rules
-    if (parent.type !== 'panel') {
-      throw new Error(`Cannot add a tab to a parent of type ${parent.type}. Tabs can only be children of panels.`);
-    }
-
-    const panel = parent as TilePanel;
-
+  private addTabToPanel(panel: TilePanel, name: string, setActive: boolean = true): string {
     // Create the tab
     const tabId = this.addTile({
       type: 'tab',
-      parent: parentId,
+      parent: panel.id,
       name,
       content: ''
     });
@@ -1343,12 +1331,124 @@ export class Ttabs {
 
     // Update panel's tabs
     const updatedTabs = [...panel.tabs, tabId];
-    this.updateTile(parentId, {
+    this.updateTile(panel.id, {
       tabs: updatedTabs,
       ...(setActive ? { activeTab: tabId } : {})
     });
 
     return tabId;
+  }
+
+  /**
+   * Adds a tab to a panel. If the parent is a grid, it will be added to the first row and column of the grid.
+   * @param parentId ID of the parent container (grid, column, or panel)
+   * @param name Name of the tab
+   * @param setActive Whether to set this tab as active
+   * @returns ID of the new tab
+   */
+  addTab(parentId: string, name: string, setActive: boolean = true): string {
+    const parent = this.getTile(parentId);
+    if (!parent) {
+      throw new Error(`Parent tile with ID ${parentId} not found`);
+    }
+
+    switch (parent.type) {
+      case 'panel':
+        // Panel is the direct container for tabs, add directly
+        return this.addTabToPanel(parent as TilePanel, name, setActive);
+
+      case 'column':
+        // Need to check if column already has a child
+        const column = parent as TileColumn;
+        let panelId = '';
+
+        if (column.child) {
+          // If column already has a child, it might be a panel or a grid
+          const child = this.getTile(column.child);
+          if (!child) {
+            // Child reference exists but tile doesn't, create a new panel
+            panelId = this.addPanel(column.id);
+          } else if (child.type === 'panel') {
+            // Column already has a panel, use it
+            panelId = child.id;
+          } else if (child.type === 'grid') {
+            // Column has a grid, find or create a panel in the grid
+            panelId = this.findOrCreatePanelInGrid(child.id);
+          } else {
+            // Column has some other child (should be a content), replace with a panel
+            this.removeTile(child.id);
+            panelId = this.addPanel(column.id);
+          }
+        } else {
+          // Column has no child, add a panel
+          panelId = this.addPanel(column.id);
+        }
+
+        return this.addTabToPanel(this.getPanel(panelId), name, setActive);
+
+      case 'row':
+        // For rows, we need to find or create a column to contain our panel
+        const row = parent as TileRow;
+        let columnId: string;
+        
+        if (row.columns.length > 0) {
+          // Use the last column in the row
+          columnId = row.columns[row.columns.length - 1];
+        } else {
+          // Create a new column
+          columnId = this.addColumn(row.id);
+        }
+        
+        // Recursively call addTab with the column ID
+        return this.addTab(columnId, name, setActive);
+
+      case 'grid':
+        // Find or create a panel in the grid
+        const panelInGridId = this.findOrCreatePanelInGrid(parentId);
+        return this.addTabToPanel(this.getPanel(panelInGridId), name, setActive);
+
+      default:
+        throw new Error(`Cannot add a tab to a parent of type ${parent.type}. Use a panel, column, row, or grid.`);
+    }
+  }
+
+  /**
+   * Finds an existing panel in a grid or creates a new one
+   * @param gridId ID of the grid
+   * @returns ID of a panel in the grid
+   */
+  private findOrCreatePanelInGrid(gridId: string): string {
+    const grid = this.getGrid(gridId);
+
+    // Try to find an existing panel
+    for (const rowId of grid.rows) {
+      const row = this.getRow(rowId);
+      for (const columnId of row.columns) {
+        const column = this.getColumn(columnId);
+        if (column.child) {
+          const child = this.getTile(column.child);
+          if (child && child.type === 'panel') {
+            return child.id;
+          }
+        }
+      }
+    }
+
+    // No panel found, create a new row, column, and panel
+    let rowId: string;
+    if (grid.rows.length === 0) {
+      // No rows exist, create one
+      rowId = this.addRow(gridId);
+    } else {
+      // Use the last row
+      rowId = grid.rows[grid.rows.length - 1];
+    }
+
+    // Create a column in the row
+    const columnId = this.addColumn(rowId);
+
+    // Create a panel in the column
+    return this.addPanel(columnId);
   }
 
   /**
@@ -1360,7 +1460,7 @@ export class Ttabs {
     const activePanel = this.getActivePanelTile();
     if (!activePanel) return null;
 
-    const tabId = this.addTab(activePanel.id, name, setActive);
+    const tabId = this.addTabToPanel(activePanel, name, setActive);
 
     return tabId;
   }
