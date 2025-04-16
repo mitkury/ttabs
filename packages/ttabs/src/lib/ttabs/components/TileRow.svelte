@@ -137,10 +137,10 @@
 
     .row-resizer {
       position: absolute;
-      bottom: -3px;
+      bottom: var(--ttabs-row-resizer-offset);
       left: 0;
       width: 100%;
-      height: 6px;
+      height: var(--ttabs-row-resizer-size);
       cursor: row-resize;
       z-index: 10;
     }
@@ -151,11 +151,11 @@
     }
 
     .ttabs-error {
-      padding: 1rem;
+      padding: var(--ttabs-error-padding);
       color: var(--ttabs-error-color);
       background-color: var(--ttabs-error-bg);
       border: var(--ttabs-error-border);
-      border-radius: 4px;
+      border-radius: var(--ttabs-error-border-radius);
     }
   }
 </style>

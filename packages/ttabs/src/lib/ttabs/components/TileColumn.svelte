@@ -194,8 +194,8 @@
     .column-resizer {
       position: absolute;
       top: 0;
-      right: -3px;
-      width: 6px;
+      right: var(--ttabs-column-resizer-offset);
+      width: var(--ttabs-column-resizer-size);
       height: 100%;
       cursor: col-resize;
       z-index: 10;
@@ -207,11 +207,11 @@
     }
 
     .ttabs-error {
-      padding: 1rem;
+      padding: var(--ttabs-error-padding);
       color: var(--ttabs-error-color);
       background-color: var(--ttabs-error-bg);
       border: var(--ttabs-error-border);
-      border-radius: 4px;
+      border-radius: var(--ttabs-error-border-radius);
     }
   }
 </style>

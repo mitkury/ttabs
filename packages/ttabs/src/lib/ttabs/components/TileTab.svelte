@@ -95,7 +95,7 @@
     }
 
     .content-container {
-      padding: 1rem;
+      padding: var(--ttabs-content-padding);
       color: var(--ttabs-content-text-color);
       background-color: var(--ttabs-content-bg);
     }
@@ -110,22 +110,16 @@
     }
 
     .ttabs-error {
-      padding: 1rem;
+      padding: var(--ttabs-error-padding);
       color: var(--ttabs-error-color);
       background-color: var(--ttabs-error-bg);
       border: var(--ttabs-error-border);
-      border-radius: 4px;
+      border-radius: var(--ttabs-error-border-radius);
     }
 
     .ttabs-tab h3 {
       margin-top: 0;
       color: var(--ttabs-text-color);
-    }
-
-    .ttabs-tab p {
-      color: var(--ttabs-text-color-secondary);
-      opacity: 0.7;
-      margin: 0.5rem 0;
     }
   }
 </style>

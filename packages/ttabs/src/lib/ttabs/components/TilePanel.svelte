@@ -523,6 +523,7 @@
       overflow: hidden;
       background-color: var(--ttabs-panel-bg);
       color: var(--ttabs-text-color);
+      border-radius: var(--ttabs-border-radius);
     }
 
     .ttabs-panel.drop-target {
@@ -545,11 +546,13 @@
       border-right: var(--ttabs-tab-header-border);
       white-space: nowrap;
       font-size: var(--ttabs-tab-header-font-size);
-      transition: background-color 0.1s ease;
+      transition: background-color var(--ttabs-transition-duration) var(--ttabs-transition-timing);
       position: relative;
       display: flex;
       align-items: center;
       color: var(--ttabs-tab-text-color);
+      border-top-left-radius: var(--ttabs-border-radius-sm);
+      border-top-right-radius: var(--ttabs-border-radius-sm);
     }
 
     .ttabs-tab-title {
@@ -557,18 +560,18 @@
     }
 
     .ttabs-tab-close {
-      margin-left: 8px;
+      margin-left: var(--ttabs-tab-close-margin);
       background: none;
       border: none;
       font-size: 14px;
       cursor: pointer;
       padding: 0;
-      width: 16px;
-      height: 16px;
+      width: var(--ttabs-tab-close-size);
+      height: var(--ttabs-tab-close-size);
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 50%;
+      border-radius: var(--ttabs-tab-close-border-radius);
       color: var(--ttabs-close-button-color);
     }
 
@@ -587,7 +590,7 @@
     /* Focused tab styling */
     .ttabs-tab-header-focused {
       border-bottom: none;
-      box-shadow: inset 0 3px 0 var(--ttabs-active-tab-indicator);
+      box-shadow: inset 0 var(--ttabs-tab-indicator-size) 0 var(--ttabs-active-tab-indicator);
     }
 
     /* Active tab - for backward compatibility with .active */
@@ -605,20 +608,20 @@
     .ttabs-tab-header.drop-before::before {
       content: "";
       position: absolute;
-      left: -2px;
+      left: var(--ttabs-drop-indicator-offset);
       top: 0px;
       height: 100%;
-      width: 4px;
+      width: var(--ttabs-drop-indicator-width);
       background-color: var(--ttabs-drop-indicator-color);
     }
 
     .ttabs-tab-header.drop-after::after {
       content: "";
       position: absolute;
-      right: -2px;
+      right: var(--ttabs-drop-indicator-offset);
       top: 0;
       height: 100%;
-      width: 4px;
+      width: var(--ttabs-drop-indicator-width);
       background-color: var(--ttabs-drop-indicator-color);
     }
 
@@ -688,11 +691,11 @@
     }
 
     .ttabs-error {
-      padding: 1rem;
+      padding: var(--ttabs-error-padding);
       color: var(--ttabs-error-color);
       background-color: var(--ttabs-error-bg);
       border: var(--ttabs-error-border);
-      border-radius: 4px;
+      border-radius: var(--ttabs-error-border-radius);
     }
   }
 </style>

@@ -12,8 +12,6 @@ export type TtabsCssVariables = {
   '--ttabs-column-border': string;
   
   // Text colors
-  '--ttabs-text-color': string;
-  '--ttabs-text-color-secondary': string;
   '--ttabs-tab-text-color': string;
   '--ttabs-tab-active-text-color': string;
   
@@ -21,23 +19,33 @@ export type TtabsCssVariables = {
   '--ttabs-content-bg': string;
   '--ttabs-content-border': string;
   '--ttabs-content-text-color': string;
+  '--ttabs-content-padding': string;
   
   // Tab headers
   '--ttabs-tab-header-padding': string;
   '--ttabs-tab-header-border': string;
   '--ttabs-tab-header-font-size': string;
   '--ttabs-tab-bar-border': string;
+  '--ttabs-tab-indicator-size': string;
+  '--ttabs-tab-indicator-offset': string;
+  '--ttabs-transition-duration': string;
+  '--ttabs-transition-timing': string;
   
   // Controls
   '--ttabs-show-close-button': string;
   '--ttabs-close-button-color': string;
   '--ttabs-close-button-hover-color': string;
   '--ttabs-close-button-hover-bg': string;
+  '--ttabs-tab-close-margin': string;
+  '--ttabs-tab-close-size': string;
+  '--ttabs-tab-close-border-radius': string;
   
   // Error styling
   '--ttabs-error-bg': string;
   '--ttabs-error-color': string;
   '--ttabs-error-border': string;
+  '--ttabs-error-padding': string;
+  '--ttabs-error-border-radius': string;
   
   // Empty state
   '--ttabs-empty-state-color': string;
@@ -47,6 +55,16 @@ export type TtabsCssVariables = {
   '--ttabs-drop-indicator-color': string;
   '--ttabs-drop-target-outline': string;
   '--ttabs-split-indicator-color': string;
+  '--ttabs-row-resizer-size': string;
+  '--ttabs-row-resizer-offset': string;
+  '--ttabs-column-resizer-size': string;
+  '--ttabs-column-resizer-offset': string;
+  '--ttabs-drop-indicator-width': string;
+  '--ttabs-drop-indicator-offset': string;
+  
+  // Border radius
+  '--ttabs-border-radius': string;
+  '--ttabs-border-radius-sm': string;
 }
 
 /**
@@ -140,6 +158,8 @@ export const DEFAULT_THEME: TtabsTheme = {
     '--ttabs-error-bg': '#fff5f5',
     '--ttabs-error-color': 'tomato',
     '--ttabs-error-border': '1px solid tomato',
+    '--ttabs-error-padding': '1rem',
+    '--ttabs-error-border-radius': '4px',
     
     // Empty state
     '--ttabs-empty-state-color': '#666',
@@ -149,10 +169,12 @@ export const DEFAULT_THEME: TtabsTheme = {
     '--ttabs-tab-header-border': '1px solid #ddd',
     '--ttabs-tab-header-font-size': '0.9rem',
     '--ttabs-tab-bar-border': '1px solid #ddd',
+    '--ttabs-tab-indicator-size': '3px',
+    '--ttabs-tab-indicator-offset': '0',
+    '--ttabs-transition-duration': '0.1s',
+    '--ttabs-transition-timing': 'ease',
     
     // Text colors
-    '--ttabs-text-color': '#333',
-    '--ttabs-text-color-secondary': '#666',
     '--ttabs-tab-text-color': '#555',
     '--ttabs-tab-active-text-color': '#333',
     
@@ -160,18 +182,32 @@ export const DEFAULT_THEME: TtabsTheme = {
     '--ttabs-content-bg': 'white',
     '--ttabs-content-border': '1px solid #ddd',
     '--ttabs-content-text-color': '#333',
+    '--ttabs-content-padding': '1rem',
     
     // Utility elements
     '--ttabs-resizer-hover-color': 'rgba(74, 108, 247, 0.3)',
     '--ttabs-drop-indicator-color': '#4a6cf7',
     '--ttabs-drop-target-outline': '2px dashed rgba(74, 108, 247, 0.5)',
     '--ttabs-split-indicator-color': 'rgba(74, 108, 247, 0.1)',
+    '--ttabs-row-resizer-size': '6px',
+    '--ttabs-row-resizer-offset': '-3px',
+    '--ttabs-column-resizer-size': '6px',
+    '--ttabs-column-resizer-offset': '-3px',
+    '--ttabs-drop-indicator-width': '4px',
+    '--ttabs-drop-indicator-offset': '-2px',
+    
+    // Border radius
+    '--ttabs-border-radius': '4px',
+    '--ttabs-border-radius-sm': '2px',
     
     // Controls
     '--ttabs-show-close-button': 'flex', // Show close buttons by default
     '--ttabs-close-button-color': '#888',
     '--ttabs-close-button-hover-color': '#666',
-    '--ttabs-close-button-hover-bg': 'rgba(0, 0, 0, 0.05)'
+    '--ttabs-close-button-hover-bg': 'rgba(0, 0, 0, 0.05)',
+    '--ttabs-tab-close-margin': '8px',
+    '--ttabs-tab-close-size': '16px',
+    '--ttabs-tab-close-border-radius': '50%'
   }
 };
 
