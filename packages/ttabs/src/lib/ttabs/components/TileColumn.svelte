@@ -153,7 +153,8 @@
     {#if !isLast}
       <div
         class="column-resizer {ttabs.theme?.classes?.['column-resizer'] || ''}"
-        role="separator"
+        role="button"
+        tabindex="0"
         onmousedown={onResizerMouseDown}
       ></div>
     {/if}

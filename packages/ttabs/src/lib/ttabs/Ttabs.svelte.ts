@@ -1309,13 +1309,14 @@ export class Ttabs {
    * @returns ID of the new tab
    * @throws Error if parent hierarchy rules are violated
    */
-  private addTabToPanel(panel: TilePanel, name: string, setActive: boolean = true): string {
+  private addTabToPanel(panel: TilePanel, name: string, setActive: boolean = true, isLazy: boolean = false): string {
     // Create the tab
     const tabId = this.addTile({
       type: 'tab',
       parent: panel.id,
       name,
-      content: ''
+      content: '',
+      isLazy
     });
 
     // Create content for the tab
@@ -1344,9 +1345,10 @@ export class Ttabs {
    * @param parentId ID of the parent container (grid, column, or panel)
    * @param name Name of the tab
    * @param setActive Whether to set this tab as active
+   * @param isLazy Whether to add the tab as lazy
    * @returns ID of the new tab
    */
-  addTab(parentId: string, name: string, setActive: boolean = true): string {
+  addTab(parentId: string, name: string, setActive: boolean = true, isLazy: boolean = false): string {
     const parent = this.getTile(parentId);
     if (!parent) {
       throw new Error(`Parent tile with ID ${parentId} not found`);
@@ -1355,7 +1357,7 @@ export class Ttabs {
     switch (parent.type) {
       case 'panel':
         // Panel is the direct container for tabs, add directly
-        return this.addTabToPanel(parent as TilePanel, name, setActive);
+        return this.addTabToPanel(parent as TilePanel, name, setActive, isLazy);
 
       case 'column':
         // Need to check if column already has a child
@@ -1384,7 +1386,7 @@ export class Ttabs {
           panelId = this.addPanel(column.id);
         }
 
-        return this.addTabToPanel(this.getPanel(panelId), name, setActive);
+        return this.addTabToPanel(this.getPanel(panelId), name, setActive, isLazy);
 
       case 'row':
         // For rows, we need to find or create a column to contain our panel
@@ -1400,12 +1402,12 @@ export class Ttabs {
         }
         
         // Recursively call addTab with the column ID
-        return this.addTab(columnId, name, setActive);
+        return this.addTab(columnId, name, setActive, isLazy);
 
       case 'grid':
         // Find or create a panel in the grid
         const panelInGridId = this.findOrCreatePanelInGrid(parentId);
-        return this.addTabToPanel(this.getPanel(panelInGridId), name, setActive);
+        return this.addTabToPanel(this.getPanel(panelInGridId), name, setActive, isLazy);
 
       default:
         throw new Error(`Cannot add a tab to a parent of type ${parent.type}. Use a panel, column, row, or grid.`);
@@ -1456,11 +1458,11 @@ export class Ttabs {
    * @param name Name of the tab
    * @returns ID of the new tab, or null if no active panel exists
    */
-  addTabInActivePanel(name: string, setActive: boolean = true): string | null {
+  addTabInActivePanel(name: string, setActive: boolean = true, isLazy: boolean = false): string | null {
     const activePanel = this.getActivePanelTile();
     if (!activePanel) return null;
 
-    const tabId = this.addTabToPanel(activePanel, name, setActive);
+    const tabId = this.addTabToPanel(activePanel, name, setActive, isLazy);
 
     return tabId;
   }
@@ -1673,5 +1675,82 @@ export class Ttabs {
     this.theme = { ...resolvedTheme };
 
     console.log('Theme updated:', this.theme.name);
+  }
+
+  // @TODO: consider making a universal search function for all properties of a tab (including its content)
+  /**
+   * Get all lazy tabs in a panel, grid, or across the entire layout
+   * @param containerId Optional ID of a panel or grid to search within. If not provided, searches all panels.
+   * @returns Array of lazy tab tiles
+   */
+  getLazyTabs(containerId?: string): TileTab[] {
+    if (containerId) {
+      const container = this.getTile(containerId);
+      if (!container) return [];
+
+      if (container.type === 'panel') {
+        // Get lazy tabs directly from the panel
+        const panel = container as TilePanel;
+        return panel.tabs
+          .map(tabId => this.getTile<TileTab>(tabId))
+          .filter((tab): tab is TileTab => !!tab && tab.isLazy === true);
+      } 
+      else if (container.type === 'grid') {
+        // Find all panels within the grid and get their lazy tabs
+        const lazyTabs: TileTab[] = [];
+        const grid = container as TileGrid;
+        
+        // Recursively find all panels within the grid
+        const findPanelsInGrid = (gridId: string): TilePanel[] => {
+          const grid = this.getGrid(gridId);
+          const panels: TilePanel[] = [];
+          
+          for (const rowId of grid.rows) {
+            try {
+              const row = this.getRow(rowId);
+              for (const colId of row.columns) {
+                try {
+                  const col = this.getColumn(colId);
+                  if (col.child) {
+                    const child = this.getTile(col.child);
+                    if (child?.type === 'panel') {
+                      panels.push(child as TilePanel);
+                    } else if (child?.type === 'grid') {
+                      // Recursive case - grid within grid
+                      panels.push(...findPanelsInGrid(child.id));
+                    }
+                  }
+                } catch (error) {
+                  console.error(`Error processing column ${colId}:`, error);
+                }
+              }
+            } catch (error) {
+              console.error(`Error processing row ${rowId}:`, error);
+            }
+          }
+          
+          return panels;
+        };
+        
+        const panels = findPanelsInGrid(container.id);
+        
+        // Get lazy tabs from each panel
+        for (const panel of panels) {
+          const panelLazyTabs = panel.tabs
+            .map(tabId => this.getTile<TileTab>(tabId))
+            .filter((tab): tab is TileTab => !!tab && tab.isLazy === true);
+          lazyTabs.push(...panelLazyTabs);
+        }
+        
+        return lazyTabs;
+      }
+      
+      return [];
+    } else {
+      // Search all panels for lazy tabs
+      return Object.values(this.tiles)
+        .filter((tile): tile is TileTab => 
+          tile.type === 'tab' && tile.isLazy === true);
+    }
   }
 }

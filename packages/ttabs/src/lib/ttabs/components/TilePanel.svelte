@@ -14,9 +14,19 @@
   const panel = $derived(ttabs.getTile<TilePanelType>(id));
 
   // Get tabs and active tab
-  const tabs = $derived(panel?.type === "panel" ? panel.tabs : []);
+  const tabIds = $derived(panel?.type === "panel" ? panel.tabs : []);
   const activeTab = $derived(panel?.type === "panel" ? panel.activeTab : null);
   const focusedTab = $derived(ttabs.focusedActiveTab);
+  
+  // Get tab objects from ids
+  const tabs = $derived(tabIds.map(id => {
+    try {
+      return ttabs.getTab(id);
+    } catch (e) {
+      // Return null for invalid tabs, we'll filter them out below
+      return null;
+    }
+  }).filter(Boolean) as TileTabType[]);
 
   // Drag state
   let draggedTabId: string | null = $state(null);
@@ -97,6 +107,17 @@
   // Handle tab click
   function selectTab(tabId: string) {
     if (panel?.type === "panel") {
+      // Get the tab to check if it's lazy
+      try {
+        const tab = ttabs.getTab(tabId);
+        if (tab.isLazy === true) {
+          // Convert lazy tab to non-lazy when clicked
+          ttabs.updateTile(tabId, { isLazy: false });
+        }
+      } catch (e) {
+        // Tab not found or invalid, ignore the error
+      }
+      
       ttabs.setActiveTab(tabId);
     }
   }
@@ -216,7 +237,7 @@
     dragTarget = { panelId: id, area: "content" };
 
     // Don't show split indicators if we're dragging the only tab of this panel
-    if (draggedTabId && draggedPanelId === id && tabs.length === 1) {
+    if (draggedTabId && draggedPanelId === id && tabIds.length === 1) {
       splitDirection = null;
       return;
     }
@@ -242,7 +263,7 @@
     dragTarget = { panelId: id, area: "content" };
 
     // Don't show split indicators if we're dragging the only tab of this panel
-    if (draggedTabId && draggedPanelId === id && tabs.length === 1) {
+    if (draggedTabId && draggedPanelId === id && tabIds.length === 1) {
       splitDirection = null;
       return;
     }
@@ -275,7 +296,7 @@
           : "bottom";
 
         // Check if we're trying to split a panel with its only tab
-        if (dragData.panelId === id && tabs.length === 1) {
+        if (dragData.panelId === id && tabIds.length === 1) {
           console.log("Cannot split a panel with its only tab");
           return;
         }
@@ -322,10 +343,10 @@
 
           if (!dragOverTabId) {
             // If not hovering over a tab, append to the end
-            targetIndex = tabs.length;
+            targetIndex = tabIds.length;
           } else {
             // Calculate index based on the tab we're over
-            targetIndex = tabs.indexOf(dragOverTabId);
+            targetIndex = tabIds.indexOf(dragOverTabId);
             if (dragPosition === "after" && targetIndex >= 0) {
               targetIndex += 1;
             }
@@ -335,7 +356,7 @@
           ttabs.moveTab(sourceTabId, id, targetIndex);
         } else {
           // Reordering tabs within the same panel
-          const sourceIndex = tabs.indexOf(sourceTabId);
+          const sourceIndex = tabIds.indexOf(sourceTabId);
 
           // Skip reordering if:
           // 1. Source tab doesn't exist in this panel
@@ -350,7 +371,7 @@
           }
 
           // Find the target tab index
-          const targetIndex = tabs.indexOf(dragOverTabId);
+          const targetIndex = tabIds.indexOf(dragOverTabId);
           if (targetIndex === -1) return;
 
           // Calculate the insertion index
@@ -366,7 +387,7 @@
           }
 
           // Create a new array and move the tab
-          const newTabs = [...tabs];
+          const newTabs = [...tabIds];
           newTabs.splice(sourceIndex, 1);
 
           // Adjust insert index if needed
@@ -417,59 +438,54 @@
       aria-label="Tabs"
       tabindex="0"
     >
-      {#each tabs as tabId}
+      {#each tabs as tab (tab.id)}
         <!-- Default tab header implementation -->
         <div
-          class="ttabs-tab-header {ttabs.theme?.classes?.['tab-header'] || ''} {tabId === activeTab ? `ttabs-tab-header-active ${ttabs.theme?.classes?.['tab-header-active'] || ''}` : ''} {tabId === focusedTab ? `ttabs-tab-header-focused ${ttabs.theme?.classes?.['tab-header-focused'] || ''}` : ''}"
-          class:active={tabId === activeTab}
-          class:focused={tabId === focusedTab}
-          class:is-dragging={tabId === draggedTabId}
-          class:drop-before={tabId === dragOverTabId &&
+          class="ttabs-tab-header {ttabs.theme?.classes?.['tab-header'] || ''} {tab.id === activeTab ? `ttabs-tab-header-active ${ttabs.theme?.classes?.['tab-header-active'] || ''}` : ''} {tab.id === focusedTab ? `ttabs-tab-header-focused ${ttabs.theme?.classes?.['tab-header-focused'] || ''}` : ''}"
+          class:active={tab.id === activeTab}
+          class:focused={tab.id === focusedTab}
+          class:is-dragging={tab.id === draggedTabId}
+          class:drop-before={tab.id === dragOverTabId &&
             dragPosition === "before"}
-          class:drop-after={tabId === dragOverTabId && dragPosition === "after"}
-          data-tab-id={tabId}
+          class:drop-after={tab.id === dragOverTabId && dragPosition === "after"}
+          data-tab-id={tab.id}
           draggable="true"
-          onmousedown={() => selectTab(tabId)}
+          onmousedown={() => selectTab(tab.id)}
           onkeydown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
-              selectTab(tabId);
+              selectTab(tab.id);
             }
           }}
-          ondragstart={(e) => onDragStart(e, tabId)}
+          ondragstart={(e) => onDragStart(e, tab.id)}
           ondragend={onDragEnd}
           role="tab"
-          aria-selected={tabId === activeTab}
+          aria-selected={tab.id === activeTab}
           aria-controls="{id}-content"
           tabindex="0"
         >
           <span class="ttabs-tab-title">
-            {#key tabId}
-              {@const tab = ttabs.getTile<TileTabType>(tabId)}
-              {#if tab?.type === "tab"}
-                {tab.name || "Unnamed Tab"}
-              {/if}
-            {/key}
+            <span class:ttabs-lazy-tab={tab.isLazy === true}>
+              {tab.name || "Unnamed Tab"}
+            </span>
           </span>
 
           <!-- Close button -->
           {#if ttabs.theme?.components?.closeButton}
             <!-- Custom close button component -->
-            {#key tabId}
-              {@const CloseButton = ttabs.theme.components.closeButton}
-              <CloseButton 
-                tabId={tabId} 
-                ttabs={ttabs}
-                onClose={() => ttabs.closeTab(tabId)} 
-              />
-            {/key}
+            <svelte:component 
+              this={ttabs.theme.components.closeButton}
+              tabId={tab.id} 
+              ttabs={ttabs}
+              onClose={() => ttabs.closeTab(tab.id)} 
+            />
           {:else}
             <button
               class="ttabs-tab-close {ttabs.theme?.classes?.['tab-close-button'] || ''}"
               style="display: var(--ttabs-show-close-button, none)"
               onclick={(e) => {
                 e.stopPropagation();
-                ttabs.closeTab(tabId);
+                ttabs.closeTab(tab.id);
               }}
             >
               ✕
@@ -697,6 +713,11 @@
       background-color: var(--ttabs-error-bg);
       border: var(--ttabs-error-border);
       border-radius: var(--ttabs-error-border-radius);
+    }
+
+    /* Lazy tab styling */
+    .ttabs-lazy-tab {
+      font-style: italic;
     }
   }
 </style>

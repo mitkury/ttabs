@@ -110,7 +110,9 @@
     {#if !isLast}
       <div
         class="row-resizer {ttabs.theme?.classes?.['row-resizer'] || ''}"
-        on:mousedown={onResizerMouseDown}
+        role="button"
+        tabindex="0"
+        onmousedown={onResizerMouseDown}
       ></div>
     {/if}
   </div>

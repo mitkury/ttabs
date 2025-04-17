@@ -55,6 +55,7 @@ export interface TileTab extends TileBase {
   type: 'tab';
   name: string;
   content: string; // ID of a content tile
+  isLazy: boolean;
 }
 
 /**
