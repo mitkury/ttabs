@@ -56,10 +56,8 @@
     }
   });
 
-  // Effect to scroll to active tab when it changes
   $effect(() => {
     if (activeTab) {
-      // Use setTimeout to ensure the DOM has updated
       setTimeout(() => scrollToTab(activeTab), 0);
     }
   });
@@ -156,8 +154,6 @@
       }
       
       ttabs.setActiveTab(tabId);
-      // Scroll the tab into view when selected
-      scrollToTab(tabId);
     }
   }
 
@@ -457,6 +453,33 @@
     splitDirection = null;
     isDragging = false;
   }
+
+  // Update the setComponent method to scroll when a component is set on a tab
+  ttabs.setComponent = (function(originalSetComponent) {
+    return function(this: typeof ttabs, parentId: string, componentId: string, props: Record<string, any> = {}) {
+      // Call the original method to set the component
+      const result = originalSetComponent.call(this, parentId, componentId, props);
+
+      // After setting the component, check if we need to scroll to the tab
+      const parent = this.getTile(parentId);
+      if (parent && parent.type === 'tab') {
+        // Schedule a scroll to ensure the tab is visible after component is set
+        setTimeout(() => {
+          const tabElement = tabBarElement?.querySelector(`[data-tab-id="${parentId}"]`);
+          if (tabElement) {
+            tabElement.scrollIntoView({
+              behavior: 'smooth',
+              block: 'nearest',
+              inline: 'nearest'
+            });
+          }
+        }, 0);
+      }
+
+      // Return the original result
+      return result;
+    };
+  })(ttabs.setComponent);
 </script>
 
 {#if panel?.type === "panel"}
