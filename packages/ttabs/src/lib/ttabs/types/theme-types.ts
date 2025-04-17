@@ -1,3 +1,5 @@
+import type { Component } from "svelte";
+
 /**
  * All CSS variables available for theming
  */
@@ -135,7 +137,7 @@ export interface TtabsTheme {
      * Custom close button component for tabs
      * Will receive standard props: tabId, ttabs, onClose
      */
-    closeButton?: any; // Svelte component
+    closeButton?: Component;
   };
 }
 

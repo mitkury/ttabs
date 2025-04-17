@@ -6,9 +6,13 @@
     TileTab as TileTabType,
   } from "../types/tile-types";
   import { onMount, onDestroy } from "svelte";
-  import { BROWSER } from 'esm-env';
+  import { BROWSER } from "esm-env";
+  import type { Component } from "svelte";
 
   let { ttabs, id }: TtabsProps = $props();
+
+  const CustomCloseButton: Component | undefined =
+    ttabs.theme?.components?.closeButton;
 
   // Get panel data
   const panel = $derived(ttabs.getTile<TilePanelType>(id));
@@ -17,16 +21,13 @@
   const tabIds = $derived(panel?.type === "panel" ? panel.tabs : []);
   const activeTab = $derived(panel?.type === "panel" ? panel.activeTab : null);
   const focusedTab = $derived(ttabs.focusedActiveTab);
-  
+
   // Get tab objects from ids
-  const tabs = $derived(tabIds.map(id => {
-    try {
+  const tabs = $derived(
+    tabIds.map((id) => {
       return ttabs.getTab(id);
-    } catch (e) {
-      // Return null for invalid tabs, we'll filter them out below
-      return null;
-    }
-  }).filter(Boolean) as TileTabType[]);
+    }),
+  );
 
   // Drag state
   let draggedTabId: string | null = $state(null);
@@ -68,25 +69,25 @@
    */
   function scrollToTab(tabId: string) {
     if (!tabBarElement) return;
-    
-    const tabElement = tabBarElement.querySelector(`[data-tab-id="${tabId}"]`) as HTMLElement;
+
+    const tabElement = tabBarElement.querySelector(
+      `[data-tab-id="${tabId}"]`,
+    ) as HTMLElement;
     if (!tabElement) return;
-    
+
     // Check if the tab is fully visible in the scroll view
     const tabRect = tabElement.getBoundingClientRect();
     const barRect = tabBarElement.getBoundingClientRect();
-    
-    const isTabFullyVisible = (
-      tabRect.left >= barRect.left &&
-      tabRect.right <= barRect.right
-    );
-    
+
+    const isTabFullyVisible =
+      tabRect.left >= barRect.left && tabRect.right <= barRect.right;
+
     // Only scroll if the tab is not fully visible
     if (!isTabFullyVisible) {
       tabElement.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'nearest'
+        behavior: "smooth",
+        block: "nearest",
+        inline: "nearest",
       });
     }
   }
@@ -152,7 +153,7 @@
       } catch (e) {
         // Tab not found or invalid, ignore the error
       }
-      
+
       ttabs.setActiveTab(tabId);
     }
   }
@@ -476,13 +477,19 @@
       {#each tabs as tab (tab.id)}
         <!-- Default tab header implementation -->
         <div
-          class="ttabs-tab-header {ttabs.theme?.classes?.['tab-header'] || ''} {tab.id === activeTab ? `ttabs-tab-header-active ${ttabs.theme?.classes?.['tab-header-active'] || ''}` : ''} {tab.id === focusedTab ? `ttabs-tab-header-focused ${ttabs.theme?.classes?.['tab-header-focused'] || ''}` : ''}"
+          class="ttabs-tab-header {ttabs.theme?.classes?.['tab-header'] ||
+            ''} {tab.id === activeTab
+            ? `ttabs-tab-header-active ${ttabs.theme?.classes?.['tab-header-active'] || ''}`
+            : ''} {tab.id === focusedTab
+            ? `ttabs-tab-header-focused ${ttabs.theme?.classes?.['tab-header-focused'] || ''}`
+            : ''}"
           class:active={tab.id === activeTab}
           class:focused={tab.id === focusedTab}
           class:is-dragging={tab.id === draggedTabId}
           class:drop-before={tab.id === dragOverTabId &&
             dragPosition === "before"}
-          class:drop-after={tab.id === dragOverTabId && dragPosition === "after"}
+          class:drop-after={tab.id === dragOverTabId &&
+            dragPosition === "after"}
           data-tab-id={tab.id}
           draggable="true"
           onmousedown={() => selectTab(tab.id)}
@@ -505,18 +512,13 @@
             </span>
           </span>
 
-          <!-- Close button -->
-          {#if ttabs.theme?.components?.closeButton}
-            <!-- Custom close button component -->
-            <svelte:component 
-              this={ttabs.theme.components.closeButton}
-              tabId={tab.id} 
-              ttabs={ttabs}
-              onClose={() => ttabs.closeTab(tab.id)} 
-            />
+          {#if CustomCloseButton}
+            <CustomCloseButton tabId={tab.id} {ttabs} onClose={() => ttabs.closeTab(tab.id)} />
           {:else}
             <button
-              class="ttabs-tab-close {ttabs.theme?.classes?.['tab-close-button'] || ''}"
+              class="ttabs-tab-close {ttabs.theme?.classes?.[
+                'tab-close-button'
+              ] || ''}"
               style="display: var(--ttabs-show-close-button, none)"
               onclick={(e) => {
                 e.stopPropagation();
@@ -598,7 +600,8 @@
       border-right: var(--ttabs-tab-header-border);
       white-space: nowrap;
       font-size: var(--ttabs-tab-header-font-size);
-      transition: background-color var(--ttabs-transition-duration) var(--ttabs-transition-timing);
+      transition: background-color var(--ttabs-transition-duration)
+        var(--ttabs-transition-timing);
       position: relative;
       display: flex;
       align-items: center;
@@ -642,7 +645,8 @@
     /* Focused tab styling */
     .ttabs-tab-header-focused {
       border-bottom: none;
-      box-shadow: inset 0 var(--ttabs-tab-indicator-size) 0 var(--ttabs-active-tab-indicator);
+      box-shadow: inset 0 var(--ttabs-tab-indicator-size) 0
+        var(--ttabs-active-tab-indicator);
     }
 
     /* Active tab - for backward compatibility with .active */
