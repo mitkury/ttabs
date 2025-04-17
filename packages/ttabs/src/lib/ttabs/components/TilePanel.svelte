@@ -56,6 +56,43 @@
     }
   });
 
+  // Effect to scroll to active tab when it changes
+  $effect(() => {
+    if (activeTab) {
+      // Use setTimeout to ensure the DOM has updated
+      setTimeout(() => scrollToTab(activeTab), 0);
+    }
+  });
+
+  /**
+   * Scrolls the tab bar to make the specified tab visible
+   * @param tabId The ID of the tab to scroll into view
+   */
+  function scrollToTab(tabId: string) {
+    if (!tabBarElement) return;
+    
+    const tabElement = tabBarElement.querySelector(`[data-tab-id="${tabId}"]`) as HTMLElement;
+    if (!tabElement) return;
+    
+    // Check if the tab is fully visible in the scroll view
+    const tabRect = tabElement.getBoundingClientRect();
+    const barRect = tabBarElement.getBoundingClientRect();
+    
+    const isTabFullyVisible = (
+      tabRect.left >= barRect.left &&
+      tabRect.right <= barRect.right
+    );
+    
+    // Only scroll if the tab is not fully visible
+    if (!isTabFullyVisible) {
+      tabElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest'
+      });
+    }
+  }
+
   function handleMouseUp() {
     // Reset visual indicators immediately when mouse button is released
     // We'll just clear the visual indicators but keep the drag operation going
@@ -119,6 +156,8 @@
       }
       
       ttabs.setActiveTab(tabId);
+      // Scroll the tab into view when selected
+      scrollToTab(tabId);
     }
   }
 
