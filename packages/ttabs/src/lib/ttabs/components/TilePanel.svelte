@@ -454,6 +454,20 @@
     splitDirection = null;
     isDragging = false;
   }
+
+  /**
+   * Closes a tab and prevents event propagation
+   * @param e The click event
+   * @param tabId The ID of the tab to close
+   */
+  function closeTab(e: Event, tabId: string) {
+    // Prevent event from propagating to parent elements
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Close the tab
+    ttabs.closeTab(tabId);
+  }
 </script>
 
 {#if panel?.type === "panel"}
@@ -492,7 +506,15 @@
             dragPosition === "after"}
           data-tab-id={tab.id}
           draggable="true"
-          onmousedown={() => selectTab(tab.id)}
+          onmousedown={(e) => {
+            // Don't select the tab if the close button was clicked
+            if (e.target instanceof HTMLElement && 
+                (e.target.classList.contains('ttabs-tab-close') || 
+                 e.target.closest('.ttabs-tab-close'))) {
+              return;
+            }
+            selectTab(tab.id);
+          }}
           onkeydown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
@@ -513,17 +535,14 @@
           </span>
 
           {#if CustomCloseButton}
-            <CustomCloseButton tabId={tab.id} {ttabs} onClose={() => ttabs.closeTab(tab.id)} />
+            <CustomCloseButton tabId={tab.id} {ttabs} onClose={(e: Event) => closeTab(e, tab.id)} />
           {:else}
             <button
               class="ttabs-tab-close {ttabs.theme?.classes?.[
                 'tab-close-button'
               ] || ''}"
               style="display: var(--ttabs-show-close-button, none)"
-              onclick={(e) => {
-                e.stopPropagation();
-                ttabs.closeTab(tab.id);
-              }}
+              onclick={(e) => closeTab(e, tab.id)}
             >
               ✕
             </button>
