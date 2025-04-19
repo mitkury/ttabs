@@ -552,7 +552,7 @@
     </div>
 
     <div
-      class="ttabs-tab-content {ttabs.theme?.classes?.['tab-content'] || ''}"
+      class="ttabs-tab-content select-auto {ttabs.theme?.classes?.['tab-content'] || ''}"
       id="{id}-content"
       bind:this={contentElement}
       ondragenter={onContentDragEnter}

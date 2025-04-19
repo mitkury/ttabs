@@ -12,7 +12,7 @@
 </script>
 
 {#if grid?.type === "grid"}
-  <div class="ttabs-grid {ttabs.theme?.classes?.grid || ''}" data-tile-id={id}>
+  <div class="ttabs-grid select-none {ttabs.theme?.classes?.grid || ''}" data-tile-id={id}>
     {#each rows as rowId (rowId)}
       <TileRow {ttabs} id={rowId} />
     {/each}
