@@ -42,7 +42,7 @@
 </script>
 
 {#if tab?.type === "tab"}
-  <div class="ttabs-tab {ttabs.theme?.classes?.tab || ''}" data-tile-id={id}>
+  <div class="ttabs-tab select-auto {ttabs.theme?.classes?.tab || ''}" data-tile-id={id}>
     {#if content?.type === "content"}
       <div
         class="ttabs-content {ttabs.theme?.classes?.content || ''}"
