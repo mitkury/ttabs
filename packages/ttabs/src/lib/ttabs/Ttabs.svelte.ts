@@ -46,12 +46,12 @@ export interface TtabsOptions {
  */
 export class Ttabs {
 
-  tiles = $state<Record<string, Tile>>({});
-  activePanel = $state<string | null>(null);
-  focusedActiveTab = $state<string | null>(null);
-  rootGridId = $state<string>('');
-  componentRegistry = $state<Record<string, ContentComponent>>({});
-  theme = $state<TtabsTheme>(DEFAULT_THEME);
+  tiles: Record<string, Tile> = $state({});
+  activePanel: string | null = $state(null);
+  focusedActiveTab: string | null = $state(null);
+  rootGridId: string = $state('');
+  componentRegistry: Record<string, ContentComponent> = $state({});
+  theme: TtabsTheme = $state(DEFAULT_THEME);
 
   // State change listeners
   stateChangeListeners: StateChangeCallback[] = [];
