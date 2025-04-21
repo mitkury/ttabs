@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createTtabs, TtabsRoot, LocalStorageAdapter, defaultTheme as DEFAULT_THEME, darkTheme as DARK_THEME } from 'ttabs-svelte';
+  import { createTtabs, TtabsRoot, LocalStorageAdapter, defaultTheme as DEFAULT_THEME } from 'ttabs-svelte';
   import type { TilePanel, TileTab } from 'ttabs-svelte';
   import type { TtabsTheme } from 'ttabs-svelte';
   import EditorComponent from './EditorComponent.svelte';
@@ -7,7 +7,7 @@
   import SidePanelComponent from './SidePanelComponent.svelte';
   import { onMount } from 'svelte';
   
-  console.log('Themes available:', { DEFAULT_THEME, DARK_THEME });
+  console.log('Themes available:', { DEFAULT_THEME });
   
   // Create a storage adapter
   const storageAdapter = new LocalStorageAdapter('ttabs-layout');
@@ -35,55 +35,8 @@
   // Store panel ID for adding new tabs
   let upperPanelId = $state('');
   let isInitialized = $state(false);
-  
-  // Define a high contrast version of the dark theme
-  const highContrastDarkTheme = {
-    name: 'high-contrast-dark',
-    extends: DARK_THEME, // Inherit from the dark theme
-    variables: {
-      '--ttabs-text-color': '#ffffff', // Brighter white text
-      '--ttabs-active-tab-indicator': '#f59e0b', // Orange accent
-      '--ttabs-drop-indicator-color': '#f59e0b'
-    }
-  };
-  
-  // Define a blue theme that just overrides accent colors
-  const blueTheme = {
-    name: 'blue',
-    variables: {
-      '--ttabs-active-tab-indicator': '#2563eb', // Blue accent
-      '--ttabs-drop-indicator-color': '#2563eb',
-      '--ttabs-resizer-hover-color': 'rgba(37, 99, 235, 0.3)'
-    }
-  };
-  
+
   // Keep track of the current theme
-  let currentTheme = $state(0); // 0 = default, 1 = dark, 2 = high contrast, 3 = blue
-  let isDarkTheme = $state(false);
-  
-  // Toggle between themes
-  function toggleTheme() {
-    currentTheme = (currentTheme + 1) % 4;
-    
-    // Initialize with a default value to avoid undefined
-    let newTheme = DEFAULT_THEME;
-    
-    // Then assign based on currentTheme
-    if (currentTheme === 0) {
-      newTheme = DEFAULT_THEME;
-    } else if (currentTheme === 1) {
-      newTheme = DARK_THEME;
-    } else if (currentTheme === 2) {
-      newTheme = highContrastDarkTheme;
-    } else if (currentTheme === 3) {
-      newTheme = blueTheme;
-    }
-    
-    console.log('Toggling to theme:', newTheme.name);
-    ttabs.setTheme(newTheme);
-    console.log('Current theme after toggle:', ttabs.theme.name);
-  }
-  
   // Setup the layout on mount
   onMount(() => {
     // Check if we have a stored layout
@@ -170,11 +123,11 @@
   // Helper to create the actual layout structure
   function createLayoutStructure(rootId: string) {
     // Create main row
-    const mainRowId = ttabs.addRow(rootId, 100);
+    const mainRowId = ttabs.addRow(rootId);
     
     // Create columns
-    const leftColumnId = ttabs.addColumn(mainRowId, 20);
-    const rightColumnId = ttabs.addColumn(mainRowId, 80);
+    const leftColumnId = ttabs.addColumn(mainRowId, "200px");
+    const rightColumnId = ttabs.addColumn(mainRowId);
     
     // Add side panel directly to left column (no panel/tabs)
     ttabs.setComponent(leftColumnId, 'sidepanel', {
@@ -191,11 +144,11 @@
     const rightGridId = ttabs.addGrid(rightColumnId);
     
     // Create two rows for the right grid
-    const upperRowId = ttabs.addRow(rightGridId, 60);
-    const lowerRowId = ttabs.addRow(rightGridId, 40);
+    const upperRowId = ttabs.addRow(rightGridId, "60%");
+    const lowerRowId = ttabs.addRow(rightGridId, "40%");
     
     // Create a column for the upper row
-    const upperColumnId = ttabs.addColumn(upperRowId, 100);
+    const upperColumnId = ttabs.addColumn(upperRowId);
     
     // Create a panel for the upper column
     upperPanelId = ttabs.addPanel(upperColumnId);
@@ -223,7 +176,7 @@
     const settingsTabId = ttabs.addTab(upperPanelId, 'Settings', false);
     
     // Create a column for the lower row
-    const lowerColumnId = ttabs.addColumn(lowerRowId, 100);
+    const lowerColumnId = ttabs.addColumn(lowerRowId);
     
     // Create a panel for the lower column
     const lowerPanelId = ttabs.addPanel(lowerColumnId);
@@ -310,9 +263,6 @@
     <div class="actions">
       <button onclick={resetLayout}>Reset Layout</button>
       <button onclick={createNewTab} class="create-tab-btn">Create New Tab</button>
-      <button onclick={toggleTheme} class="theme-btn">
-        {currentTheme === 0 ? '☀️ Light Theme' : currentTheme === 1 ? '🌙 Dark Theme' : currentTheme === 2 ? '🌓 High Contrast' : '💙 Blue Theme'}
-      </button>
     </div>
   </header>
   

@@ -1,7 +1,7 @@
 <script lang="ts">
   import TileColumn from "./TileColumn.svelte";
   import type { TtabsProps } from "./props";
-  import type { TileRow as TileRowType, TileGrid } from "../types/tile-types";
+  import type { TileRow as TileRowType, TileGrid, SizeInfo } from "../types/tile-types";
 
   let { ttabs, id }: TtabsProps = $props();
 
@@ -30,8 +30,8 @@
   // Resizing state
   let isResizing = $state(false);
   let startY = $state(0);
-  let startHeightA = $state(0);
-  let startHeightB = $state(0);
+  let startHeightA = $state<SizeInfo | null>(null);
+  let startHeightB = $state<SizeInfo | null>(null);
   let nextRowId = $state<string | null>(null);
 
   function onResizerMouseDown(e: MouseEvent) {
@@ -54,7 +54,7 @@
   }
 
   function onMouseMove(e: MouseEvent) {
-    if (!isResizing || !row || !nextRowId) return;
+    if (!isResizing || !row || !nextRowId || !startHeightA || !startHeightB) return;
 
     // Get a reference to the containing grid element
     const gridElement = document.querySelector(
@@ -62,35 +62,56 @@
     ) as HTMLElement;
     if (!gridElement) return;
 
-    // Calculate percentage based on grid height and mouse movement
-    const deltaPixels = e.clientY - startY;
-    const deltaPercent = (deltaPixels / gridElement.offsetHeight) * 100;
+    // Only handle percentage units for now in the resize logic
+    if (startHeightA.unit === '%' && startHeightB.unit === '%') {
+      // Calculate percentage based on grid height and mouse movement
+      const deltaPixels = e.clientY - startY;
+      const deltaPercent = (deltaPixels / gridElement.offsetHeight) * 100;
 
-    // Ensure minimum height
-    const MIN_HEIGHT = 5;
-    const maxDeltaDown = startHeightA - MIN_HEIGHT;
-    const maxDeltaUp = startHeightB - MIN_HEIGHT;
+      // Ensure minimum height
+      const MIN_HEIGHT = 5;
+      const maxDeltaDown = startHeightA.value - MIN_HEIGHT;
+      const maxDeltaUp = startHeightB.value - MIN_HEIGHT;
 
-    // Limit delta to keep both rows above minimum height
-    let limitedDelta = deltaPercent;
-    if (deltaPercent > 0) {
-      // Moving down (expanding this row)
-      limitedDelta = Math.min(deltaPercent, maxDeltaUp);
-    } else {
-      // Moving up (shrinking this row)
-      limitedDelta = Math.max(deltaPercent, -maxDeltaDown);
+      // Limit delta to keep both rows above minimum height
+      let limitedDelta = deltaPercent;
+      if (deltaPercent > 0) {
+        // Moving down (expanding this row)
+        limitedDelta = Math.min(deltaPercent, maxDeltaUp);
+      } else {
+        // Moving up (shrinking this row)
+        limitedDelta = Math.max(deltaPercent, -maxDeltaDown);
+      }
+
+      // Apply the new heights
+      const newHeightA = {
+        value: startHeightA.value + limitedDelta,
+        unit: startHeightA.unit
+      };
+      const newHeightB = {
+        value: startHeightB.value - limitedDelta,
+        unit: startHeightB.unit
+      };
+
+      ttabs.updateTile(id, { height: newHeightA });
+      ttabs.updateTile(nextRowId, { height: newHeightB });
     }
-
-    // Apply the new heights
-    const newHeightA = startHeightA + limitedDelta;
-    const newHeightB = startHeightB - limitedDelta;
-
-    ttabs.updateTile(id, { height: newHeightA });
-    ttabs.updateTile(nextRowId, { height: newHeightB });
+    // Handle other unit combinations later, or trigger recalculateLayout
   }
 
   function onMouseUp() {
     isResizing = false;
+  }
+
+  // Add a function to generate the style string based on SizeInfo
+  function getSizeStyle(size: SizeInfo | undefined): string {
+    if (!size) return '';
+    
+    if (size.unit === 'auto') {
+      return 'flex: 1; height: auto;';
+    }
+    
+    return `height: ${size.value}${size.unit};`;
   }
 </script>
 
@@ -101,7 +122,7 @@
     class="ttabs-row {ttabs.theme?.classes?.row || ''}"
     class:is-resizing={isResizing}
     data-tile-id={id}
-    style="height: {row.height}%;"
+    style={getSizeStyle(row.height)}
   >
     {#each columns as columnId (columnId)}
       <TileColumn {ttabs} id={columnId} />

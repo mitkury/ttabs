@@ -307,7 +307,7 @@ function onMouseMove(e: MouseEvent) {
 function parseSizeValue(size: string): SizeInfo {
   // Default case
   if (!size || size === 'auto') {
-    return { value: 0, unit: 'auto' };
+    return { value: 0, unit: 'auto' as const };
   }
   
   // Parse percentage values
@@ -316,7 +316,7 @@ function parseSizeValue(size: string): SizeInfo {
     if (isNaN(percentValue)) {
       throw new Error(`Invalid percentage format: ${size}`);
     }
-    return { value: percentValue, unit: '%' };
+    return { value: percentValue, unit: '%' as const };
   }
   
   // Parse pixel values
@@ -325,13 +325,13 @@ function parseSizeValue(size: string): SizeInfo {
     if (isNaN(pixelValue)) {
       throw new Error(`Invalid pixel format: ${size}`);
     }
-    return { value: pixelValue, unit: 'px' };
+    return { value: pixelValue, unit: 'px' as const };
   }
   
   // Try to parse as a number and assume it's a percentage
   const numericValue = parseFloat(size);
   if (!isNaN(numericValue)) {
-    return { value: numericValue, unit: '%' };
+    return { value: numericValue, unit: '%' as const };
   }
   
   throw new Error(`Invalid size format: ${size}. Expected format: "100%", "260px", or "auto"`);

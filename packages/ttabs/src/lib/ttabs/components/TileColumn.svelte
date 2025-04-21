@@ -6,6 +6,7 @@
     TileColumn as TileColumnType,
     TileRow,
     TileContent,
+    SizeInfo,
   } from "../types/tile-types";
   import type { Component } from "svelte";
 
@@ -64,8 +65,8 @@
   // Resizing state
   let isResizing = $state(false);
   let startX = $state(0);
-  let startWidthA = $state(0);
-  let startWidthB = $state(0);
+  let startWidthA = $state<SizeInfo | null>(null);
+  let startWidthB = $state<SizeInfo | null>(null);
   let nextColId = $state<string | null>(null);
 
   function onResizerMouseDown(e: MouseEvent) {
@@ -88,7 +89,7 @@
   }
 
   function onMouseMove(e: MouseEvent) {
-    if (!isResizing || !column || !nextColId) return;
+    if (!isResizing || !column || !nextColId || !startWidthA || !startWidthB) return;
 
     // Get a reference to the containing row element
     const rowElement = document.querySelector(
@@ -96,35 +97,56 @@
     ) as HTMLElement;
     if (!rowElement) return;
 
-    // Calculate percentage based on row width and mouse movement
-    const deltaPixels = e.clientX - startX;
-    const deltaPercent = (deltaPixels / rowElement.offsetWidth) * 100;
+    // Only handle percentage units for now in the resize logic
+    if (startWidthA.unit === '%' && startWidthB.unit === '%') {
+      // Calculate percentage based on row width and mouse movement
+      const deltaPixels = e.clientX - startX;
+      const deltaPercent = (deltaPixels / rowElement.offsetWidth) * 100;
 
-    // Ensure minimum width
-    const MIN_WIDTH = 5;
-    const maxDeltaRight = startWidthA - MIN_WIDTH;
-    const maxDeltaLeft = startWidthB - MIN_WIDTH;
+      // Ensure minimum width
+      const MIN_WIDTH = 5;
+      const maxDeltaRight = startWidthA.value - MIN_WIDTH;
+      const maxDeltaLeft = startWidthB.value - MIN_WIDTH;
 
-    // Limit delta to keep both columns above minimum width
-    let limitedDelta = deltaPercent;
-    if (deltaPercent > 0) {
-      // Moving right (expanding this column)
-      limitedDelta = Math.min(deltaPercent, maxDeltaLeft);
-    } else {
-      // Moving left (shrinking this column)
-      limitedDelta = Math.max(deltaPercent, -maxDeltaRight);
-    }
+      // Limit delta to keep both columns above minimum width
+      let limitedDelta = deltaPercent;
+      if (deltaPercent > 0) {
+        // Moving right (expanding this column)
+        limitedDelta = Math.min(deltaPercent, maxDeltaLeft);
+      } else {
+        // Moving left (shrinking this column)
+        limitedDelta = Math.max(deltaPercent, -maxDeltaRight);
+      }
 
-    // Apply the new widths
-    const newWidthA = startWidthA + limitedDelta;
-    const newWidthB = startWidthB - limitedDelta;
+      // Apply the new widths
+      const newWidthA = { 
+        value: startWidthA.value + limitedDelta, 
+        unit: startWidthA.unit 
+      };
+      const newWidthB = { 
+        value: startWidthB.value - limitedDelta, 
+        unit: startWidthB.unit 
+      };
 
-    ttabs.updateTile(id, { width: newWidthA });
-    ttabs.updateTile(nextColId, { width: newWidthB });
+      ttabs.updateTile(id, { width: newWidthA });
+      ttabs.updateTile(nextColId, { width: newWidthB });
+    } 
+    // Handle other unit combinations later, or trigger recalculateLayout
   }
 
   function onMouseUp() {
     isResizing = false;
+  }
+
+  // Add a function to generate the style string based on SizeInfo
+  function getSizeStyle(size: SizeInfo | undefined): string {
+    if (!size) return '';
+    
+    if (size.unit === 'auto') {
+      return 'flex: 1; width: auto;';
+    }
+    
+    return `width: ${size.value}${size.unit};`;
   }
 </script>
 
@@ -135,7 +157,7 @@
     class="ttabs-column {ttabs.theme?.classes?.column || ''}"
     class:is-resizing={isResizing}
     data-tile-id={id}
-    style="width: {column.width}%;"
+    style={getSizeStyle(column.width)}
   >
     {#if childTile?.type === "panel" && childId !== null}
       <TilePanel {ttabs} id={childId} />

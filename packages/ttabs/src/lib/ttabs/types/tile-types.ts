@@ -14,6 +14,14 @@ export interface TileBase {
 }
 
 /**
+ * Size information with unit
+ */
+export interface SizeInfo {
+  value: number;
+  unit: 'px' | '%' | 'auto';
+}
+
+/**
  * Grid tile that contains rows
  */
 export interface TileGrid extends TileBase {
@@ -27,7 +35,9 @@ export interface TileGrid extends TileBase {
 export interface TileRow extends TileBase {
   type: 'row';
   columns: string[];
-  height: number;
+  height: SizeInfo;
+  computedSize?: number;
+  originalHeight?: number; // Original height if scaled down
 }
 
 /**
@@ -36,7 +46,9 @@ export interface TileRow extends TileBase {
 export interface TileColumn extends TileBase {
   type: 'column';
   child: string; // ID of a TilePanel, TileGrid, or direct TileContent
-  width: number;
+  width: SizeInfo;
+  computedSize?: number;
+  originalWidth?: number; // Original width if scaled down
 }
 
 /**

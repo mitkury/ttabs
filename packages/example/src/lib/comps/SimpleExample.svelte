@@ -40,10 +40,10 @@
     const rootId = ttabs.rootGridId;
     
     // Create a main row
-    const mainRowId = ttabs.addRow(rootId, 100);
+    const mainRowId = ttabs.addRow(rootId);
     
     // Create a column
-    const mainColumnId = ttabs.addColumn(mainRowId, 100);
+    const mainColumnId = ttabs.addColumn(mainRowId);
     
     // Create a panel
     const mainPanelId = ttabs.addPanel(mainColumnId);
