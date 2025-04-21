@@ -478,7 +478,7 @@
     role="tabpanel"
   >
     <div
-      class="ttabs-tab-bar {ttabs.theme?.classes?.['tab-bar'] || ''}"
+      class="ttabs-tab-bar select-none {ttabs.theme?.classes?.['tab-bar'] || ''}"
       bind:this={tabBarElement}
       ondragover={onDragOver}
       ondragenter={onDragEnter}

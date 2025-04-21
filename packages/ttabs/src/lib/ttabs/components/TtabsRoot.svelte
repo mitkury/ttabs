@@ -15,7 +15,7 @@
 </script>
 
 <div
-  class="ttabs-root select-none {ttabs.theme?.classes?.root || ''}"
+  class="ttabs-root {ttabs.theme?.classes?.root || ''}"
   style={themeStyle}
   data-theme={ttabs.theme?.name}
 >
