@@ -62,41 +62,110 @@
     ) as HTMLElement;
     if (!gridElement) return;
 
-    // Only handle percentage units for now in the resize logic
-    if (startHeightA.unit === '%' && startHeightB.unit === '%') {
-      // Calculate percentage based on grid height and mouse movement
-      const deltaPixels = e.clientY - startY;
-      const deltaPercent = (deltaPixels / gridElement.offsetHeight) * 100;
-
-      // Ensure minimum height
-      const MIN_HEIGHT = 5;
-      const maxDeltaDown = startHeightA.value - MIN_HEIGHT;
-      const maxDeltaUp = startHeightB.value - MIN_HEIGHT;
-
-      // Limit delta to keep both rows above minimum height
-      let limitedDelta = deltaPercent;
-      if (deltaPercent > 0) {
-        // Moving down (expanding this row)
-        limitedDelta = Math.min(deltaPercent, maxDeltaUp);
-      } else {
-        // Moving up (shrinking this row)
-        limitedDelta = Math.max(deltaPercent, -maxDeltaDown);
-      }
-
+    // Calculate pixel movement
+    const deltaPixels = e.clientY - startY;
+    
+    // Handle resizing based on unit types
+    if (startHeightA.unit === 'px' && startHeightB.unit === 'px') {
+      // Both rows use pixels - direct pixel adjustment
+      const MIN_HEIGHT_PX = 50; // Minimum height in pixels
+      
+      // Calculate new heights ensuring minimum height
+      const newHeightValueA = Math.max(MIN_HEIGHT_PX, startHeightA.value + deltaPixels);
+      const newHeightValueB = Math.max(MIN_HEIGHT_PX, startHeightB.value - deltaPixels);
+      
       // Apply the new heights
-      const newHeightA = {
-        value: startHeightA.value + limitedDelta,
-        unit: startHeightA.unit
-      };
-      const newHeightB = {
-        value: startHeightB.value - limitedDelta,
-        unit: startHeightB.unit
-      };
-
+      const newHeightA = { value: newHeightValueA, unit: 'px' as const };
+      const newHeightB = { value: newHeightValueB, unit: 'px' as const };
+      
+      ttabs.updateTile(id, { height: newHeightA });
+      ttabs.updateTile(nextRowId, { height: newHeightB });
+    } 
+    else if (startHeightA.unit === '%' && startHeightB.unit === '%') {
+      // Both rows use percentage - percentage adjustment
+      const MIN_HEIGHT_PERCENT = 5; // Minimum height in percentage
+      
+      // Convert pixel movement to percentage
+      const deltaPercent = (deltaPixels / gridElement.offsetHeight) * 100;
+      
+      // Calculate new heights ensuring minimum height
+      const newHeightValueA = Math.max(MIN_HEIGHT_PERCENT, startHeightA.value + deltaPercent);
+      const newHeightValueB = Math.max(MIN_HEIGHT_PERCENT, startHeightB.value - deltaPercent);
+      
+      // Apply the new heights
+      const newHeightA = { value: newHeightValueA, unit: '%' as const };
+      const newHeightB = { value: newHeightValueB, unit: '%' as const };
+      
       ttabs.updateTile(id, { height: newHeightA });
       ttabs.updateTile(nextRowId, { height: newHeightB });
     }
-    // Handle other unit combinations later, or trigger recalculateLayout
+    else if (startHeightA.unit === 'px' && startHeightB.unit === '%') {
+      // First row in pixels, second in percentage
+      const MIN_HEIGHT_PX = 50;
+      const MIN_HEIGHT_PERCENT = 5;
+      
+      // Adjust pixel row directly
+      const newHeightValueA = Math.max(MIN_HEIGHT_PX, startHeightA.value + deltaPixels);
+      const newHeightA = { value: newHeightValueA, unit: 'px' as const };
+      
+      // Update first row
+      ttabs.updateTile(id, { height: newHeightA });
+      
+      // Let recalculate handle the second row
+      if (parentId) {
+        ttabs.recalculateLayout(parentId as string);
+      }
+    }
+    else if (startHeightA.unit === '%' && startHeightB.unit === 'px') {
+      // First row in percentage, second in pixels
+      const MIN_HEIGHT_PERCENT = 5;
+      const MIN_HEIGHT_PX = 50;
+      
+      // Adjust pixel row directly
+      const newHeightValueB = Math.max(MIN_HEIGHT_PX, startHeightB.value - deltaPixels);
+      const newHeightB = { value: newHeightValueB, unit: 'px' as const };
+      
+      // Update second row
+      ttabs.updateTile(nextRowId, { height: newHeightB });
+      
+      // Let recalculate handle the first row
+      if (parentId) {
+        ttabs.recalculateLayout(parentId as string);
+      }
+    }
+    else if (startHeightA.unit === 'auto' || startHeightB.unit === 'auto') {
+      // Handle auto rows - convert to percentage during resize
+      const MIN_HEIGHT_PERCENT = 5;
+      
+      // Get current sizes
+      const totalHeight = gridElement.offsetHeight;
+      const currentHeightA = row.computedSize || (gridElement.offsetHeight * 0.5);
+      const currentHeightB = ttabs.getTile<TileRowType>(nextRowId)?.computedSize || (gridElement.offsetHeight * 0.5);
+      
+      // Convert pixel movement to percentage
+      const deltaPercent = (deltaPixels / totalHeight) * 100;
+      
+      // If first row is auto, convert to percentage
+      if (startHeightA.unit === 'auto') {
+        const currentPercentA = (currentHeightA / totalHeight) * 100;
+        const newHeightValueA = Math.max(MIN_HEIGHT_PERCENT, currentPercentA + deltaPercent);
+        const newHeightA = { value: newHeightValueA, unit: '%' as const };
+        ttabs.updateTile(id, { height: newHeightA });
+      }
+      
+      // If second row is auto, convert to percentage
+      if (startHeightB.unit === 'auto') {
+        const currentPercentB = (currentHeightB / totalHeight) * 100;
+        const newHeightValueB = Math.max(MIN_HEIGHT_PERCENT, currentPercentB - deltaPercent);
+        const newHeightB = { value: newHeightValueB, unit: '%' as const };
+        ttabs.updateTile(nextRowId, { height: newHeightB });
+      }
+      
+      // Recalculate layout
+      if (parentId) {
+        ttabs.recalculateLayout(parentId as string);
+      }
+    }
   }
 
   function onMouseUp() {

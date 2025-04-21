@@ -126,7 +126,7 @@
     const mainRowId = ttabs.addRow(rootId);
     
     // Create columns
-    const leftColumnId = ttabs.addColumn(mainRowId, "200px");
+    const leftColumnId = ttabs.addColumn(mainRowId, "260px");
     const rightColumnId = ttabs.addColumn(mainRowId);
     
     // Add side panel directly to left column (no panel/tabs)

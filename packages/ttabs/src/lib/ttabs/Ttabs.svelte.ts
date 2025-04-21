@@ -1237,6 +1237,17 @@ export class Ttabs {
     const columns = columnIds.map(id => this.getTile<TileColumn>(id)).filter(Boolean) as TileColumn[];
     if (columns.length === 0) return;
 
+    // Ensure all columns have SizeInfo for width
+    columns.forEach(column => {
+      // Convert any numeric width to SizeInfo for backward compatibility
+      if (typeof column.width === 'number') {
+        this.updateTile(column.id, { 
+          width: { value: column.width, unit: '%' as const } 
+        });
+        column.width = { value: column.width, unit: '%' as const };
+      }
+    });
+
     const totalExistingWidth = columns.reduce((sum, col) => sum + col.width.value, 0);
     if (totalExistingWidth <= 0) return; // Prevent division by zero
 
@@ -1268,6 +1279,17 @@ export class Ttabs {
 
     const rows = rowIds.map(id => this.getTile<TileRow>(id)).filter(Boolean) as TileRow[];
     if (rows.length === 0) return;
+
+    // Ensure all rows have SizeInfo for height
+    rows.forEach(row => {
+      // Convert any numeric height to SizeInfo for backward compatibility
+      if (typeof row.height === 'number') {
+        this.updateTile(row.id, { 
+          height: { value: row.height, unit: '%' as const } 
+        });
+        row.height = { value: row.height, unit: '%' as const };
+      }
+    });
 
     const totalExistingHeight = rows.reduce((sum, row) => sum + row.height.value, 0);
     if (totalExistingHeight <= 0) return; // Prevent division by zero

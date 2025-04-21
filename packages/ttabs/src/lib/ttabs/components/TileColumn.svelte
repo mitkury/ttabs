@@ -97,41 +97,108 @@
     ) as HTMLElement;
     if (!rowElement) return;
 
-    // Only handle percentage units for now in the resize logic
-    if (startWidthA.unit === '%' && startWidthB.unit === '%') {
-      // Calculate percentage based on row width and mouse movement
-      const deltaPixels = e.clientX - startX;
-      const deltaPercent = (deltaPixels / rowElement.offsetWidth) * 100;
-
-      // Ensure minimum width
-      const MIN_WIDTH = 5;
-      const maxDeltaRight = startWidthA.value - MIN_WIDTH;
-      const maxDeltaLeft = startWidthB.value - MIN_WIDTH;
-
-      // Limit delta to keep both columns above minimum width
-      let limitedDelta = deltaPercent;
-      if (deltaPercent > 0) {
-        // Moving right (expanding this column)
-        limitedDelta = Math.min(deltaPercent, maxDeltaLeft);
-      } else {
-        // Moving left (shrinking this column)
-        limitedDelta = Math.max(deltaPercent, -maxDeltaRight);
-      }
-
+    // Calculate pixel movement
+    const deltaPixels = e.clientX - startX;
+    
+    // Handle resizing based on unit types
+    if (startWidthA.unit === 'px' && startWidthB.unit === 'px') {
+      // Both columns use pixels - direct pixel adjustment
+      const MIN_WIDTH_PX = 50; // Minimum width in pixels
+      
+      // Calculate new widths ensuring minimum width
+      const newWidthValueA = Math.max(MIN_WIDTH_PX, startWidthA.value + deltaPixels);
+      const newWidthValueB = Math.max(MIN_WIDTH_PX, startWidthB.value - deltaPixels);
+      
       // Apply the new widths
-      const newWidthA = { 
-        value: startWidthA.value + limitedDelta, 
-        unit: startWidthA.unit 
-      };
-      const newWidthB = { 
-        value: startWidthB.value - limitedDelta, 
-        unit: startWidthB.unit 
-      };
-
+      const newWidthA = { value: newWidthValueA, unit: 'px' as const };
+      const newWidthB = { value: newWidthValueB, unit: 'px' as const };
+      
       ttabs.updateTile(id, { width: newWidthA });
       ttabs.updateTile(nextColId, { width: newWidthB });
     } 
-    // Handle other unit combinations later, or trigger recalculateLayout
+    else if (startWidthA.unit === '%' && startWidthB.unit === '%') {
+      // Both columns use percentage - percentage adjustment
+      const MIN_WIDTH_PERCENT = 5; // Minimum width in percentage
+      
+      // Convert pixel movement to percentage
+      const deltaPercent = (deltaPixels / rowElement.offsetWidth) * 100;
+      
+      // Calculate new widths ensuring minimum width
+      const newWidthValueA = Math.max(MIN_WIDTH_PERCENT, startWidthA.value + deltaPercent);
+      const newWidthValueB = Math.max(MIN_WIDTH_PERCENT, startWidthB.value - deltaPercent);
+      
+      // Apply the new widths
+      const newWidthA = { value: newWidthValueA, unit: '%' as const };
+      const newWidthB = { value: newWidthValueB, unit: '%' as const };
+      
+      ttabs.updateTile(id, { width: newWidthA });
+      ttabs.updateTile(nextColId, { width: newWidthB });
+    }
+    else if (startWidthA.unit === 'px' && (startWidthB.unit === '%' || startWidthB.unit === 'auto')) {
+      // First column in pixels (fixed width like sidebar), second is flexible (% or auto)
+      const MIN_WIDTH_PX = 50;
+      
+      // Adjust pixel column directly with constraints
+      const newWidthValueA = Math.max(MIN_WIDTH_PX, startWidthA.value + deltaPixels);
+      const newWidthA = { value: newWidthValueA, unit: 'px' as const };
+      
+      // Update first column
+      ttabs.updateTile(id, { width: newWidthA });
+      
+      // Let recalculate handle the second column
+      if (parentId) {
+        ttabs.recalculateLayout(parentId as string);
+      }
+    }
+    else if ((startWidthA.unit === '%' || startWidthA.unit === 'auto') && startWidthB.unit === 'px') {
+      // First column is flexible (% or auto), second in pixels
+      const MIN_WIDTH_PX = 50;
+      
+      // Adjust pixel column directly
+      const newWidthValueB = Math.max(MIN_WIDTH_PX, startWidthB.value - deltaPixels);
+      const newWidthB = { value: newWidthValueB, unit: 'px' as const };
+      
+      // Update second column
+      ttabs.updateTile(nextColId, { width: newWidthB });
+      
+      // Let recalculate handle the first column
+      if (parentId) {
+        ttabs.recalculateLayout(parentId as string);
+      }
+    }
+    else if (startWidthA.unit === 'auto' || startWidthB.unit === 'auto') {
+      // Handle auto columns - convert to percentage during resize
+      const MIN_WIDTH_PERCENT = 5;
+      
+      // Get current sizes
+      const totalWidth = rowElement.offsetWidth;
+      const currentWidthA = column.computedSize || (rowElement.offsetWidth * 0.5);
+      const currentWidthB = ttabs.getTile<TileColumnType>(nextColId)?.computedSize || (rowElement.offsetWidth * 0.5);
+      
+      // Convert pixel movement to percentage
+      const deltaPercent = (deltaPixels / totalWidth) * 100;
+      
+      // If first column is auto, convert to percentage
+      if (startWidthA.unit === 'auto') {
+        const currentPercentA = (currentWidthA / totalWidth) * 100;
+        const newWidthValueA = Math.max(MIN_WIDTH_PERCENT, currentPercentA + deltaPercent);
+        const newWidthA = { value: newWidthValueA, unit: '%' as const };
+        ttabs.updateTile(id, { width: newWidthA });
+      }
+      
+      // If second column is auto, convert to percentage
+      if (startWidthB.unit === 'auto') {
+        const currentPercentB = (currentWidthB / totalWidth) * 100;
+        const newWidthValueB = Math.max(MIN_WIDTH_PERCENT, currentPercentB - deltaPercent);
+        const newWidthB = { value: newWidthValueB, unit: '%' as const };
+        ttabs.updateTile(nextColId, { width: newWidthB });
+      }
+      
+      // Recalculate layout
+      if (parentId) {
+        ttabs.recalculateLayout(parentId as string);
+      }
+    }
   }
 
   function onMouseUp() {
@@ -226,7 +293,7 @@
 
     .column-resizer:hover,
     .is-resizing .column-resizer {
-      background-color: var(--ttabs-resizer-hover-color);
+      background-color: var(--ttabs-resizer-hover-color, rgba(74, 108, 247, 0.6));
     }
 
     .ttabs-error {
