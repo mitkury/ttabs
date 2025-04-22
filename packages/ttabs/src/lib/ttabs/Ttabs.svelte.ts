@@ -763,12 +763,8 @@ export class Ttabs {
           throw new Error(`Column ${parentColumn.id} not found in row ${rowId}`);
         }
 
-        // Convert existing column width to SizeInfo if it's a number
+        // Get the target column width
         let targetColumnWidth = parentColumn.width;
-        if (typeof targetColumnWidth === 'number') {
-          targetColumnWidth = { value: targetColumnWidth, unit: '%' as const };
-          this.updateTile(parentColumn.id, { width: targetColumnWidth });
-        }
         
         // Calculate new width - half of the current column's width
         const newWidth = { 
@@ -947,12 +943,8 @@ export class Ttabs {
               throw new Error(`Could not find row containing panel ${targetPanelId}`);
             }
 
-            // Convert existing row height to SizeInfo if it's a number
+            // Get the target row height
             let targetRowHeight = targetRow.height;
-            if (typeof targetRowHeight === 'number') {
-              targetRowHeight = { value: targetRowHeight, unit: '%' as const };
-              this.updateTile(targetRowId, { height: targetRowHeight });
-            }
             
             // Calculate new height - half of the current row's height
             const newHeight = { 
@@ -1126,29 +1118,12 @@ export class Ttabs {
   /**
    * Redistributes width proportionally among columns
    */
-  redistributeWidths(columnIds: string[], availableWidth: SizeInfo | number): void {
+  redistributeWidths(columnIds: string[], availableWidth: SizeInfo): void {
     if (columnIds.length === 0) return;
-
-    // Convert numeric width to SizeInfo for backward compatibility
-    const availableSizeInfo: SizeInfo = typeof availableWidth === 'number' 
-      ? { value: availableWidth, unit: '%' as const } 
-      : availableWidth;
-    
-    if (availableSizeInfo.value <= 0) return;
+    if (availableWidth.value <= 0) return;
 
     const columns = columnIds.map(id => this.getTile<TileColumn>(id)).filter(Boolean) as TileColumn[];
     if (columns.length === 0) return;
-
-    // Ensure all columns have SizeInfo for width
-    columns.forEach(column => {
-      // Convert any numeric width to SizeInfo for backward compatibility
-      if (typeof column.width === 'number') {
-        this.updateTile(column.id, { 
-          width: { value: column.width, unit: '%' as const } 
-        });
-        column.width = { value: column.width, unit: '%' as const };
-      }
-    });
 
     const totalExistingWidth = columns.reduce((sum, col) => sum + col.width.value, 0);
     if (totalExistingWidth <= 0) return; // Prevent division by zero
@@ -1156,7 +1131,7 @@ export class Ttabs {
     // Distribute proportionally
     columns.forEach(column => {
       const proportion = column.width.value / totalExistingWidth;
-      const newWidth = column.width.value + (availableSizeInfo.value * proportion);
+      const newWidth = column.width.value + (availableWidth.value * proportion);
       this.updateTile(column.id, { 
         width: { 
           value: newWidth, 
@@ -1169,29 +1144,12 @@ export class Ttabs {
   /**
    * Redistributes height proportionally among rows
    */
-  redistributeHeights(rowIds: string[], availableHeight: SizeInfo | number): void {
-    if (rowIds.length === 0) return;
-    
-    // Convert numeric height to SizeInfo for backward compatibility
-    const availableSizeInfo: SizeInfo = typeof availableHeight === 'number' 
-      ? { value: availableHeight, unit: '%' as const } 
-      : availableHeight;
-    
-    if (availableSizeInfo.value <= 0) return;
+  redistributeHeights(rowIds: string[], availableHeight: SizeInfo): void {
+    if (rowIds.length === 0) return;  
+    if (availableHeight.value <= 0) return;
 
     const rows = rowIds.map(id => this.getTile<TileRow>(id)).filter(Boolean) as TileRow[];
     if (rows.length === 0) return;
-
-    // Ensure all rows have SizeInfo for height
-    rows.forEach(row => {
-      // Convert any numeric height to SizeInfo for backward compatibility
-      if (typeof row.height === 'number') {
-        this.updateTile(row.id, { 
-          height: { value: row.height, unit: '%' as const } 
-        });
-        row.height = { value: row.height, unit: '%' as const };
-      }
-    });
 
     const totalExistingHeight = rows.reduce((sum, row) => sum + row.height.value, 0);
     if (totalExistingHeight <= 0) return; // Prevent division by zero
@@ -1199,7 +1157,7 @@ export class Ttabs {
     // Distribute proportionally
     rows.forEach(row => {
       const proportion = row.height.value / totalExistingHeight;
-      const newHeight = row.height.value + (availableSizeInfo.value * proportion);
+      const newHeight = row.height.value + (availableHeight.value * proportion);
       this.updateTile(row.id, { 
         height: { 
           value: newHeight, 
