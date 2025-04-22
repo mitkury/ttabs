@@ -1054,7 +1054,7 @@ export class Ttabs {
           const row = this.getRow(parentId);
           const siblingColumns = row.columns.filter(id => id !== tileId);
           if (siblingColumns.length > 0) {
-            this.redistributeWidths(siblingColumns, column.width);
+            this.redistributeWidths(column);
           }
 
         }
@@ -1070,7 +1070,7 @@ export class Ttabs {
           const grid = this.getGrid(parentId);
           const siblingRows = grid.rows.filter(id => id !== tileId);
           if (siblingRows.length > 0) {
-            this.redistributeHeights(siblingRows, row.height);
+            this.redistributeHeights(row);
           }
 
         }
@@ -1116,20 +1116,43 @@ export class Ttabs {
   }
 
   /**
-   * Redistributes width proportionally among columns
+   * Redistributes width from a removed column to its sibling columns
+   * @param removedColumnId ID of the column being removed
    */
-  redistributeWidths(columnIds: string[], availableWidth: SizeInfo): void {
-    if (columnIds.length === 0) return;
+  redistributeWidths(removedColumn: TileColumn): void {    
+    // Get the available width to redistribute
+    const availableWidth = removedColumn.width;
     if (availableWidth.value <= 0) return;
+    
+    // Get the parent row to find siblings
+    const parentRowId = removedColumn.parent;
+    if (!parentRowId) return;
+    
+    const parentRow = this.getTile<TileRow>(parentRowId);
+    if (!parentRow || parentRow.type !== 'row') return;
+    
+    // Get sibling columns (excluding the one being removed)
+    const siblingColumnIds = parentRow.columns.filter(id => id !== removedColumn.id);
+    if (siblingColumnIds.length === 0) return;
+    
+    // Get the sibling column objects
+    const siblingColumns = siblingColumnIds
+      .map(id => this.getTile<TileColumn>(id))
+      .filter(Boolean) as TileColumn[];
+    
+    if (siblingColumns.length === 0) return;
 
-    const columns = columnIds.map(id => this.getTile<TileColumn>(id)).filter(Boolean) as TileColumn[];
-    if (columns.length === 0) return;
-
-    const totalExistingWidth = columns.reduce((sum, col) => sum + col.width.value, 0);
+    // Check if any siblings have % units
+    const percentColumns = siblingColumns.filter(col => col.width.unit === '%');
+    
+    // If we have percentage-based columns, only distribute to those
+    const targetColumns = percentColumns.length > 0 ? percentColumns : siblingColumns;
+    
+    const totalExistingWidth = targetColumns.reduce((sum, col) => sum + col.width.value, 0);
     if (totalExistingWidth <= 0) return; // Prevent division by zero
 
-    // Distribute proportionally
-    columns.forEach(column => {
+    // Distribute proportionally among target columns
+    targetColumns.forEach(column => {
       const proportion = column.width.value / totalExistingWidth;
       const newWidth = column.width.value + (availableWidth.value * proportion);
       this.updateTile(column.id, { 
@@ -1142,20 +1165,43 @@ export class Ttabs {
   }
 
   /**
-   * Redistributes height proportionally among rows
+   * Redistributes height from a removed row to its sibling rows
+   * @param removedRow The row being removed
    */
-  redistributeHeights(rowIds: string[], availableHeight: SizeInfo): void {
-    if (rowIds.length === 0) return;  
+  redistributeHeights(removedRow: TileRow): void {
+    // Get the available height to redistribute
+    const availableHeight = removedRow.height;
     if (availableHeight.value <= 0) return;
+    
+    // Get the parent grid to find siblings
+    const parentGridId = removedRow.parent;
+    if (!parentGridId) return;
+    
+    const parentGrid = this.getTile<TileGrid>(parentGridId);
+    if (!parentGrid || parentGrid.type !== 'grid') return;
+    
+    // Get sibling rows (excluding the one being removed)
+    const siblingRowIds = parentGrid.rows.filter(id => id !== removedRow.id);
+    if (siblingRowIds.length === 0) return;
+    
+    // Get the sibling row objects
+    const siblingRows = siblingRowIds
+      .map(id => this.getTile<TileRow>(id))
+      .filter(Boolean) as TileRow[];
+    
+    if (siblingRows.length === 0) return;
 
-    const rows = rowIds.map(id => this.getTile<TileRow>(id)).filter(Boolean) as TileRow[];
-    if (rows.length === 0) return;
-
-    const totalExistingHeight = rows.reduce((sum, row) => sum + row.height.value, 0);
+    // Check if any siblings have % units
+    const percentRows = siblingRows.filter(row => row.height.unit === '%');
+    
+    // If we have percentage-based rows, only distribute to those
+    const targetRows = percentRows.length > 0 ? percentRows : siblingRows;
+    
+    const totalExistingHeight = targetRows.reduce((sum, row) => sum + row.height.value, 0);
     if (totalExistingHeight <= 0) return; // Prevent division by zero
 
-    // Distribute proportionally
-    rows.forEach(row => {
+    // Distribute proportionally among target rows
+    targetRows.forEach(row => {
       const proportion = row.height.value / totalExistingHeight;
       const newHeight = row.height.value + (availableHeight.value * proportion);
       this.updateTile(row.id, { 
