@@ -1284,6 +1284,29 @@ export class Ttabs {
 
     const grid = parent as TileGrid;
 
+    // Handle percentage redistribution if needed
+    if (height === 'auto' && grid.rows.length > 0) {
+      // Get existing rows with percentage heights
+      const percentRows = grid.rows
+        .map(id => this.getTile<TileRow>(id))
+        .filter((row): row is TileRow => !!row && row.height.unit === '%');
+      
+      // If we have percentage rows, redistribute evenly
+      if (percentRows.length > 0) {
+        const newPercentage = 100 / (percentRows.length + 1);
+        
+        // Update all percentage rows
+        percentRows.forEach(row => {
+          this.updateTile(row.id, {
+            height: { value: newPercentage, unit: '%' }
+          });
+        });
+        
+        // Use same percentage for new row
+        height = `${newPercentage}%`;
+      }
+    }
+
     // Parse the height value
     const sizeInfo = parseSizeValue(height);
 
@@ -1299,6 +1322,9 @@ export class Ttabs {
     this.updateTile(parentId, {
       rows: [...grid.rows, rowId]
     });
+
+    // Recalculate layout
+    this.recalculateLayout(parentId);
 
     return rowId;
   }
@@ -1323,6 +1349,29 @@ export class Ttabs {
 
     const row = parent as TileRow;
 
+    // Handle percentage redistribution if needed
+    if (width === 'auto' && row.columns.length > 0) {
+      // Get existing columns with percentage widths
+      const percentColumns = row.columns
+        .map(id => this.getTile<TileColumn>(id))
+        .filter((col): col is TileColumn => !!col && col.width.unit === '%');
+      
+      // If we have percentage columns, redistribute evenly
+      if (percentColumns.length > 0) {
+        const newPercentage = 100 / (percentColumns.length + 1);
+        
+        // Update all percentage columns
+        percentColumns.forEach(col => {
+          this.updateTile(col.id, {
+            width: { value: newPercentage, unit: '%' }
+          });
+        });
+        
+        // Use same percentage for new column
+        width = `${newPercentage}%`;
+      }
+    }
+
     // Parse the width value
     const sizeInfo = parseSizeValue(width);
 
@@ -1338,6 +1387,9 @@ export class Ttabs {
     this.updateTile(parentId, {
       columns: [...row.columns, columnId]
     });
+
+    // Recalculate layout
+    this.recalculateLayout(parentId);
 
     return columnId;
   }
