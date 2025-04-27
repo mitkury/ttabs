@@ -630,6 +630,10 @@
       border-top-right-radius: none;
     }
 
+    .ttabs-tab-bar > .ttabs-tab-header:last-child {
+      border-right: none;
+    }
+
     .ttabs-tab-title {
       flex-grow: 1;
     }
