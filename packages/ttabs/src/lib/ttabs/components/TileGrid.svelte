@@ -34,7 +34,7 @@
       background-color: var(--ttabs-grid-bg, #f0f0f0);
       border: var(--ttabs-grid-border, 1px solid #ddd);
       color: var(--ttabs-text-color, inherit);
-      border-radius: var(--ttabs-border-radius);
+      border-radius: none;
     }
 
     .ttabs-error {
@@ -42,7 +42,7 @@
       color: var(--ttabs-error-color, tomato);
       background-color: var(--ttabs-error-bg, #fff5f5);
       border: var(--ttabs-error-border, 1px solid tomato);
-      border-radius: var(--ttabs-error-border-radius, 4px);
+      border-radius: none;
     }
   }
 </style>

@@ -247,7 +247,7 @@
       color: var(--ttabs-error-color);
       background-color: var(--ttabs-error-bg);
       border: var(--ttabs-error-border);
-      border-radius: var(--ttabs-error-border-radius);
+      border-radius: none;
     }
   }
 </style>

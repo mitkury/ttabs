@@ -595,7 +595,8 @@
       overflow: hidden;
       background-color: var(--ttabs-panel-bg);
       color: var(--ttabs-text-color);
-      border-radius: var(--ttabs-border-radius);
+      border: var(--ttabs-border);
+      border-radius: none;
     }
 
     .ttabs-panel.drop-target {
@@ -625,8 +626,8 @@
       display: flex;
       align-items: center;
       color: var(--ttabs-tab-text-color);
-      border-top-left-radius: var(--ttabs-border-radius-sm);
-      border-top-right-radius: var(--ttabs-border-radius-sm);
+      border-top-left-radius: none;
+      border-top-right-radius: none;
     }
 
     .ttabs-tab-title {
@@ -645,7 +646,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: var(--ttabs-tab-close-border-radius);
+      border-radius: none;
       color: var(--ttabs-close-button-color);
     }
 
@@ -770,7 +771,7 @@
       color: var(--ttabs-error-color);
       background-color: var(--ttabs-error-bg);
       border: var(--ttabs-error-border);
-      border-radius: var(--ttabs-error-border-radius);
+      border-radius: none;
     }
 
     /* Lazy tab styling */

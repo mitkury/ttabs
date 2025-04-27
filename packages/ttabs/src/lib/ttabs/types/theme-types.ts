@@ -161,7 +161,7 @@ export const DEFAULT_THEME: TtabsTheme = {
     '--ttabs-error-color': 'tomato',
     '--ttabs-error-border': '1px solid tomato',
     '--ttabs-error-padding': '1rem',
-    '--ttabs-error-border-radius': '4px',
+    '--ttabs-error-border-radius': '0',
     
     // Empty state
     '--ttabs-empty-state-color': '#666',
@@ -199,8 +199,8 @@ export const DEFAULT_THEME: TtabsTheme = {
     '--ttabs-drop-indicator-offset': '-2px',
     
     // Border radius
-    '--ttabs-border-radius': '4px',
-    '--ttabs-border-radius-sm': '2px',
+    '--ttabs-border-radius': '0',
+    '--ttabs-border-radius-sm': '0',
     
     // Controls
     '--ttabs-show-close-button': 'flex', // Show close buttons by default
@@ -209,7 +209,7 @@ export const DEFAULT_THEME: TtabsTheme = {
     '--ttabs-close-button-hover-bg': 'rgba(0, 0, 0, 0.05)',
     '--ttabs-tab-close-margin': '8px',
     '--ttabs-tab-close-size': '16px',
-    '--ttabs-tab-close-border-radius': '50%'
+    '--ttabs-tab-close-border-radius': '0'
   }
 };
 
