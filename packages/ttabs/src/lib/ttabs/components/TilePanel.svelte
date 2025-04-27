@@ -658,7 +658,6 @@
     /* Active tab styling - default implementation */
     .ttabs-tab-header-active {
       background-color: var(--ttabs-active-tab-bg);
-      font-weight: 500;
       color: var(--ttabs-tab-active-text-color);
     }
 
@@ -667,13 +666,6 @@
       border-bottom: none;
       box-shadow: inset 0 var(--ttabs-tab-indicator-size) 0
         var(--ttabs-active-tab-indicator);
-    }
-
-    /* Active tab - for backward compatibility with .active */
-    .ttabs-tab-header.active:not(.ttabs-tab-header-active) {
-      background-color: var(--ttabs-active-tab-bg);
-      font-weight: 500;
-      color: var(--ttabs-tab-active-text-color);
     }
 
     .ttabs-tab-header.is-dragging {
