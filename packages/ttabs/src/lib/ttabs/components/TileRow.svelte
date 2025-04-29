@@ -235,11 +235,13 @@
       height: var(--ttabs-row-resizer-size);
       cursor: row-resize;
       z-index: 10;
+      transition: background-color 150ms ease-in-out;
     }
 
     .row-resizer:hover,
     .is-resizing .row-resizer {
       background-color: var(--ttabs-resizer-hover-color);
+      transition-delay: 200ms;
     }
 
     .ttabs-error {

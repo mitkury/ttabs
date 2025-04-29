@@ -289,11 +289,13 @@
       height: 100%;
       cursor: col-resize;
       z-index: 10;
+      transition: background-color 150ms ease-in-out;
     }
 
     .column-resizer:hover,
     .is-resizing .column-resizer {
       background-color: var(--ttabs-resizer-hover-color, rgba(74, 108, 247, 0.6));
+      transition-delay: 200ms;
     }
 
     .ttabs-error {
