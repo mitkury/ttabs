@@ -478,7 +478,7 @@
     role="tabpanel"
   >
     <div
-      class="ttabs-tab-bar select-none {ttabs.theme?.classes?.['tab-bar'] || ''}"
+      class="ttabs-tab-bar {ttabs.theme?.classes?.['tab-bar'] || ''}"
       bind:this={tabBarElement}
       ondragover={onDragOver}
       ondragenter={onDragEnter}
@@ -552,7 +552,7 @@
     </div>
 
     <div
-      class="ttabs-tab-content {ttabs.theme?.classes?.['tab-content'] || ''}"
+      class="ttabs-tab-content selectable-text {ttabs.theme?.classes?.['tab-content'] || ''}"
       id="{id}-content"
       bind:this={contentElement}
       ondragenter={onContentDragEnter}
