@@ -16,6 +16,9 @@
   const column = $derived(ttabs.getTile<TileColumnType>(id));
   const parentId = $derived(column?.parent || null);
 
+  // Check if column width is zero
+  const isZeroWidth = $derived(column?.width?.value === 0);
+
   // Get parent row to access siblings
   const parentRow = $derived(
     parentId ? ttabs.getTile<TileRow>(parentId) : null,
@@ -223,6 +226,7 @@
   <div
     class="ttabs-column {ttabs.theme?.classes?.column || ''}"
     class:is-resizing={isResizing}
+    class:zero-width={isZeroWidth}
     data-tile-id={id}
     style={getSizeStyle(column.width)}
   >
@@ -239,7 +243,7 @@
       </div>
     {/if}
 
-    {#if !isLast}
+    {#if !isLast && !isZeroWidth}
       <div
         class="column-resizer {ttabs.theme?.classes?.['column-resizer'] || ''}"
         role="button"
@@ -263,6 +267,10 @@
       position: relative;
       color: var(--ttabs-text-color);
       background-color: var(--ttabs-panel-bg);
+    }
+
+    .ttabs-column.zero-width {
+      border-right: none;
     }
 
     .ttabs-column:last-child {
