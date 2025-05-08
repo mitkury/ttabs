@@ -17,7 +17,7 @@
   const parentId = $derived(column?.parent || null);
 
   // Check if column width is zero
-  const isZeroWidth = $derived(column?.width?.value === 0);
+  const isZeroWidth = $derived(column?.computedSize === 0);
 
   // Get parent row to access siblings
   const parentRow = $derived(

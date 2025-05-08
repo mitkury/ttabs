@@ -46,7 +46,6 @@ export interface TtabsOptions {
  * Ttabs class implementation
  */
 export class Ttabs {
-
   tiles: Record<string, Tile> = $state({});
   activePanel: string | null = $state(null);
   focusedActiveTab: string | null = $state(null);
@@ -1213,13 +1212,13 @@ export class Ttabs {
   }
 
   /**
-   * Reset the state
+   * Reset the layout (but keeping the theme, components, etc.)
    */
-  resetState(): void {
+  resetTiles(): void {
     this.tiles = {};
     this.activePanel = null;
     this.focusedActiveTab = null;
-    this.rootGridId = this.addGrid();
+    this.rootGridId = "";
   }
 
   /**
@@ -1612,6 +1611,7 @@ export class Ttabs {
 
     // Add metadata for focused tab
     const metadata = {
+      activePanel: this.activePanel,
       focusedActiveTab: this.focusedActiveTab
     };
 
@@ -1621,11 +1621,11 @@ export class Ttabs {
     });
   }
 
-  setup(tiles: Tile[], { focusedActiveTab }: { focusedActiveTab?: string }) {
-    this.resetState();
+  setup(tiles: Tile[], { activePanel, focusedActiveTab }: { activePanel?: string, focusedActiveTab?: string }) {
+    this.resetTiles();
 
     try {
-      const rootGrids = tiles.filter(tile => 
+      const rootGrids = tiles.filter(tile =>
         tile.type === 'grid' && !tile.parent
       );
 
@@ -1636,9 +1636,18 @@ export class Ttabs {
       tiles.forEach((tile: Tile) => {
         this.tiles[tile.id] = tile;
       });
-  
+
       this.rootGridId = rootGrids[0].id;
-  
+
+      console.log(activePanel, focusedActiveTab);
+
+      if (activePanel) {
+        const panel = this.getTile<TilePanel>(activePanel);
+        if (panel) {
+          this.activePanel = activePanel;
+        }
+      }
+
       if (focusedActiveTab) {
         const focusedTab = this.getTile<TileTab>(focusedActiveTab);
         if (focusedTab) {
@@ -1659,8 +1668,10 @@ export class Ttabs {
     try {
       const parsed = JSON.parse(json);
       if (parsed && typeof parsed === 'object' && 'tiles' in parsed && Array.isArray(parsed.tiles)) {
-        this.setup(parsed.tiles, { focusedActiveTab: parsed.metadata?.focusedActiveTab });
-
+        this.setup(parsed.tiles, {
+          activePanel: parsed.metadata?.activePanel,
+          focusedActiveTab: parsed.metadata?.focusedActiveTab
+        });
         return true;
       }
 
@@ -1692,6 +1703,7 @@ export class Ttabs {
 
     if (panelsWithActiveTabs.length > 0 && panelsWithActiveTabs[0].activeTab) {
       this.focusedActiveTab = panelsWithActiveTabs[0].activeTab;
+      this.activePanel = panelsWithActiveTabs[0].id;
     }
   }
 
