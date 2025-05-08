@@ -37,21 +37,19 @@
 
   // Function to reset the layout using the new object-oriented API
   function resetLayout() {
+    console.log("Resetting layout...");
+
     ttabs.resetTiles();
 
     // Create a new grid and build the layout using method chaining
-    const grid = ttabs.newGrid();
-
-    // Create a main row, column, panel, and tab with welcome text using method chaining
-    grid
+    ttabs
+      .newGrid()
       .newRow()
       .newColumn()
       .newPanel()
       .newTab("Welcome", true)
       .setComponent("text", {
-        data: {
-          text: "Welcome to ttabs simple example!\n\nThis is a basic demo showing how ttabs layout system works with storage.",
-        },
+        text: "Welcome to ttabs simple example!\n\nThis is a basic demo showing how ttabs layout system works with storage.",
       })
       .setFocused();
   }

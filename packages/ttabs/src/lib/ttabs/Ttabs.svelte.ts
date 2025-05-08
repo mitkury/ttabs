@@ -1241,6 +1241,10 @@ export class Ttabs {
       } else {
         throw new Error(`Cannot add a grid to a parent of type ${parent.type}. Grids can only be children of columns.`);
       }
+    } else {
+      if (this.rootGridId) {
+        throw new Error("Cannot add a grid to the root grid");
+      }
     }
 
     const gridId = this.addTile({
@@ -1248,6 +1252,10 @@ export class Ttabs {
       parent: parentId || null,
       rows: []
     });
+
+    if (!parentId) {
+      this.rootGridId = gridId;
+    }
 
     // If parent is a column, update the column's child reference
     if (parentId) {
