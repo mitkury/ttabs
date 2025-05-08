@@ -537,7 +537,6 @@ export class Ttabs {
     const panel = this.getTile<TilePanel>(id);
     if (!panel || panel.type !== 'panel') return false;
 
-    // With runes we can directly assign
     this.activePanel = id;
     return true;
   }
@@ -765,9 +764,9 @@ export class Ttabs {
 
         // Get the target column width
         let targetColumnWidth = parentColumn.width;
-        
+
         // Calculate new width - half of the current column's width
-        const newWidth = { 
+        const newWidth = {
           value: targetColumnWidth.unit === '%' ? targetColumnWidth.value / 2 : 50,
           unit: targetColumnWidth.unit === 'auto' ? '%' as const : targetColumnWidth.unit
         };
@@ -889,7 +888,7 @@ export class Ttabs {
             rows: [firstRowId, secondRowId]
           });
 
-          // THIS IS THE KEY FIX - Update target panel parent to point to its new column
+          // Update target panel parent to point to its new column
           this.updateTile(targetPanelId, { parent: existingPanelColumnId });
 
           // Update column to point to the grid instead of directly to the panel
@@ -945,9 +944,9 @@ export class Ttabs {
 
             // Get the target row height
             let targetRowHeight = targetRow.height;
-            
+
             // Calculate new height - half of the current row's height
-            const newHeight = { 
+            const newHeight = {
               value: targetRowHeight.unit === '%' ? targetRowHeight.value / 2 : 50,
               unit: targetRowHeight.unit === 'auto' ? '%' as const : targetRowHeight.unit
             };
@@ -1119,35 +1118,35 @@ export class Ttabs {
    * Redistributes width from a removed column to its sibling columns
    * @param removedColumnId ID of the column being removed
    */
-  redistributeWidths(removedColumn: TileColumn): void {    
+  redistributeWidths(removedColumn: TileColumn): void {
     // Get the available width to redistribute
     const availableWidth = removedColumn.width;
     if (availableWidth.value <= 0) return;
-    
+
     // Get the parent row to find siblings
     const parentRowId = removedColumn.parent;
     if (!parentRowId) return;
-    
+
     const parentRow = this.getTile<TileRow>(parentRowId);
     if (!parentRow || parentRow.type !== 'row') return;
-    
+
     // Get sibling columns (excluding the one being removed)
     const siblingColumnIds = parentRow.columns.filter(id => id !== removedColumn.id);
     if (siblingColumnIds.length === 0) return;
-    
+
     // Get the sibling column objects
     const siblingColumns = siblingColumnIds
       .map(id => this.getTile<TileColumn>(id))
       .filter(Boolean) as TileColumn[];
-    
+
     if (siblingColumns.length === 0) return;
 
     // Check if any siblings have % units
     const percentColumns = siblingColumns.filter(col => col.width.unit === '%');
-    
+
     // If we have percentage-based columns, only distribute to those
     const targetColumns = percentColumns.length > 0 ? percentColumns : siblingColumns;
-    
+
     const totalExistingWidth = targetColumns.reduce((sum, col) => sum + col.width.value, 0);
     if (totalExistingWidth <= 0) return; // Prevent division by zero
 
@@ -1155,11 +1154,11 @@ export class Ttabs {
     targetColumns.forEach(column => {
       const proportion = column.width.value / totalExistingWidth;
       const newWidth = column.width.value + (availableWidth.value * proportion);
-      this.updateTile(column.id, { 
-        width: { 
-          value: newWidth, 
-          unit: column.width.unit 
-        } 
+      this.updateTile(column.id, {
+        width: {
+          value: newWidth,
+          unit: column.width.unit
+        }
       });
     });
   }
@@ -1172,31 +1171,31 @@ export class Ttabs {
     // Get the available height to redistribute
     const availableHeight = removedRow.height;
     if (availableHeight.value <= 0) return;
-    
+
     // Get the parent grid to find siblings
     const parentGridId = removedRow.parent;
     if (!parentGridId) return;
-    
+
     const parentGrid = this.getTile<TileGrid>(parentGridId);
     if (!parentGrid || parentGrid.type !== 'grid') return;
-    
+
     // Get sibling rows (excluding the one being removed)
     const siblingRowIds = parentGrid.rows.filter(id => id !== removedRow.id);
     if (siblingRowIds.length === 0) return;
-    
+
     // Get the sibling row objects
     const siblingRows = siblingRowIds
       .map(id => this.getTile<TileRow>(id))
       .filter(Boolean) as TileRow[];
-    
+
     if (siblingRows.length === 0) return;
 
     // Check if any siblings have % units
     const percentRows = siblingRows.filter(row => row.height.unit === '%');
-    
+
     // If we have percentage-based rows, only distribute to those
     const targetRows = percentRows.length > 0 ? percentRows : siblingRows;
-    
+
     const totalExistingHeight = targetRows.reduce((sum, row) => sum + row.height.value, 0);
     if (totalExistingHeight <= 0) return; // Prevent division by zero
 
@@ -1204,11 +1203,11 @@ export class Ttabs {
     targetRows.forEach(row => {
       const proportion = row.height.value / totalExistingHeight;
       const newHeight = row.height.value + (availableHeight.value * proportion);
-      this.updateTile(row.id, { 
-        height: { 
-          value: newHeight, 
-          unit: row.height.unit 
-        } 
+      this.updateTile(row.id, {
+        height: {
+          value: newHeight,
+          unit: row.height.unit
+        }
       });
     });
   }
@@ -1217,7 +1216,6 @@ export class Ttabs {
    * Reset the state
    */
   resetState(): void {
-    // With runes we can directly assign
     this.tiles = {};
     this.activePanel = null;
     this.focusedActiveTab = null;
@@ -1290,18 +1288,18 @@ export class Ttabs {
       const percentRows = grid.rows
         .map(id => this.getTile<TileRow>(id))
         .filter((row): row is TileRow => !!row && row.height.unit === '%');
-      
+
       // If we have percentage rows, redistribute evenly
       if (percentRows.length > 0) {
         const newPercentage = 100 / (percentRows.length + 1);
-        
+
         // Update all percentage rows
         percentRows.forEach(row => {
           this.updateTile(row.id, {
             height: { value: newPercentage, unit: '%' }
           });
         });
-        
+
         // Use same percentage for new row
         height = `${newPercentage}%`;
       }
@@ -1355,18 +1353,18 @@ export class Ttabs {
       const percentColumns = row.columns
         .map(id => this.getTile<TileColumn>(id))
         .filter((col): col is TileColumn => !!col && col.width.unit === '%');
-      
+
       // If we have percentage columns, redistribute evenly
       if (percentColumns.length > 0) {
         const newPercentage = 100 / (percentColumns.length + 1);
-        
+
         // Update all percentage columns
         percentColumns.forEach(col => {
           this.updateTile(col.id, {
             width: { value: newPercentage, unit: '%' }
           });
         });
-        
+
         // Use same percentage for new column
         width = `${newPercentage}%`;
       }
@@ -1526,7 +1524,7 @@ export class Ttabs {
         // For rows, we need to find or create a column to contain our panel
         const row = parent as TileRow;
         let columnId: string;
-        
+
         if (row.columns.length > 0) {
           // Use the last column in the row
           columnId = row.columns[row.columns.length - 1];
@@ -1534,7 +1532,7 @@ export class Ttabs {
           // Create a new column
           columnId = this.addColumn(row.id);
         }
-        
+
         // Recursively call addTab with the column ID
         return this.addTab(columnId, name, setActive, isLazy);
 
@@ -1623,64 +1621,43 @@ export class Ttabs {
     });
   }
 
+  setup(tiles: Tile[], { focusedActiveTab }: { focusedActiveTab?: string }) {
+    this.resetState();
+
+    try {
+      tiles.forEach((tile: Tile) => {
+        this.tiles[tile.id] = tile;
+      });
+  
+      this.rootGridId = this.findRootGridId();
+
+      if (this.rootGridId === null) {
+        throw new Error('No root grid found');
+      }
+  
+      if (focusedActiveTab) {
+        const focusedTab = this.getTile<TileTab>(focusedActiveTab);
+        if (focusedTab) {
+          this.focusedActiveTab = focusedActiveTab;
+        } else {
+          this.findAndSetDefaultFocusedTab();
+        }
+      }
+    } catch (error) {
+      console.error('Failed to setup ttabs:', error);
+    }
+  }
+
   /**
    * Deserialize a layout from JSON
    */
   deserializeLayout(json: string): boolean {
     try {
-      // Try to parse as new format first (with metadata)
-      try {
-        const parsed = JSON.parse(json);
-        if (parsed && typeof parsed === 'object' && 'tiles' in parsed && Array.isArray(parsed.tiles)) {
-          // Reset current state
-          this.resetState();
+      const parsed = JSON.parse(json);
+      if (parsed && typeof parsed === 'object' && 'tiles' in parsed && Array.isArray(parsed.tiles)) {
+        this.setup(parsed.tiles, { focusedActiveTab: parsed.metadata?.focusedActiveTab });
 
-          // Set tiles from array
-          parsed.tiles.forEach((tile: Tile) => {
-            this.tiles[tile.id] = tile;
-          });
-
-          // Find the root grid
-          this.rootGridId = this.findRootGridId();
-
-          // Restore metadata
-          if (parsed.metadata && 'focusedActiveTab' in parsed.metadata) {
-            const focusedTabId = parsed.metadata.focusedActiveTab;
-            if (focusedTabId && this.getTile<TileTab>(focusedTabId)) {
-              this.focusedActiveTab = focusedTabId;
-            }
-          }
-
-          return true;
-        }
-      } catch (e) {
-        // Fall back to older formats
-      }
-
-      // Try to parse as array format (without metadata)
-      try {
-        const parsedTiles = JSON.parse(json) as Tile[];
-        if (Array.isArray(parsedTiles)) {
-          // Reset current state
-          this.resetState();
-
-          // Set tiles from array
-          parsedTiles.forEach(tile => {
-            this.tiles[tile.id] = tile;
-          });
-
-          // Find the root grid
-          this.rootGridId = this.findRootGridId();
-
-          // Try to find a suitable tab to focus
-          this.findAndSetDefaultFocusedTab();
-
-          return true;
-        }
-      } catch (e) {
-        // Fall back to record format if array parsing fails
-        console.error('Failed to deserialize layout:', e);
-        return false;
+        return true;
       }
 
       return false;
@@ -1832,17 +1809,17 @@ export class Ttabs {
         return panel.tabs
           .map(tabId => this.getTile<TileTab>(tabId))
           .filter((tab): tab is TileTab => !!tab && tab.isLazy === true);
-      } 
+      }
       else if (container.type === 'grid') {
         // Find all panels within the grid and get their lazy tabs
         const lazyTabs: TileTab[] = [];
         const grid = container as TileGrid;
-        
+
         // Recursively find all panels within the grid
         const findPanelsInGrid = (gridId: string): TilePanel[] => {
           const grid = this.getGrid(gridId);
           const panels: TilePanel[] = [];
-          
+
           for (const rowId of grid.rows) {
             try {
               const row = this.getRow(rowId);
@@ -1866,12 +1843,12 @@ export class Ttabs {
               console.error(`Error processing row ${rowId}:`, error);
             }
           }
-          
+
           return panels;
         };
-        
+
         const panels = findPanelsInGrid(container.id);
-        
+
         // Get lazy tabs from each panel
         for (const panel of panels) {
           const panelLazyTabs = panel.tabs
@@ -1879,15 +1856,15 @@ export class Ttabs {
             .filter((tab): tab is TileTab => !!tab && tab.isLazy === true);
           lazyTabs.push(...panelLazyTabs);
         }
-        
+
         return lazyTabs;
       }
-      
+
       return [];
     } else {
       // Search all panels for lazy tabs
       return Object.values(this.tiles)
-        .filter((tile): tile is TileTab => 
+        .filter((tile): tile is TileTab =>
           tile.type === 'tab' && tile.isLazy === true);
     }
   }
@@ -1899,7 +1876,7 @@ export class Ttabs {
   recalculateLayout(containerId: string): void {
     const container = this.getTile(containerId);
     if (!container) return;
-    
+
     // Depending on container type, recalculate children
     if (container.type === 'row') {
       const row = container as TileRow;
@@ -1907,24 +1884,24 @@ export class Ttabs {
         `[data-tile-id="${containerId}"]`,
       ) as HTMLElement;
       if (!containerEl) return;
-      
+
       const containerWidth = containerEl.offsetWidth;
       const columns = row.columns.map(id => {
         const col = this.getTile<TileColumn>(id);
         if (!col) return null;
-        return {id, size: col.width};
-      }).filter(Boolean) as Array<{id: string, size: SizeInfo}>;
-      
+        return { id, size: col.width };
+      }).filter(Boolean) as Array<{ id: string, size: SizeInfo }>;
+
       const calculatedSizes = calculateSizes(containerWidth, columns);
-      
+
       // Apply the calculated sizes
-      calculatedSizes.forEach(({id, computedSize, scaledDown}) => {
+      calculatedSizes.forEach(({ id, computedSize, scaledDown }) => {
         const column = this.getTile<TileColumn>(id);
         if (!column) return;
-        
+
         // Store computed size for reference during resize operations
         this.updateTile(id, { computedSize });
-        
+
         // Update tiles based on their unit type
         if (column.width.unit === 'px' && scaledDown) {
           // If original px size was scaled down, update the rendered size
@@ -1950,24 +1927,24 @@ export class Ttabs {
         `[data-tile-id="${containerId}"]`,
       ) as HTMLElement;
       if (!containerEl) return;
-      
+
       const containerHeight = containerEl.offsetHeight;
       const rows = grid.rows.map(id => {
         const row = this.getTile<TileRow>(id);
         if (!row) return null;
-        return {id, size: row.height};
-      }).filter(Boolean) as Array<{id: string, size: SizeInfo}>;
-      
+        return { id, size: row.height };
+      }).filter(Boolean) as Array<{ id: string, size: SizeInfo }>;
+
       const calculatedSizes = calculateSizes(containerHeight, rows);
-      
+
       // Apply the calculated sizes
-      calculatedSizes.forEach(({id, computedSize, scaledDown}) => {
+      calculatedSizes.forEach(({ id, computedSize, scaledDown }) => {
         const row = this.getTile<TileRow>(id);
         if (!row) return;
-        
+
         // Store computed size for reference during resize operations
         this.updateTile(id, { computedSize });
-        
+
         // Update tiles based on their unit type
         if (row.height.unit === 'px' && scaledDown) {
           // If original px size was scaled down, update the rendered size
