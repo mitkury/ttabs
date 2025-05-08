@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { createTtabs, Ttabs, TtabsRoot, LocalStorageAdapter } from "ttabs-svelte";
+  import { createObjectTtabs, TtabsRoot, LocalStorageAdapter } from "ttabs-svelte";
+  import type { TtabsWithObjects } from "ttabs-svelte";
   import { onMount } from "svelte";
   import SimpleTextComponent from "./SimpleTextComponent.svelte";
 
@@ -9,13 +10,13 @@
   // First, try to load saved state
   const savedData = storageAdapter.load();
   
-  // Initialize ttabs with the loaded state
-  const ttabs = createTtabs({
+  // Initialize ttabs with the loaded state using the new object-oriented API
+  const ttabs = $state(createObjectTtabs({
     // Use saved tiles if available, otherwise use empty state
     tiles: savedData?.tiles,
     // Use saved focused tab if available
     focusedTab: savedData?.focusedTab
-  });
+  }));
   
   // Register the text component
   ttabs.registerComponent('text', SimpleTextComponent);
@@ -33,111 +34,83 @@
     };
   });
   
-  // Function to reset the layout
+  // Function to reset the layout using the new object-oriented API
   function resetLayout() {
     ttabs.resetTiles();
-
-    ttabs.rootGridId = ttabs.addGrid();
-    const rootId = ttabs.rootGridId;
     
-    // Create a main row
-    const mainRowId = ttabs.addRow(rootId);
+    // Create a new grid and build the layout using method chaining
+    const grid = ttabs.newGrid();
     
-    // Create a column
-    const mainColumnId = ttabs.addColumn(mainRowId);
-    
-    // Create a panel
-    const mainPanelId = ttabs.addPanel(mainColumnId);
-    
-    // Create a default tab with welcome text
-    const tabId = ttabs.addTab(mainPanelId, 'Welcome', true);
-    
-    // Set the focused tab to the new tab
-    ttabs.setFocusedActiveTab(tabId);
-    
-    // Find the tab content and update it
-    const tab = ttabs.getTile(tabId);
-    if (tab?.type === 'tab' && tab.content) {
-      ttabs.updateTile(tab.content, {
-        data: {
-          text: "Welcome to ttabs simple example!\n\nThis is a basic demo showing how ttabs layout system works with storage."
-        }
-      });
-    }
+    // Create a main row, column, panel, and tab with welcome text using method chaining
+    const tab = grid.newRow()
+                    .newColumn()
+                    .newPanel()
+                    .newTab('Welcome', true)
+                    .setComponent('text', {
+                      data: {
+                        text: "Welcome to ttabs simple example!\n\nThis is a basic demo showing how ttabs layout system works with storage."
+                      }
+                    })
+                    .setFocused();
   }
   
   // Function to create a new tab
   function addTab() {
     console.log("Add Tab clicked");
     
-    // Find a panel to add the tab to
-    let panelId = null;
-    
-    // Try to get all panels
-    const allPanels = Object.values(ttabs.getTiles())
-      .filter(tile => tile.type === 'panel');
-    
-    console.log("Available panels:", allPanels.length);
-    
-    // First try to use the active panel
+    // Try to get the active panel using the new API
+    let panel = null;
     const activePanel = ttabs.getActivePanel();
-    if (activePanel && ttabs.getTile(activePanel)) {
-      panelId = activePanel;
-      console.log("Using active panel:", panelId);
-    } 
-    // If no active panel, find the first panel
-    else if (allPanels.length > 0) {
-      panelId = allPanels[0].id;
-      console.log("Using first available panel:", panelId);
-    } 
-    // If no panels at all, create a default layout
-    else {
-      console.log("No panels found, creating default layout");
-      resetLayout();
-      
-      // Try to find a panel again after reset
-      const newPanels = Object.values(ttabs.getTiles())
+    
+    if (activePanel) {
+      // If we have an active panel, use it
+      panel = ttabs.getPanelObject(activePanel);
+      console.log("Using active panel:", panel.id);
+    } else {
+      // If no active panel, find the first panel
+      const allPanels = Object.values(ttabs.getTiles())
         .filter(tile => tile.type === 'panel');
       
-      if (newPanels.length > 0) {
-        panelId = newPanels[0].id;
-        console.log("Using panel from new layout:", panelId);
+      if (allPanels.length > 0) {
+        panel = ttabs.getPanelObject(allPanels[0].id);
+        console.log("Using first available panel:", panel.id);
       } else {
-        console.error("Failed to create panels, cannot add tab");
-        return;
+        // If no panels at all, create a default layout
+        console.log("No panels found, creating default layout");
+        resetLayout();
+        
+        // Try to get the active panel again after reset
+        const newActivePanel = ttabs.getActivePanel();
+        if (newActivePanel) {
+          panel = ttabs.getPanelObject(newActivePanel);
+          console.log("Using panel from new layout:", panel.id);
+        } else {
+          console.error("Failed to create panels, cannot add tab");
+          return;
+        }
       }
     }
     
-    if (!panelId) {
-      console.error("No panel ID found, aborting tab creation");
+    if (!panel) {
+      console.error("No panel found, aborting tab creation");
       return;
     }
     
-    // Create a new tab with timestamp in the name
+    // Create a new tab with timestamp in the name using the new API
     const tabName = "New Tab " + new Date().toLocaleTimeString();
-    console.log("Creating tab with name:", tabName, "in panel:", panelId);
+    console.log("Creating tab with name:", tabName, "in panel:", panel.id);
     
     try {
-      // Create the tab
-      const tabId = ttabs.addTab(panelId, tabName, true);
-      console.log("Created tab with ID:", tabId);
-      
-      // Get the tab and set its content
-      const tab = ttabs.getTile(tabId);
-      if (tab?.type === 'tab' && tab.content) {
-        // Update the content
-        ttabs.updateTile(tab.content, {
-          data: {
-            text: `Content for ${tabName}\nCreated at ${new Date().toISOString()}`
-          }
-        });
-        
-        // Set as focused tab
-        ttabs.setFocusedActiveTab(tabId);
-        console.log("Tab created successfully");
-      } else {
-        console.error("Failed to get content for new tab");
-      }
+      // Create the tab and set its content using method chaining
+      panel.newTab(tabName, true)
+           .setComponent('text', {
+             data: {
+               text: `Content for ${tabName}\nCreated at ${new Date().toISOString()}`
+             }
+           })
+           .setFocused();
+           
+      console.log("Tab created successfully");
     } catch (err) {
       console.error("Error creating tab:", err);
     }

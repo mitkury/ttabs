@@ -5,6 +5,9 @@
 
 import type { TtabsOptions } from './Ttabs.svelte';
 import { Ttabs } from './Ttabs.svelte';
+import { extendTtabs } from './TtabsObjects';
+export { TtabsGrid, TtabsRow, TtabsColumn, TtabsPanel, TtabsTab } from './TtabsObjects';
+export type { TtabsWithObjects } from './TtabsObjects';
 
 // Export tile types
 export type { 
@@ -52,3 +55,12 @@ export { generateId } from './utils/tile-utils';
 export function createTtabs(options: TtabsOptions = {}): Ttabs {
   return new Ttabs(options);
 }
+
+// Convenience factory function for object-oriented API
+export function createObjectTtabs(options: TtabsOptions = {}) {
+  const ttabs = createTtabs(options);
+  return extendTtabs(ttabs);
+}
+
+// Function to extend an existing ttabs instance with object-oriented API
+export { extendTtabs };
