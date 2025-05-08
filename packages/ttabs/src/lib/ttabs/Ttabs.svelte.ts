@@ -4,6 +4,7 @@ import type { Component } from 'svelte';
 import type { TtabsTheme } from './types/theme-types';
 import { DEFAULT_THEME, resolveTheme } from './types/theme-types';
 import { parseSizeValue, calculateSizes } from './utils/size-utils';
+import { TtabsColumn, TtabsGrid, TtabsPanel, TtabsRow, TtabsTab } from './ttabsObjects';
 
 /**
  * Type for component registry
@@ -2001,5 +2002,65 @@ export class Ttabs {
     }
 
     return null;
+  }
+
+  /**
+   * Create a new grid or get the existing root grid as an object
+   * @returns A TtabsGrid object for the root grid
+   */
+  newGrid(): TtabsGrid {
+    // If there's already a root grid, use it
+    if (this.rootGridId) {
+      return new TtabsGrid(this, this.rootGridId);
+    }
+
+    // Otherwise create a new grid
+    const gridId = this.addGrid();
+    return new TtabsGrid(this, gridId);
+  }
+
+  /**
+   * Get a grid object for an existing grid
+   * @param id ID of the grid
+   * @returns A TtabsGrid object
+   */
+  getGridObject(id: string): TtabsGrid {
+    return new TtabsGrid(this, id);
+  }
+
+  /**
+   * Get a row object for an existing row
+   * @param id ID of the row
+   * @returns A TtabsRow object
+   */
+  getRowObject(id: string): TtabsRow {
+    return new TtabsRow(this, id);
+  }
+
+  /**
+   * Get a column object for an existing column
+   * @param id ID of the column
+   * @returns A TtabsColumn object
+   */
+  getColumnObject(id: string): TtabsColumn {
+    return new TtabsColumn(this, id);
+  }
+
+  /**
+   * Get a panel object for an existing panel
+   * @param id ID of the panel
+   * @returns A TtabsPanel object
+   */
+  getPanelObject(id: string): TtabsPanel {
+    return new TtabsPanel(this, id);
+  }
+
+  /**
+   * Get a tab object for an existing tab
+   * @param id ID of the tab
+   * @returns A TtabsTab object
+   */
+  getTabObject(id: string): TtabsTab {
+    return new TtabsTab(this, id);
   }
 }

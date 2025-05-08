@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { createObjectTtabs, TtabsRoot, LocalStorageAdapter } from "ttabs-svelte";
-  import type { TtabsWithObjects } from "ttabs-svelte";
+  import { createTtabs, TtabsRoot, LocalStorageAdapter } from "ttabs-svelte";
   import { onMount } from "svelte";
   import SimpleTextComponent from "./SimpleTextComponent.svelte";
 
@@ -11,7 +10,7 @@
   const savedData = storageAdapter.load();
   
   // Initialize ttabs with the loaded state using the new object-oriented API
-  const ttabs = $state(createObjectTtabs({
+  const ttabs = $state(createTtabs({
     // Use saved tiles if available, otherwise use empty state
     tiles: savedData?.tiles,
     // Use saved focused tab if available

@@ -1,6 +1,4 @@
-import type { Ttabs } from './Ttabs.svelte';
-import type { TtabsOptions } from './Ttabs.svelte';
-import type { Component } from 'svelte';
+import { Ttabs } from "./Ttabs.svelte";
 
 /**
  * Base class for all ttabs objects
@@ -120,60 +118,3 @@ export class TtabsTab extends TtabsObject {
     return this;
   }
 }
-
-/**
- * Extension methods for the Ttabs class
- */
-export function extendTtabs(ttabs: Ttabs): TtabsWithObjects {
-  const extended = ttabs as TtabsWithObjects;
-  
-  // Add the newGrid method to the ttabs instance
-  extended.newGrid = function(): TtabsGrid {
-    // If there's already a root grid, use it
-    if (this.rootGridId) {
-      return new TtabsGrid(this, this.rootGridId);
-    }
-    
-    // Otherwise create a new grid
-    const gridId = this.addGrid();
-    return new TtabsGrid(this, gridId);
-  };
-  
-  // Add method to get a wrapper for an existing tile
-  extended.getGridObject = function(id: string): TtabsGrid {
-    return new TtabsGrid(this, id);
-  };
-  
-  extended.getRowObject = function(id: string): TtabsRow {
-    return new TtabsRow(this, id);
-  };
-  
-  extended.getColumnObject = function(id: string): TtabsColumn {
-    return new TtabsColumn(this, id);
-  };
-  
-  extended.getPanelObject = function(id: string): TtabsPanel {
-    return new TtabsPanel(this, id);
-  };
-  
-  extended.getTabObject = function(id: string): TtabsTab {
-    return new TtabsTab(this, id);
-  };
-  
-  return extended;
-}
-
-/**
- * Extended Ttabs interface with object-oriented methods
- */
-export interface TtabsWithObjects extends Ttabs {
-  newGrid(): TtabsGrid;
-  getGridObject(id: string): TtabsGrid;
-  getRowObject(id: string): TtabsRow;
-  getColumnObject(id: string): TtabsColumn;
-  getPanelObject(id: string): TtabsPanel;
-  getTabObject(id: string): TtabsTab;
-}
-
-// The actual implementation of createObjectTtabs will be in index.ts
-// to avoid circular dependencies
