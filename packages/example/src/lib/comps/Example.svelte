@@ -197,7 +197,7 @@
     console.log('Resetting layout...');
     
     // Reset the state
-    ttabs.resetState();
+    ttabs.resetTiles();
     
     // Reset the panel ID
     upperPanelId = '';

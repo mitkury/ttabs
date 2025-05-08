@@ -35,8 +35,9 @@
   
   // Function to reset the layout
   function resetLayout() {
-    ttabs.resetState();
-    
+    ttabs.resetTiles();
+
+    ttabs.rootGridId = ttabs.addGrid();
     const rootId = ttabs.rootGridId;
     
     // Create a main row
