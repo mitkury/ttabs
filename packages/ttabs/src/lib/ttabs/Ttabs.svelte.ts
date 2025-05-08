@@ -768,7 +768,7 @@ export class Ttabs {
         // Calculate new width - half of the current column's width
         const newWidth = {
           value: targetColumnWidth.unit === '%' ? targetColumnWidth.value / 2 : 50,
-          unit: targetColumnWidth.unit === 'auto' ? '%' as const : targetColumnWidth.unit
+          unit: targetColumnWidth.unit
         };
 
         // Update existing column width
