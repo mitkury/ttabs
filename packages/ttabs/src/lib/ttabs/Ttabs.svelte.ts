@@ -1625,15 +1625,19 @@ export class Ttabs {
     this.resetState();
 
     try {
+      const rootGrids = tiles.filter(tile => 
+        tile.type === 'grid' && !tile.parent
+      );
+
+      if (rootGrids.length !== 1) {
+        throw new Error('Invalid number of root grids. There has to be a single root grid.');
+      }
+
       tiles.forEach((tile: Tile) => {
         this.tiles[tile.id] = tile;
       });
   
-      this.rootGridId = this.findRootGridId();
-
-      if (this.rootGridId === null) {
-        throw new Error('No root grid found');
-      }
+      this.rootGridId = rootGrids[0].id;
   
       if (focusedActiveTab) {
         const focusedTab = this.getTile<TileTab>(focusedActiveTab);
