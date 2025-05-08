@@ -5,71 +5,75 @@
 
   // Create a storage adapter
   const storageAdapter = new LocalStorageAdapter("ttabs-simple-demo", 500);
-  
+
   // First, try to load saved state
   const savedData = storageAdapter.load();
-  
+
   // Initialize ttabs with the loaded state using the new object-oriented API
-  const ttabs = $state(createTtabs({
-    // Use saved tiles if available, otherwise use empty state
-    tiles: savedData?.tiles,
-    // Use saved focused tab if available
-    focusedTab: savedData?.focusedTab
-  }));
-  
+  const ttabs = $state(
+    createTtabs({
+      // Use saved tiles if available, otherwise use empty state
+      tiles: savedData?.tiles,
+      // Use saved focused tab if available
+      focusedTab: savedData?.focusedTab,
+    })
+  );
+
   // Register the text component
-  ttabs.registerComponent('text', SimpleTextComponent);
-  
+  ttabs.registerComponent("text", SimpleTextComponent);
+
   // Connect the storage adapter to save changes
   const unsubscribe = ttabs.subscribe((state) => {
     storageAdapter.save(state);
   });
-  
+
   // Register cleanup on component destroy
-  onMount(() => {    
+  onMount(() => {
     return () => {
       // Unsubscribe from state changes when component is destroyed
       unsubscribe();
     };
   });
-  
+
   // Function to reset the layout using the new object-oriented API
   function resetLayout() {
     ttabs.resetTiles();
-    
+
     // Create a new grid and build the layout using method chaining
     const grid = ttabs.newGrid();
-    
+
     // Create a main row, column, panel, and tab with welcome text using method chaining
-    const tab = grid.newRow()
-                    .newColumn()
-                    .newPanel()
-                    .newTab('Welcome', true)
-                    .setComponent('text', {
-                      data: {
-                        text: "Welcome to ttabs simple example!\n\nThis is a basic demo showing how ttabs layout system works with storage."
-                      }
-                    })
-                    .setFocused();
+    grid
+      .newRow()
+      .newColumn()
+      .newPanel()
+      .newTab("Welcome", true)
+      .setComponent("text", {
+        data: {
+          text: "Welcome to ttabs simple example!\n\nThis is a basic demo showing how ttabs layout system works with storage.",
+        },
+      })
+      .setFocused();
   }
-  
+
   // Function to create a new tab
   function addTab() {
     console.log("Add Tab clicked");
-    
+
     // Try to get the active panel using the new API
     let panel = null;
     const activePanel = ttabs.getActivePanel();
-    
+
     if (activePanel) {
       // If we have an active panel, use it
       panel = ttabs.getPanelObject(activePanel);
       console.log("Using active panel:", panel.id);
     } else {
       // If no active panel, find the first panel
-      const allPanels = Object.values(ttabs.getTiles())
-        .filter(tile => tile.type === 'panel');
-      
+      const allPanels = Object.values(ttabs.getTiles()).filter(
+        (tile) => tile.type === "panel"
+      );
+
       if (allPanels.length > 0) {
         panel = ttabs.getPanelObject(allPanels[0].id);
         console.log("Using first available panel:", panel.id);
@@ -77,7 +81,7 @@
         // If no panels at all, create a default layout
         console.log("No panels found, creating default layout");
         resetLayout();
-        
+
         // Try to get the active panel again after reset
         const newActivePanel = ttabs.getActivePanel();
         if (newActivePanel) {
@@ -89,26 +93,27 @@
         }
       }
     }
-    
+
     if (!panel) {
       console.error("No panel found, aborting tab creation");
       return;
     }
-    
+
     // Create a new tab with timestamp in the name using the new API
     const tabName = "New Tab " + new Date().toLocaleTimeString();
     console.log("Creating tab with name:", tabName, "in panel:", panel.id);
-    
+
     try {
       // Create the tab and set its content using method chaining
-      panel.newTab(tabName, true)
-           .setComponent('text', {
-             data: {
-               text: `Content for ${tabName}\nCreated at ${new Date().toISOString()}`
-             }
-           })
-           .setFocused();
-           
+      panel
+        .newTab(tabName, true)
+        .setComponent("text", {
+          data: {
+            text: `Content for ${tabName}\nCreated at ${new Date().toISOString()}`,
+          },
+        })
+        .setFocused();
+
       console.log("Tab created successfully");
     } catch (err) {
       console.error("Error creating tab:", err);
@@ -124,7 +129,7 @@
       <button onclick={addTab}>Add Tab</button>
     </div>
   </header>
-  
+
   <main>
     <TtabsRoot {ttabs} />
   </main>
@@ -137,7 +142,7 @@
     height: 100vh;
     width: 100%;
   }
-  
+
   header {
     display: flex;
     justify-content: space-between;
@@ -146,17 +151,17 @@
     background: #f5f5f5;
     border-bottom: 1px solid #ddd;
   }
-  
+
   h1 {
     margin: 0;
     font-size: 1.5rem;
   }
-  
+
   .actions {
     display: flex;
     gap: 0.5rem;
   }
-  
+
   button {
     padding: 0.5rem 1rem;
     background: #4a6cf7;
@@ -165,13 +170,13 @@
     border-radius: 4px;
     cursor: pointer;
   }
-  
+
   button:hover {
     background: #3a5ce7;
   }
-  
+
   main {
     flex: 1;
     overflow: hidden;
   }
-</style> 
+</style>
