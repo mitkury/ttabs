@@ -2,15 +2,10 @@ import type { SizeInfo } from "../types/tile-types";
 
 /**
  * Parses a size value string into a SizeInfo object
- * @param size String representation of size (e.g., "100%", "260px", "auto")
+ * @param size String representation of size (e.g., "100%", "260px")
  * @returns Parsed SizeInfo object
  */
-export function parseSizeValue(size: string): SizeInfo {
-  // Default case
-  if (!size || size === 'auto') {
-    return { value: 0, unit: 'auto' as const };
-  }
-  
+export function parseSizeValue(size: string): SizeInfo {  
   // Parse percentage values
   if (size.endsWith('%')) {
     const percentValue = parseFloat(size);
@@ -35,7 +30,7 @@ export function parseSizeValue(size: string): SizeInfo {
     return { value: numericValue, unit: '%' as const };
   }
   
-  throw new Error(`Invalid size format: ${size}. Expected format: "100%", "260px", or "auto"`);
+  throw new Error(`Invalid size format: ${size}. Expected format: "100%" or "260px"`);
 }
 
 /**

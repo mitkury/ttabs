@@ -948,7 +948,7 @@ export class Ttabs {
             // Calculate new height - half of the current row's height
             const newHeight = {
               value: targetRowHeight.unit === '%' ? targetRowHeight.value / 2 : 50,
-              unit: targetRowHeight.unit === 'auto' ? '%' as const : targetRowHeight.unit
+              unit: targetRowHeight.unit
             };
 
             // Update existing row height
@@ -1273,11 +1273,11 @@ export class Ttabs {
   /**
    * Adds a row to a grid
    * @param parentId ID of the parent grid
-   * @param height Height of the row as a string (e.g., "100%", "260px", "auto")
+   * @param height Height of the row as a string (e.g., "100%", "260px")
    * @returns ID of the new row
    * @throws Error if parent hierarchy rules are violated
    */
-  addRow(parentId: string, height: string = 'auto'): string {
+  addRow(parentId: string, height?: string): string {
     const parent = this.getTile(parentId);
     if (!parent) {
       throw new Error(`Parent tile with ID ${parentId} not found`);
@@ -1290,13 +1290,31 @@ export class Ttabs {
 
     const grid = parent as TileGrid;
 
+    let sizeInfo: SizeInfo;
+
+    if (!height) {
+      if (grid.rows.length === 0) {
+        height = '100%';
+      } else {
+        // @TODO: calculate percentage based on the existing rows
+      }
+    } else {
+      // @TODO: validate the height
+
+      sizeInfo = parseSizeValue(height);
+    }
+
+    /*
+    OLD logic
     // Handle percentage redistribution if needed
-    if (height === 'auto' && grid.rows.length > 0) {
+    if (!height && grid.rows.length > 0) {
       // Get existing rows with percentage heights
       const percentRows = grid.rows
         .map(id => this.getTile<TileRow>(id))
         .filter((row): row is TileRow => !!row && row.height.unit === '%');
 
+      // @TODO: calculate height of the new row taking into account the existing rows
+      
       // If we have percentage rows, redistribute evenly
       if (percentRows.length > 0) {
         const newPercentage = 100 / (percentRows.length + 1);
@@ -1312,9 +1330,7 @@ export class Ttabs {
         height = `${newPercentage}%`;
       }
     }
-
-    // Parse the height value
-    const sizeInfo = parseSizeValue(height);
+    */
 
     // Create the row
     const rowId = this.addTile({
@@ -1338,11 +1354,11 @@ export class Ttabs {
   /**
    * Adds a column to a row
    * @param parentId ID of the parent row
-   * @param width Width of the column as a string (e.g., "100%", "260px", "auto")
+   * @param width Width of the column as a string (e.g., "100%", "260px")
    * @returns ID of the new column
    * @throws Error if parent hierarchy rules are violated
    */
-  addColumn(parentId: string, width: string = 'auto'): string {
+  addColumn(parentId: string, width?: string): string {
     const parent = this.getTile(parentId);
     if (!parent) {
       throw new Error(`Parent tile with ID ${parentId} not found`);
@@ -1355,8 +1371,23 @@ export class Ttabs {
 
     const row = parent as TileRow;
 
+    // if width is not specified, calculate it based on the existing columns
+    // if it's specified - use it as is for px and calculate size for % based. But also run detection of invalid sizes
+    
+    if (!width) {
+      if (row.columns.length === 0) {
+        width = '100%';
+      } else {
+        // @TODO: calculate percentage
+      }
+    } else {
+      // @TODO: Validate the width
+    }
+
+    /*
+    OLD logic
     // Handle percentage redistribution if needed
-    if (width === 'auto' && row.columns.length > 0) {
+    if (!width && row.columns.length > 0) {
       // Get existing columns with percentage widths
       const percentColumns = row.columns
         .map(id => this.getTile<TileColumn>(id))
@@ -1377,6 +1408,7 @@ export class Ttabs {
         width = `${newPercentage}%`;
       }
     }
+    */
 
     // Parse the width value
     const sizeInfo = parseSizeValue(width);
@@ -1944,7 +1976,6 @@ export class Ttabs {
             }
           });
         }
-        // No need to update auto units as they'll be handled by CSS
       });
     } else if (container.type === 'grid') {
       const grid = container as TileGrid;
@@ -1987,7 +2018,6 @@ export class Ttabs {
             }
           });
         }
-        // No need to update auto units as they'll be handled by CSS
       });
     }
   }

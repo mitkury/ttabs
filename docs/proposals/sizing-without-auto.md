@@ -36,21 +36,20 @@ export interface SizeInfo {
 ### 2. Default to Percentage-Based Sizing
 
 When users don't specify a size:
-- For new layouts with multiple elements, distribute percentages evenly (e.g., 3 columns = 33.33% each)
-- When adding a new element to an existing layout, assign a default percentage (e.g., 25%) and redistribute the remaining space proportionally among existing elements
+- When adding a new element to an existing layout, assign a default percentage based on the number of existing percentage-based elements and redistribute the remaining space proportionally among existing elements
 
 ### 3. Proportional Distribution
 
 When adding new elements without specified sizes:
-- Assign a default percentage to the new element (e.g., 25%)
-- Redistribute the remaining space (75%) among existing percentage-based elements proportionally
+- Assign a default percentage to the new element (e.g., if we have 2 columns, the new one will get 33.3%)
+- Redistribute the remaining space (66.6%) among existing percentage-based elements proportionally
 - This preserves the relative sizes of existing elements while making space for the new one
 
 For example, if we have two columns at 30% and 70%:
-- When adding a new column (25%), the remaining 75% is distributed proportionally
-- First column becomes: 30% × (75%/100%) = 22.5%
-- Second column becomes: 70% × (75%/100%) = 52.5%
-- Result: 22.5%, 52.5%, and 25% (new column)
+- When adding a new column (33.3%), the remaining 66.6% is distributed proportionally
+- First column becomes: 30% × (66.6%/100%) = 19.98%
+- Second column becomes: 70% × (66.6%/100%) = 46.62%
+- Result: 19.98%, 46.62%, and 33.3% (new column)
 
 ### 4. Handling Fixed-Size Elements
 
@@ -123,7 +122,7 @@ addColumn(rowId: string, width?: string): string {
   let sizeInfo;
   if (!width) {
     // Default percentage for the new column
-    const newColumnPercentage = 25; // Default 25% for the new column
+    const newColumnPercentage = 100 / (row.columns.length + 1);
     sizeInfo = { value: newColumnPercentage, unit: '%' as const };
     
     // Get existing percentage-based columns
