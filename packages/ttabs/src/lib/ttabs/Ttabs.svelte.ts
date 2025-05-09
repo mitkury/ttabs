@@ -1342,8 +1342,7 @@ export class Ttabs {
       rows: [...grid.rows, rowId]
     });
 
-    // Recalculate layout
-    this.recalculateLayout(parentId);
+    //this.recalculateLayout(parentId);
 
     return rowId;
   }
@@ -1429,8 +1428,7 @@ export class Ttabs {
       columns: [...row.columns, columnId]
     });
 
-    // Recalculate layout
-    this.recalculateLayout(parentId);
+    //this.recalculateLayout(parentId);
 
     return columnId;
   }
@@ -1929,6 +1927,7 @@ export class Ttabs {
     }
   }
 
+  // @TODO: do we need it?
   /**
    * Recalculates the layout for a container and its children
    * @param containerId ID of the container to recalculate
