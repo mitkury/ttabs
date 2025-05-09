@@ -68,7 +68,6 @@
 
   // Column width calculations
   let columnWidths: number[] = $state([]);
-  let resizeObserver: ResizeObserver | null = null;
 
   function getColumnWidths(columnTiles: TileColumnState[]): number[] {
     if (!rowElement || columnTiles.length === 0) return [];
@@ -127,23 +126,11 @@
   $effect(() => {
     if (!rowElement) return;
 
-    // Clean up any existing observer
-    if (resizeObserver) {
-      resizeObserver.disconnect();
-    }
-
-    // Create a new ResizeObserver
-    resizeObserver = new ResizeObserver(handleResize);
-
-    // Start observing the row element
+    const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(rowElement);
 
-    // Cleanup when component is destroyed or rowElement changes
     return () => {
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-        resizeObserver = null;
-      }
+      resizeObserver?.disconnect();
     };
   });
 
