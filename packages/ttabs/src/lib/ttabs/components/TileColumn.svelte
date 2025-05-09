@@ -108,41 +108,36 @@
     ) as HTMLElement;
     if (!rowElement) return;
 
-    // Calculate pixel movement
+    // Calculate pixel movement from the start position
     const deltaPixels = e.clientX - startX;
 
     // Get the next column
     const nextColumn = ttabs.getTile<TileColumnState>(nextColId);
     if (!nextColumn) return;
 
-    // Get current widths in pixels from the widthPx prop
-    // This is the actual rendered width in pixels
-    const currentWidthA = widthPx;
-
-    // For the next column, we need to access its widthPx
-    // We'll get the parent row to find the next column's width
-    const parentRow = ttabs.getTile<TileRowState>(parentId);
-    if (!parentRow) return;
-
     // Get the row's total width
     const rowWidth = rowElement.offsetWidth;
 
-    // Calculate the next column's width based on its proportion of the row
-    // This is a simplification - ideally we would access the next column's widthPx directly
-    let currentWidthB: number;
+    // Calculate original widths in pixels based on startWidth values
+    let originalWidthAPixels: number;
+    let originalWidthBPixels: number;
 
-    if (nextColumn.width.unit === "px") {
-      // For pixel-based columns, use the original width value
-      currentWidthB = nextColumn.width.value;
-    } else {
-      // For percentage-based columns, calculate the pixel width
-      currentWidthB = (nextColumn.width.value / 100) * rowWidth;
+    if (startWidthA.unit === "px") {
+      originalWidthAPixels = startWidthA.value;
+    } else { // percentage
+      originalWidthAPixels = (startWidthA.value / 100) * rowWidth;
     }
 
-    // Calculate new widths in pixels with constraints
+    if (startWidthB.unit === "px") {
+      originalWidthBPixels = startWidthB.value;
+    } else { // percentage
+      originalWidthBPixels = (startWidthB.value / 100) * rowWidth;
+    }
+
+    // Calculate new widths in pixels with constraints, based on original widths
     const MIN_WIDTH_PX = 50; // Minimum width in pixels
-    const newWidthAPixels = Math.max(MIN_WIDTH_PX, currentWidthA + deltaPixels);
-    const newWidthBPixels = Math.max(MIN_WIDTH_PX, currentWidthB - deltaPixels);
+    const newWidthAPixels = Math.max(MIN_WIDTH_PX, originalWidthAPixels + deltaPixels);
+    const newWidthBPixels = Math.max(MIN_WIDTH_PX, originalWidthBPixels - deltaPixels);
 
     // Update the columns based on their original unit types
     if (startWidthA.unit === "px") {
