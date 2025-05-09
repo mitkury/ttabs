@@ -77,6 +77,12 @@
 
       grid = tile as TileGridState;
 
+      if (!grid.rows || grid.rows.length === 0) {
+        rowTiles = [];
+        rowHeights = [];
+        return;
+      }
+
       const updRows: TileRowState[] = [];
       for (let i = 0; i < grid.rows.length; i++) {
         const row = ttabs.getRow(grid.rows[i]);

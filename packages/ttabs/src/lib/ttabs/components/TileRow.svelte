@@ -100,6 +100,12 @@
 
       row = tile as TileRowState;
 
+      if (!row.columns || row.columns.length === 0) {
+        columnTiles = [];
+        columnWidths = [];
+        return;
+      }
+
       const updColumns: TileColumnState[] = [];
       for (let i = 0; i < row.columns.length; i++) {
         const column = ttabs.getColumn(row.columns[i]);
