@@ -339,15 +339,8 @@
 
         // Check if we're trying to split a panel with its only tab
         if (dragData.panelId === id && tabIds.length === 1) {
-          console.log("Cannot split a panel with its only tab");
           return;
         }
-
-        console.log("Dropping tab:", {
-          tabId: dragData.tabId,
-          targetPanelId: id,
-          splitDirection: finalSplitDirection,
-        });
 
         // Handle the action based on the drop area
         if (dragData.action === "move" && dragData.tabId) {

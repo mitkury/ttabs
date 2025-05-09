@@ -203,7 +203,6 @@
 
     // Save the layout whenever it changes
     ttabs.subscribe((state) => {
-      console.log("Layout changed, saving...");
       storage.save(state);
     });
   });
