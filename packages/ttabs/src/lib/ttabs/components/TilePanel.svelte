@@ -787,7 +787,6 @@
       background-color: var(--ttabs-split-indicator-color);
       z-index: 10;
       pointer-events: none;
-      opacity: 0.4;
       box-sizing: border-box;
     }
 
