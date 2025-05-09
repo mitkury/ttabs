@@ -10,14 +10,18 @@
   } from "../types/tile-types";
   import type { Component } from "svelte";
 
-  let { ttabs, id }: TtabsProps = $props();
+  interface ColumnProps extends TtabsProps {
+    widthPx?: number;
+  }
+
+  let { ttabs, id, widthPx = 0 }: ColumnProps = $props();
 
   // Get column data
   const column = $derived(ttabs.getTile<TileColumnType>(id));
   const parentId = $derived(column?.parent || null);
 
   // Check if column width is zero
-  const isZeroWidth = $derived(column?.computedSize === 0);
+  const isZeroWidth = $derived(widthPx === 0 || column?.computedSize === 0);
 
   // Get parent row to access siblings
   const parentRow = $derived(
@@ -176,11 +180,19 @@
     isResizing = false;
   }
 
-  // Add a function to generate the style string based on SizeInfo
-  function getSizeStyle(size: SizeInfo | undefined): string {
-    if (!size) return '';
+  // Add a function to generate the style string
+  function getWidthStyle(): string {
+    // If we have a calculated pixel width, use it
+    if (widthPx > 0) {
+      return `width: ${widthPx}px;`;
+    }
     
-    return `width: ${size.value}${size.unit};`;
+    // Fallback to the column's size info
+    if (column?.width) {
+      return `width: ${column.width.value}${column.width.unit};`;
+    }
+    
+    return '';
   }
 </script>
 
@@ -192,7 +204,7 @@
     class:is-resizing={isResizing}
     class:zero-width={isZeroWidth}
     data-tile-id={id}
-    style={getSizeStyle(column.width)}
+    style={getWidthStyle()}
   >
     {#if childTile?.type === "panel" && childId !== null}
       <TilePanel {ttabs} id={childId} />

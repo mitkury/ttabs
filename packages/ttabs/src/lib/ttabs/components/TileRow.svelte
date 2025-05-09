@@ -2,6 +2,8 @@
   import TileColumn from "./TileColumn.svelte";
   import type { TtabsProps } from "./props";
   import type { TileRow as TileRowType, TileGrid, SizeInfo } from "../types/tile-types";
+  import { calculateSizes } from "../utils/size-utils";
+  import type { ComputedSizeInfo } from "../utils/size-utils";
 
   let { ttabs, id }: TtabsProps = $props();
 
@@ -26,6 +28,33 @@
 
   // Get columns
   const columns = $derived(row?.type === "row" ? row.columns : []);
+  
+  // Element reference for width calculations
+  let rowElement = $state<HTMLElement | null>(null);
+  
+  // Column width calculations
+  let columnWidths = $state<Record<string, number>>({});
+  
+  $effect(() => {
+    if (!rowElement || !row || columns.length === 0) return;
+    
+    const rowWidth = rowElement.offsetWidth;
+    const columnSizeInfos = columns.map(id => {
+      const column = ttabs.getTile(id);
+      if (!column || column.type !== 'column') return null;
+      return { id, size: column.width };
+    }).filter(Boolean) as Array<{id: string, size: SizeInfo}>;
+    
+    const calculatedSizes = calculateSizes(rowWidth, columnSizeInfos);
+    
+    // Create a map of column ID to computed pixel width
+    const newWidths: Record<string, number> = {};
+    calculatedSizes.forEach(({ id, computedSize }) => {
+      newWidths[id] = computedSize;
+    });
+    
+    columnWidths = newWidths;
+  });
 
   // Resizing state
   let isResizing = $state(false);
@@ -158,9 +187,14 @@
     class:is-resizing={isResizing}
     data-tile-id={id}
     style={getSizeStyle(row.height)}
+    bind:this={rowElement}
   >
     {#each columns as columnId (columnId)}
-      <TileColumn {ttabs} id={columnId} />
+      <TileColumn 
+        {ttabs} 
+        id={columnId} 
+        widthPx={columnWidths[columnId] || 0} 
+      />
     {/each}
 
     {#if !isLast}
