@@ -440,12 +440,16 @@ export class Ttabs {
   updateTile<T extends TileState>(id: string, updates: Partial<T>): boolean {
     const tile = this.getTile(id);
     if (!tile) return false;
+    
+    // Special handling for grid rows to ensure it's always an array
+    if (tile.type === 'grid' && 'rows' in updates) {
+      updates = { ...updates, rows: updates.rows || [] };
+    }
 
     this.tiles[id] = { ...tile, ...updates };
 
     // Notify state changes
     this.notifyStateChange();
-
     return true;
   }
 
