@@ -89,9 +89,7 @@
   }
 
   function handleResize() {
-    requestAnimationFrame(() => {
-      columnWidths = getColumnWidths(columnTiles);
-    });
+    columnWidths = getColumnWidths(columnTiles);
   }
 
   onMount(() => {
