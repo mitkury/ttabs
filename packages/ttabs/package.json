@@ -1,7 +1,7 @@
 {
 	"name": "ttabs-svelte",
 	"version": "0.0.7",
-	"description": "A flexible layout management system with draggable, resizable tiles and tabs for Svelte applications",
+	"description": "A flexible layout management system with draggable, resizable tiles and tabs for Svelte applications. Like in VSCode",
 	"author": "Dmitry Kury (https://dkury.com)",
 	"license": "MIT",
 	"repository": {

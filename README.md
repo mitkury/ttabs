@@ -1,4 +1,4 @@
-# TTabs - tiling tabs like in VSCode
+# TTabs - Tiling Tabs Like in VSCode
 
 ## Overview
 
