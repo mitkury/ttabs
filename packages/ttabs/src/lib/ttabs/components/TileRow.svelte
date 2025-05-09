@@ -2,9 +2,9 @@
   import TileColumn from "./TileColumn.svelte";
   import type { TtabsProps } from "./props";
   import type {
-    TileRow,
-    TileGrid,
-    TileColumn as TileColumnState,
+    TileRowState,
+    TileGridState,
+    TileColumnState,
     SizeInfo,
   } from "../types/tile-types";
   import { calculateSizes } from "../utils/size-utils";
@@ -14,7 +14,7 @@
   let { ttabs, id }: TtabsProps = $props();
 
   // Get row data
-  let row: TileRow | undefined = $state();
+  let row: TileRowState | undefined = $state();
   let columnTiles: TileColumnState[] = $state([]);
   const parentId = $derived(row?.parent || null);
 
@@ -47,7 +47,7 @@
 
   // Get parent grid to access siblings
   const parentGrid = $derived(
-    parentId ? ttabs.getTile<TileGrid>(parentId) : null
+    parentId ? ttabs.getTile<TileGridState>(parentId) : null
   );
   const rowIndex = $derived(
     parentGrid?.type === "grid" && parentGrid.rows
@@ -65,7 +65,7 @@
 
   // Column width calculations
   let columnWidths: number[] = $state([]);
-  let resizeObserver: ResizeObserver | null = null; // Not reactive
+  let resizeObserver: ResizeObserver | null = null;
 
   function getColumnWidths(columnTiles: TileColumnState[]): number[] {
     if (!rowElement || columnTiles.length === 0) return [];
@@ -98,7 +98,7 @@
         return;
       }
 
-      row = tile as TileRow;
+      row = tile as TileRowState;
 
       const updColumns: TileColumnState[] = [];
       for (let i = 0; i < row.columns.length; i++) {
@@ -160,7 +160,7 @@
     nextRowId = parentGrid.rows[rowIndex + 1];
     if (!nextRowId) return;
 
-    const nextRow = ttabs.getTile<TileRow>(nextRowId);
+    const nextRow = ttabs.getTile<TileRowState>(nextRowId);
     if (!nextRow) return;
 
     // Store initial values

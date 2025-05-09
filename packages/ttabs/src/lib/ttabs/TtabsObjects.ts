@@ -3,7 +3,7 @@ import { Ttabs } from "./Ttabs.svelte";
 /**
  * Base class for all ttabs objects
  */
-abstract class TtabsObject {
+abstract class TileObject {
   constructor(protected ttabs: Ttabs, protected _id: string) {}
 
   /**
@@ -17,41 +17,41 @@ abstract class TtabsObject {
 /**
  * Grid object - the root container of the layout
  */
-export class TtabsGrid extends TtabsObject {
+export class Grid extends TileObject {
   /**
    * Create a new row in this grid
    * @param height Height of the row (e.g., "100%", "260px", "auto")
    */
-  newRow(height?: string): TtabsRow {
+  newRow(height?: string): Row {
     const rowId = this.ttabs.addRow(this._id, height);
-    return new TtabsRow(this.ttabs, rowId);
+    return new Row(this.ttabs, rowId);
   }
 }
 
 /**
  * Row object - contains columns
  */
-export class TtabsRow extends TtabsObject {
+export class Row extends TileObject {
   /**
    * Create a new column in this row
    * @param width Width of the column (e.g., "100%", "260px", "auto")
    */
-  newColumn(width?: string): TtabsColumn {
+  newColumn(width?: string): Column {
     const columnId = this.ttabs.addColumn(this._id, width);
-    return new TtabsColumn(this.ttabs, columnId);
+    return new Column(this.ttabs, columnId);
   }
 }
 
 /**
  * Column object - contains panels or other components
  */
-export class TtabsColumn extends TtabsObject {
+export class Column extends TileObject {
   /**
    * Create a new panel in this column
    */
-  newPanel(): TtabsPanel {
+  newPanel(): Panel {
     const panelId = this.ttabs.addPanel(this._id);
-    return new TtabsPanel(this.ttabs, panelId);
+    return new Panel(this.ttabs, panelId);
   }
 
   /**
@@ -68,15 +68,15 @@ export class TtabsColumn extends TtabsObject {
 /**
  * Panel object - contains tabs
  */
-export class TtabsPanel extends TtabsObject {
+export class Panel extends TileObject {
   /**
    * Create a new tab in this panel
    * @param name Name of the tab
    * @param active Whether to make this tab active
    */
-  newTab(name: string, active: boolean = false): TtabsTab {
+  newTab(name: string, active: boolean = false): Tab {
     const tabId = this.ttabs.addTab(this._id, name, active);
-    return new TtabsTab(this.ttabs, tabId);
+    return new Tab(this.ttabs, tabId);
   }
 
   /**
@@ -91,7 +91,7 @@ export class TtabsPanel extends TtabsObject {
 /**
  * Tab object - contains content
  */
-export class TtabsTab extends TtabsObject {
+export class Tab extends TileObject {
   /**
    * Set a component for this tab
    * @param componentId ID of the registered component

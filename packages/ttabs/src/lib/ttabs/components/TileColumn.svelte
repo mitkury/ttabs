@@ -3,9 +3,8 @@
   import TileGrid from "./TileGrid.svelte";
   import type { TtabsProps } from "./props";
   import type {
-    TileColumn as TileColumnType,
-    TileRow,
-    TileContent,
+    TileColumnState,
+    TileRowState,
     SizeInfo,
   } from "../types/tile-types";
   import type { Component } from "svelte";
@@ -19,7 +18,7 @@
   const widthStyle = $derived(`width: ${widthPx}px;`);
 
   // Get column data
-  const column = $derived(ttabs.getTile<TileColumnType>(id));
+  const column = $derived(ttabs.getTile<TileColumnState>(id));
   const parentId = $derived(column?.parent || null);
 
   // Check if column width is zero
@@ -27,7 +26,7 @@
 
   // Get parent row to access siblings
   const parentRow = $derived(
-    parentId ? ttabs.getTile<TileRow>(parentId) : null
+    parentId ? ttabs.getTile<TileRowState>(parentId) : null
   );
   const columnIndex = $derived(
     parentRow?.type === "row" && parentRow.columns
@@ -85,7 +84,7 @@
     nextColId = parentRow.columns[columnIndex + 1];
     if (!nextColId) return;
 
-    const nextColumn = ttabs.getTile<TileColumnType>(nextColId);
+    const nextColumn = ttabs.getTile<TileColumnState>(nextColId);
     if (!nextColumn) return;
 
     // Store initial values
@@ -113,7 +112,7 @@
     const deltaPixels = e.clientX - startX;
 
     // Get the next column
-    const nextColumn = ttabs.getTile<TileColumnType>(nextColId);
+    const nextColumn = ttabs.getTile<TileColumnState>(nextColId);
     if (!nextColumn) return;
 
     // Get current widths in pixels from the widthPx prop
@@ -122,7 +121,7 @@
 
     // For the next column, we need to access its widthPx
     // We'll get the parent row to find the next column's width
-    const parentRow = ttabs.getTile<TileRow>(parentId);
+    const parentRow = ttabs.getTile<TileRowState>(parentId);
     if (!parentRow) return;
 
     // Get the row's total width

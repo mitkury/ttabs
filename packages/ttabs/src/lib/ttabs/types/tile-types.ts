@@ -6,7 +6,7 @@ export type TileType = 'grid' | 'row' | 'column' | 'panel' | 'tab' | 'content';
 /**
  * Base tile interface with common properties
  */
-export interface TileBase {
+export interface TileBaseState {
   id: string;
   parent: string | null;
   type: TileType;
@@ -24,7 +24,7 @@ export interface SizeInfo {
 /**
  * Grid tile that contains rows
  */
-export interface TileGrid extends TileBase {
+export interface TileGridState extends TileBaseState {
   type: 'grid';
   rows: string[];
 }
@@ -32,7 +32,7 @@ export interface TileGrid extends TileBase {
 /**
  * Row tile that contains columns
  */
-export interface TileRow extends TileBase {
+export interface TileRowState extends TileBaseState {
   type: 'row';
   columns: string[];
   height: SizeInfo;
@@ -43,7 +43,7 @@ export interface TileRow extends TileBase {
 /**
  * Column tile that contains a single child (panel, grid, or content)
  */
-export interface TileColumn extends TileBase {
+export interface TileColumnState extends TileBaseState {
   type: 'column';
   child: string; // ID of a TilePanel, TileGrid, or direct TileContent
   width: SizeInfo;
@@ -54,7 +54,7 @@ export interface TileColumn extends TileBase {
 /**
  * Panel tile that contains tabs
  */
-export interface TilePanel extends TileBase {
+export interface TilePanelState extends TileBaseState {
   type: 'panel';
   tabs: string[];
   activeTab: string | null;
@@ -63,7 +63,7 @@ export interface TilePanel extends TileBase {
 /**
  * Tab tile that references content
  */
-export interface TileTab extends TileBase {
+export interface TileTabState extends TileBaseState {
   type: 'tab';
   name: string;
   content: string; // ID of a content tile
@@ -74,7 +74,7 @@ export interface TileTab extends TileBase {
  * Content tile that contains actual content
  * Can be extended with application-specific properties
  */
-export interface TileContent extends TileBase {
+export interface TileContentState extends TileBaseState {
   type: 'content';
   componentId?: string;      // ID of the component to render this content
   data?: Record<string, any>; // Data payload as key-value pairs
@@ -83,4 +83,4 @@ export interface TileContent extends TileBase {
 /**
  * Union type of all possible tile types
  */
-export type Tile = TileGrid | TileRow | TileColumn | TilePanel | TileTab | TileContent;
+export type TileState = TileGridState | TileRowState | TileColumnState | TilePanelState | TileTabState | TileContentState;

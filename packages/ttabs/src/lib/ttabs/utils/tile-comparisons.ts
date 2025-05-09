@@ -1,11 +1,11 @@
 import type { 
-  Tile, 
-  TileGrid, 
-  TileRow, 
-  TileColumn, 
-  TilePanel, 
-  TileTab, 
-  TileContent,
+  TileState, 
+  TileGridState, 
+  TileRowState, 
+  TileColumnState, 
+  TilePanelState, 
+  TileTabState, 
+  TileContentState,
   SizeInfo 
 } from '../types/tile-types';
 
@@ -63,7 +63,7 @@ function areDataEqual(a?: Record<string, any>, b?: Record<string, any>): boolean
  * @param b Second tile to compare
  * @returns True if tiles have the same properties, false otherwise
  */
-export function areTilesEqual(a: Tile | null | undefined, b: Tile | null | undefined): boolean {
+export function areTilesEqual(a: TileState | null | undefined, b: TileState | null | undefined): boolean {
   // Handle null/undefined cases
   if (a === b) return true;
   if (!a || !b) return false;
@@ -74,14 +74,14 @@ export function areTilesEqual(a: Tile | null | undefined, b: Tile | null | undef
   // Type-specific comparisons
   switch (a.type) {
     case 'grid': {
-      const gridA = a as TileGrid;
-      const gridB = b as TileGrid;
+      const gridA = a as TileGridState;
+      const gridB = b as TileGridState;
       return areArraysEqual(gridA.rows, gridB.rows);
     }
     
     case 'row': {
-      const rowA = a as TileRow;
-      const rowB = b as TileRow;
+      const rowA = a as TileRowState;
+      const rowB = b as TileRowState;
       return areArraysEqual(rowA.columns, rowB.columns) && 
              areSizeInfoEqual(rowA.height, rowB.height) &&
              rowA.computedSize === rowB.computedSize &&
@@ -89,8 +89,8 @@ export function areTilesEqual(a: Tile | null | undefined, b: Tile | null | undef
     }
     
     case 'column': {
-      const colA = a as TileColumn;
-      const colB = b as TileColumn;
+      const colA = a as TileColumnState;
+      const colB = b as TileColumnState;
       return colA.child === colB.child && 
              areSizeInfoEqual(colA.width, colB.width) &&
              colA.computedSize === colB.computedSize &&
@@ -98,23 +98,23 @@ export function areTilesEqual(a: Tile | null | undefined, b: Tile | null | undef
     }
     
     case 'panel': {
-      const panelA = a as TilePanel;
-      const panelB = b as TilePanel;
+      const panelA = a as TilePanelState;
+      const panelB = b as TilePanelState;
       return areArraysEqual(panelA.tabs, panelB.tabs) && 
              panelA.activeTab === panelB.activeTab;
     }
     
     case 'tab': {
-      const tabA = a as TileTab;
-      const tabB = b as TileTab;
+      const tabA = a as TileTabState;
+      const tabB = b as TileTabState;
       return tabA.name === tabB.name && 
              tabA.content === tabB.content &&
              tabA.isLazy === tabB.isLazy;
     }
     
     case 'content': {
-      const contentA = a as TileContent;
-      const contentB = b as TileContent;
+      const contentA = a as TileContentState;
+      const contentB = b as TileContentState;
       return contentA.componentId === contentB.componentId &&
              areDataEqual(contentA.data, contentB.data);
     }
@@ -131,8 +131,8 @@ export function areTilesEqual(a: Tile | null | undefined, b: Tile | null | undef
  * @returns True if arrays contain tiles with the same properties in the same order, false otherwise
  */
 export function areTileArraysEqual(
-  a: Tile[] | null | undefined, 
-  b: Tile[] | null | undefined
+  a: TileState[] | null | undefined, 
+  b: TileState[] | null | undefined
 ): boolean {
   // Handle null/undefined cases
   if (a === b) return true;

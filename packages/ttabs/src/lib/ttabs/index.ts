@@ -5,17 +5,17 @@
 
 import type { TtabsOptions } from './Ttabs.svelte';
 import { Ttabs } from './Ttabs.svelte';
-export { TtabsGrid, TtabsRow, TtabsColumn, TtabsPanel, TtabsTab } from './ttabsObjects';
+export { Grid, Row as Row, Column, Panel, Tab } from './ttabsObjects';
 
 // Export tile types
 export type {
-  Tile,
-  TileGrid,
-  TileRow,
-  TileColumn,
-  TilePanel,
-  TileTab,
-  TileContent,
+  TileState,
+  TileGridState,
+  TileRowState,
+  TileColumnState,
+  TilePanelState as TilePanel,
+  TileTabState as TileTab,
+  TileContentState as TileContent,
   TileType
 } from './types/tile-types';
 

@@ -1,12 +1,13 @@
 <script lang="ts">
   import {
     createTtabs,
+    Grid,
     TtabsRoot,
     LocalStorageAdapter,
     DEFAULT_THEME,
+    type TilePanelState,
+    type TileTabState,
   } from "ttabs-svelte";
-  import type { TilePanel, TileTab } from "ttabs-svelte";
-  import type { TtabsGrid } from "ttabs-svelte";
 
   import { onMount } from "svelte";
   import EditorComponent from "./EditorComponent.svelte";
@@ -41,7 +42,7 @@
   let newTabCount = $state(1);
 
   // Setup the custom layout using the object-oriented API
-  function setupCustomLayout() {
+  function setupCustomLayout() {    
     // Get or create a grid object
     ttabs.resetTiles();
     const grid = ttabs.newGrid();
@@ -49,86 +50,85 @@
   }
 
   // Helper to create the actual layout structure
-  function createLayoutStructure(grid: TtabsGrid) {
+  function createLayoutStructure(grid: Grid) {
     // Create main row
     const mainRow = grid.newRow();
-    
+
     // Create columns
     const leftColumn = mainRow.newColumn("260px");
     const rightColumn = mainRow.newColumn();
-    
+
     // Add side panel directly to left column (no panel/tabs)
-    leftColumn.setComponent('sidepanel', {
-      title: 'Navigation',
+    leftColumn.setComponent("sidepanel", {
+      title: "Navigation",
       items: [
-        { id: 'files', label: 'Files', icon: '📁' },
-        { id: 'search', label: 'Search', icon: '🔍' },
-        { id: 'extensions', label: 'Extensions', icon: '🧩' },
-        { id: 'settings', label: 'Settings', icon: '⚙️' }
-      ]
+        { id: "files", label: "Files", icon: "📁" },
+        { id: "search", label: "Search", icon: "🔍" },
+        { id: "extensions", label: "Extensions", icon: "🧩" },
+        { id: "settings", label: "Settings", icon: "⚙️" },
+      ],
     });
-    
+
     // Add a grid to the right column
     const rightGrid = ttabs.addGrid(rightColumn.id);
-    
+
     // Get the grid object
     const rightGridObj = ttabs.getGridObject(rightGrid);
-    
+
     // Create two rows for the right grid
     const upperRow = rightGridObj.newRow("60%");
     const lowerRow = rightGridObj.newRow("40%");
-    
+
     // Create a column for the upper row
     const upperColumn = upperRow.newColumn();
-    
+
     // Create a panel for the upper column
     const upperPanel = upperColumn.newPanel();
-    
+
     // Store the upper panel ID for adding new tabs
     upperPanelId = upperPanel.id;
-    
+
     // Create editor tab for upper panel
-    upperPanel.newTab('Editor')
-      .setComponent('editor', { 
-        content: 'function hello() {\n  console.log("Hello, world!");\n}',
-        language: 'javascript'
-      });
-    
+    upperPanel.newTab("Editor").setComponent("editor", {
+      content: 'function hello() {\n  console.log("Hello, world!");\n}',
+      language: "javascript",
+    });
+
     // Create document tab for upper panel
-    upperPanel.newTab('Document', false)
-      .setComponent('document', {
-        documentId: 'doc-12345',
-        title: 'Getting Started',
-        content: 'This is a sample document that demonstrates the content component system in ttabs.'
-      });
-    
+    upperPanel.newTab("Document", false).setComponent("document", {
+      documentId: "doc-12345",
+      title: "Getting Started",
+      content:
+        "This is a sample document that demonstrates the content component system in ttabs.",
+    });
+
     // Create settings tab for upper panel
-    upperPanel.newTab('Settings', false);
-    
+    upperPanel.newTab("Settings", false);
+
     // Create a column for the lower row
     const lowerColumn = lowerRow.newColumn();
-    
+
     // Create a panel for the lower column
     const lowerPanel = lowerColumn.newPanel();
-    
+
     // Create console tab for lower panel
-    lowerPanel.newTab('Console');
-    
+    lowerPanel.newTab("Console");
+
     // Create additional tabs for lower panel
-    lowerPanel.newTab('Output', false);
-    lowerPanel.newTab('Debug', false);
-    
+    lowerPanel.newTab("Output", false);
+    lowerPanel.newTab("Debug", false);
+
     // Set active panel
     upperPanel.setActive();
   }
 
   // Function to create a new tab using the object-oriented API
   function createNewTab() {
-    console.log('Creating new tab, upperPanelId:', upperPanelId);
-    
+    console.log("Creating new tab, upperPanelId:", upperPanelId);
+
     // Get the target panel
     let panel;
-    
+
     if (upperPanelId) {
       panel = ttabs.getPanelObject(upperPanelId);
     } else {
@@ -136,31 +136,33 @@
       const activePanelId = ttabs.getActivePanel();
       if (activePanelId) {
         panel = ttabs.getPanelObject(activePanelId);
-        console.log('Using active panel instead:', panel.id);
+        console.log("Using active panel instead:", panel.id);
       } else {
         // If no panel is active or available, find any panel
-        const anyPanelId = Object.values(ttabs.getTiles())
-          .find(tile => tile.type === 'panel')?.id;
-          
+        const anyPanelId = Object.values(ttabs.getTiles()).find(
+          (tile) => tile.type === "panel"
+        )?.id;
+
         if (anyPanelId) {
           panel = ttabs.getPanelObject(anyPanelId);
-          console.log('Using found panel:', panel.id);
+          console.log("Using found panel:", panel.id);
         } else {
-          console.error('No panels found, cannot create tab');
+          console.error("No panels found, cannot create tab");
           return;
         }
       }
     }
-    
+
     // Create a new tab with editor component using method chaining
     const tabName = `New Tab ${newTabCount}`;
-    panel.newTab(tabName, true) // true to make it active
-      .setComponent('editor', {
+    panel
+      .newTab(tabName, true) // true to make it active
+      .setComponent("editor", {
         content: `// New tab ${newTabCount}\n// Write your code here...\n`,
-        language: 'typescript',
-        readOnly: newTabCount % 2 === 0 // Alternate between editable and read-only
+        language: "typescript",
+        readOnly: newTabCount % 2 === 0, // Alternate between editable and read-only
       });
-    
+
     // Increment tab counter
     newTabCount++;
   }
@@ -183,22 +185,22 @@
     // Check if we have a stored layout
     if (savedData?.tiles) {
       console.log("Found saved layout, loading...");
-      
+
       // Try to find the upper panel in the saved layout
       findUpperPanel();
-      
+
       // Mark as initialized
       isInitialized = true;
     } else {
       console.log("No saved layout found, creating custom layout...");
-      
+
       // Set up the custom layout
       setupCustomLayout();
-      
+
       // Mark as initialized
       isInitialized = true;
     }
-    
+
     // Save the layout whenever it changes
     ttabs.subscribe((state) => {
       console.log("Layout changed, saving...");
@@ -210,26 +212,29 @@
   function findUpperPanel() {
     // Look for a panel with an 'Editor' tab
     const tiles = ttabs.getTiles();
-    
+
     // Find panels
-    const panels = Object.values(tiles).filter(tile => tile.type === 'panel');
-    
+    const panels = Object.values(tiles).filter((tile) => tile.type === "panel");
+
     // Look for a panel with an 'Editor' tab
-    for (const panel of panels as TilePanel[]) {
+    for (const panel of panels as TilePanelState[]) {
       const tabs = panel.tabs || [];
-      
+
       // Check if this panel has a tab named 'Editor'
-      if (tabs && tabs.some((tabId: string) => {
-        const tab = tiles[tabId] as TileTab;
-        return tab.name === 'Editor';
-      })) {
+      if (
+        tabs &&
+        tabs.some((tabId: string) => {
+          const tab = tiles[tabId] as TileTabState;
+          return tab.name === "Editor";
+        })
+      ) {
         // Found our panel
         upperPanelId = panel.id;
         console.log("Found upper panel in saved layout:", upperPanelId);
         return;
       }
     }
-    
+
     // If we didn't find a panel with an 'Editor' tab, just use the first panel
     if (panels.length > 0) {
       upperPanelId = panels[0].id;
@@ -248,7 +253,7 @@
       <button onclick={() => createNewTab()}>New Tab</button>
     </div>
   </div>
-  
+
   {#if isInitialized}
     <div class="ttabs-container">
       <TtabsRoot {ttabs} />

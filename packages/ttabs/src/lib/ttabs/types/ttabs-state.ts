@@ -1,4 +1,4 @@
-import type { Tile } from './tile-types';
+import type { TileState } from './tile-types';
 
 /**
  * Interface representing the complete state of a Ttabs instance
@@ -8,7 +8,7 @@ export interface TtabsState {
   /**
    * All tiles in the layout
    */
-  tiles: Record<string, Tile>;
+  tiles: Record<string, TileState>;
   
   /**
    * ID of the active panel

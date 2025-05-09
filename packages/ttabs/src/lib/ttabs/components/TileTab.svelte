@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { TileContent as TileContentType } from "../types/tile-types";
+  import type { TileContentState } from "../types/tile-types";
   import type { TtabsProps } from "./props";
   import type { Component } from "svelte";
 
@@ -11,7 +11,7 @@
   // Get content
   const contentId = $derived(tab?.type === "tab" ? tab.content : null);
   const content = $derived(
-    contentId ? (ttabs.getTile(contentId) as TileContentType) : null,
+    contentId ? (ttabs.getTile(contentId) as TileContentState) : null
   );
 
   // Component storage

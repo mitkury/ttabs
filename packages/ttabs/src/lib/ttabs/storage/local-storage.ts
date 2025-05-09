@@ -1,4 +1,4 @@
-import type { Tile, TilePanel } from '../types/tile-types';
+import type { TileState, TilePanelState } from '../types/tile-types';
 import type { TtabsStorageAdapter, TtabsStorageData } from './adapter';
 
 /**
@@ -21,7 +21,7 @@ export class LocalStorageAdapter implements TtabsStorageAdapter {
    * Save ttabs state to localStorage with debounce
    * @param state The tiles state
    */
-  save(state: Record<string, Tile>): void {
+  save(state: Record<string, TileState>): void {
     // Clear any existing timer
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
@@ -37,7 +37,7 @@ export class LocalStorageAdapter implements TtabsStorageAdapter {
   /**
    * Perform the actual save to localStorage
    */
-  private saveToStorage(state: Record<string, Tile>): void {
+  private saveToStorage(state: Record<string, TileState>): void {
     if (typeof window === 'undefined' || !window.localStorage) {
       return;
     }
@@ -60,9 +60,9 @@ export class LocalStorageAdapter implements TtabsStorageAdapter {
   /**
    * Helper method to find focused tab from state
    */
-  private findFocusedTab(state: Record<string, Tile>): string | undefined {
+  private findFocusedTab(state: Record<string, TileState>): string | undefined {
     // Find panels with active tabs
-    const panels = Object.values(state).filter((tile): tile is TilePanel => 
+    const panels = Object.values(state).filter((tile): tile is TilePanelState => 
       tile.type === 'panel' && !!tile.activeTab);
       
     // Find the active panel (could be based on other criteria)
@@ -87,8 +87,8 @@ export class LocalStorageAdapter implements TtabsStorageAdapter {
       if (!parsed || !Array.isArray(parsed.tiles)) return null;
       
       // Convert array to record
-      const tiles: Record<string, Tile> = {};
-      parsed.tiles.forEach((tile: Tile) => {
+      const tiles: Record<string, TileState> = {};
+      parsed.tiles.forEach((tile: TileState) => {
         tiles[tile.id] = tile;
       });
       

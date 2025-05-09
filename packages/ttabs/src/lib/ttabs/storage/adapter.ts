@@ -1,4 +1,4 @@
-import type { Tile } from '../types/tile-types';
+import type { TileState } from '../types/tile-types';
 
 /**
  * Storage adapter interface for Ttabs
@@ -8,7 +8,7 @@ export interface TtabsStorageAdapter {
    * Save ttabs state
    * @param state The tiles state
    */
-  save(state: Record<string, Tile>): Promise<void> | void;
+  save(state: Record<string, TileState>): Promise<void> | void;
   
   /**
    * Load ttabs state
@@ -21,6 +21,6 @@ export interface TtabsStorageAdapter {
  * Storage data structure containing tiles and focused tab
  */
 export interface TtabsStorageData {
-  tiles: Record<string, Tile>;
+  tiles: Record<string, TileState>;
   focusedTab?: string;
 } 

@@ -1,10 +1,10 @@
-import type { Tile, TileGrid, TileRow, TileColumn, TilePanel, TileTab, TileContent, TileType, SizeInfo } from './types/tile-types';
+import type { TileState, TileGridState, TileRowState, TileColumnState, TilePanelState, TileTabState, TileContentState, TileType, SizeInfo } from './types/tile-types';
 import { generateId } from './utils/tile-utils';
 import type { Component } from 'svelte';
 import type { TtabsTheme } from './types/theme-types';
 import { DEFAULT_THEME, resolveTheme } from './types/theme-types';
 import { parseSizeValue, calculateSizes } from './utils/size-utils';
-import { TtabsColumn, TtabsGrid, TtabsPanel, TtabsRow, TtabsTab } from './ttabsObjects';
+import { Column, Grid, Panel, Row, Tab } from './ttabsObjects';
 
 /**
  * Type for component registry
@@ -17,7 +17,7 @@ interface ContentComponent {
 /**
  * Type for state change callback
  */
-export type StateChangeCallback = (state: Record<string, Tile>) => void;
+export type StateChangeCallback = (state: Record<string, TileState>) => void;
 
 /**
  * Options for creating a ttabs instance
@@ -28,7 +28,7 @@ export interface TtabsOptions {
    * If provided, the instance will be initialized with these tiles
    * If not provided, a default root grid will be created
    */
-  tiles?: Record<string, Tile> | Tile[];
+  tiles?: Record<string, TileState> | TileState[];
 
   /**
    * Initially focused tab (optional)
@@ -47,7 +47,7 @@ export interface TtabsOptions {
  * Ttabs class implementation
  */
 export class Ttabs {
-  tiles: Record<string, Tile> = $state({});
+  tiles: Record<string, TileState> = $state({});
   activePanel: string | null = $state(null);
   focusedActiveTab: string | null = $state(null);
   rootGridId: string = $state('');
@@ -108,7 +108,7 @@ export class Ttabs {
     }
 
     // Set focused tab if provided
-    if (options.focusedTab && this.getTile<TileTab>(options.focusedTab)) {
+    if (options.focusedTab && this.getTile<TileTabState>(options.focusedTab)) {
       this.focusedActiveTab = options.focusedTab;
     }
   }
@@ -197,11 +197,11 @@ export class Ttabs {
     // Handle different parent types
     if (parent.type === 'tab') {
       // Tab content handling
-      const tab = parent as TileTab;
+      const tab = parent as TileTabState;
 
       // Check if tab already has content - update it instead of creating new
       if (tab.content && this.getTile(tab.content)) {
-        const existingContent = this.getTile<TileContent>(tab.content);
+        const existingContent = this.getTile<TileContentState>(tab.content);
         if (existingContent && existingContent.type === 'content') {
           this.updateTile(tab.content, {
             componentId,
@@ -233,7 +233,7 @@ export class Ttabs {
     }
     else if (parent.type === 'column') {
       // Column content handling
-      const column = parent as TileColumn;
+      const column = parent as TileColumnState;
 
       // Check if column already has a child
       if (column.child && this.getTile(column.child)) {
@@ -279,7 +279,7 @@ export class Ttabs {
   /**
    * Get all tiles
    */
-  getTiles(): Record<string, Tile> {
+  getTiles(): Record<string, TileState> {
     return this.tiles;
   }
 
@@ -293,7 +293,7 @@ export class Ttabs {
   /**
    * Get a specific tile by ID with type casting
    */
-  getTile<T extends Tile = Tile>(id: string): T | null {
+  getTile<T extends TileState = TileState>(id: string): T | null {
     return (this.tiles[id] || null) as T | null;
   }
 
@@ -301,7 +301,7 @@ export class Ttabs {
    * Get a grid by ID, throwing an error if not found
    * @throws Error if the tile is not found or not a grid
    */
-  getGrid(id: string): TileGrid {
+  getGrid(id: string): TileGridState {
     const tile = this.tiles[id];
     if (!tile) {
       throw new Error(`Grid not found: ${id}`);
@@ -309,14 +309,14 @@ export class Ttabs {
     if (tile.type !== 'grid') {
       throw new Error(`Tile ${id} is not a grid, found ${tile.type}`);
     }
-    return tile as TileGrid;
+    return tile as TileGridState;
   }
 
   /**
    * Get a row by ID, throwing an error if not found
    * @throws Error if the tile is not found or not a row
    */
-  getRow(id: string): TileRow {
+  getRow(id: string): TileRowState {
     const tile = this.tiles[id];
     if (!tile) {
       throw new Error(`Row not found: ${id}`);
@@ -324,14 +324,14 @@ export class Ttabs {
     if (tile.type !== 'row') {
       throw new Error(`Tile ${id} is not a row, found ${tile.type}`);
     }
-    return tile as TileRow;
+    return tile as TileRowState;
   }
 
   /**
    * Get a column by ID, throwing an error if not found
    * @throws Error if the tile is not found or not a column
    */
-  getColumn(id: string): TileColumn {
+  getColumn(id: string): TileColumnState {
     const tile = this.tiles[id];
     if (!tile) {
       throw new Error(`Column not found: ${id}`);
@@ -339,14 +339,14 @@ export class Ttabs {
     if (tile.type !== 'column') {
       throw new Error(`Tile ${id} is not a column, found ${tile.type}`);
     }
-    return tile as TileColumn;
+    return tile as TileColumnState;
   }
 
   /**
    * Get a panel by ID, throwing an error if not found
    * @throws Error if the tile is not found or not a panel
    */
-  getPanel(id: string): TilePanel {
+  getPanel(id: string): TilePanelState {
     const tile = this.tiles[id];
     if (!tile) {
       throw new Error(`Panel not found: ${id}`);
@@ -354,14 +354,14 @@ export class Ttabs {
     if (tile.type !== 'panel') {
       throw new Error(`Tile ${id} is not a panel, found ${tile.type}`);
     }
-    return tile as TilePanel;
+    return tile as TilePanelState;
   }
 
   /**
    * Get a tab by ID, throwing an error if not found
    * @throws Error if the tile is not found or not a tab
    */
-  getTab(id: string): TileTab {
+  getTab(id: string): TileTabState {
     const tile = this.tiles[id];
     if (!tile) {
       throw new Error(`Tab not found: ${id}`);
@@ -369,15 +369,15 @@ export class Ttabs {
     if (tile.type !== 'tab') {
       throw new Error(`Tile ${id} is not a tab, found ${tile.type}`);
     }
-    return tile as TileTab;
+    return tile as TileTabState;
   }
 
   /**
    * Get children of a tile filtered by type
    */
-  getChildren(parentId: string, tileType: TileType | null = null): Tile[] {
+  getChildren(parentId: string, tileType: TileType | null = null): TileState[] {
     return Object.values(this.tiles)
-      .filter((tile): tile is Tile => Boolean(tile))
+      .filter((tile): tile is TileState => Boolean(tile))
       .filter(tile => tile.parent === parentId)
       .filter(tile => !tileType || tile.type === tileType);
   }
@@ -385,26 +385,26 @@ export class Ttabs {
   /**
    * Get the currently active panel
    */
-  getActivePanelTile(): TilePanel | null {
-    return this.activePanel ? this.getTile<TilePanel>(this.activePanel) : null;
+  getActivePanelTile(): TilePanelState | null {
+    return this.activePanel ? this.getTile<TilePanelState>(this.activePanel) : null;
   }
 
   /**
    * Get the active tab of the active panel
    */
-  getActivePanelTab(): TileTab | null {
+  getActivePanelTab(): TileTabState | null {
     const panel = this.getActivePanelTile();
     if (!panel || !panel.activeTab) return null;
-    return this.getTile<TileTab>(panel.activeTab);
+    return this.getTile<TileTabState>(panel.activeTab);
   }
 
   /**
    * Get the content associated with a tab
    */
-  getTabContent(tabId: string): TileContent | null {
-    const tab = this.getTile<TileTab>(tabId);
+  getTabContent(tabId: string): TileContentState | null {
+    const tab = this.getTile<TileTabState>(tabId);
     if (!tab) return null;
-    return this.getTile<TileContent>(tab.content);
+    return this.getTile<TileContentState>(tab.content);
   }
 
   /**
@@ -412,7 +412,7 @@ export class Ttabs {
    * @param tile Tile to add (requires type property)
    * @returns ID of the new tile
    */
-  addTile<T extends Tile>(tile: Partial<T> & { type: T['type'] }): string {
+  addTile<T extends TileState>(tile: Partial<T> & { type: T['type'] }): string {
     // Generate ID if not provided
     const id = tile.id || generateId();
 
@@ -437,7 +437,7 @@ export class Ttabs {
    * @param updates Changes to apply
    * @returns True if successful
    */
-  updateTile<T extends Tile>(id: string, updates: Partial<T>): boolean {
+  updateTile<T extends TileState>(id: string, updates: Partial<T>): boolean {
     const tile = this.getTile(id);
     if (!tile) return false;
 
@@ -454,7 +454,7 @@ export class Ttabs {
    * @param tileId ID of the tile to find references to
    * @returns Array of tiles that reference the specified tile
    */
-  private findTilesReferencingTile(tileId: string): Tile[] {
+  private findTilesReferencingTile(tileId: string): TileState[] {
     return Object.values(this.tiles).filter(tile => {
       if (tile.type === 'grid' && tile.rows.includes(tileId)) {
         return true;
@@ -488,7 +488,7 @@ export class Ttabs {
     const referencingTiles = this.findTilesReferencingTile(id);
 
     // Remove references to this tile
-    referencingTiles.forEach((referencingTile: Tile) => {
+    referencingTiles.forEach((referencingTile: TileState) => {
       if (referencingTile.type === 'grid' && 'rows' in referencingTile) {
         this.updateTile(referencingTile.id, {
           rows: referencingTile.rows.filter((rowId: string) => rowId !== id)
@@ -534,7 +534,7 @@ export class Ttabs {
    * Set the active panel
    */
   setActivePanel(id: string): boolean {
-    const panel = this.getTile<TilePanel>(id);
+    const panel = this.getTile<TilePanelState>(id);
     if (!panel || panel.type !== 'panel') return false;
 
     this.activePanel = id;
@@ -545,13 +545,13 @@ export class Ttabs {
    * Set the active tab
    */
   setActiveTab(tabId: string): boolean {
-    const tab = this.getTile<TileTab>(tabId);
+    const tab = this.getTile<TileTabState>(tabId);
     if (!tab || tab.type !== 'tab') return false;
 
     const panelId = tab.parent;
     if (!panelId) return false;
 
-    const panel = this.getTile<TilePanel>(panelId);
+    const panel = this.getTile<TilePanelState>(panelId);
     if (!panel || panel.type !== 'panel') return false;
 
     this.updateTile(panelId, { activeTab: tabId });
@@ -569,14 +569,14 @@ export class Ttabs {
    * @returns True if successful
    */
   setFocusedActiveTab(tabId: string): boolean {
-    const tab = this.getTile<TileTab>(tabId);
+    const tab = this.getTile<TileTabState>(tabId);
     if (!tab || tab.type !== 'tab') return false;
 
     // Ensure the tab is active in its panel
     const panelId = tab.parent;
     if (!panelId) return false;
 
-    const panel = this.getTile<TilePanel>(panelId);
+    const panel = this.getTile<TilePanelState>(panelId);
     if (!panel || panel.type !== 'panel') return false;
 
     // If the tab is not the active one in its panel, make it active
@@ -598,15 +598,15 @@ export class Ttabs {
   /**
    * Get the focused active tab
    */
-  getFocusedActiveTabTile(): TileTab | null {
-    return this.focusedActiveTab ? this.getTile<TileTab>(this.focusedActiveTab) : null;
+  getFocusedActiveTabTile(): TileTabState | null {
+    return this.focusedActiveTab ? this.getTile<TileTabState>(this.focusedActiveTab) : null;
   }
 
   /**
    * Reorder tabs within a panel
    */
   reorderTabs(panelId: string, oldIndex: number, newIndex: number): boolean {
-    const panel = this.getTile<TilePanel>(panelId);
+    const panel = this.getTile<TilePanelState>(panelId);
     if (!panel || panel.type !== 'panel') return false;
 
     // Make sure indices are valid
@@ -775,7 +775,7 @@ export class Ttabs {
         this.updateTile(parentColumn.id, { width: newWidth });
 
         // Create a new column
-        const newColumnId = this.addTile<TileColumn>({
+        const newColumnId = this.addTile<TileColumnState>({
           type: 'column',
           parent: rowId,
           width: newWidth,
@@ -783,7 +783,7 @@ export class Ttabs {
         });
 
         // Create a new panel in the new column
-        const newPanelId = this.addTile<TilePanel>({
+        const newPanelId = this.addTile<TilePanelState>({
           type: 'panel',
           parent: newColumnId,
           tabs: [],
@@ -823,7 +823,7 @@ export class Ttabs {
           // Column directly contains the panel, need to create a grid
 
           // Create new grid
-          gridId = this.addTile<TileGrid>({
+          gridId = this.addTile<TileGridState>({
             type: 'grid',
             parent: parentColumn.id,
             rows: []
@@ -833,14 +833,14 @@ export class Ttabs {
           const rowHeight = { value: 50, unit: '%' as const }; // 50% each
 
           // Create rows in appropriate order based on direction
-          const firstRowId = this.addTile<TileRow>({
+          const firstRowId = this.addTile<TileRowState>({
             type: 'row',
             parent: gridId,
             height: rowHeight,
             columns: []
           });
 
-          const secondRowId = this.addTile<TileRow>({
+          const secondRowId = this.addTile<TileRowState>({
             type: 'row',
             parent: gridId,
             height: rowHeight,
@@ -848,7 +848,7 @@ export class Ttabs {
           });
 
           // Create a column for the existing panel
-          const existingPanelColumnId = this.addTile<TileColumn>({
+          const existingPanelColumnId = this.addTile<TileColumnState>({
             type: 'column',
             parent: direction === 'top' ? secondRowId : firstRowId,
             width: { value: 100, unit: '%' as const }, // 100% of row width
@@ -856,7 +856,7 @@ export class Ttabs {
           });
 
           // Create a column for the new panel
-          const newPanelColumnId = this.addTile<TileColumn>({
+          const newPanelColumnId = this.addTile<TileColumnState>({
             type: 'column',
             parent: direction === 'top' ? firstRowId : secondRowId,
             width: { value: 100, unit: '%' as const }, // 100% of row width
@@ -864,7 +864,7 @@ export class Ttabs {
           });
 
           // Create a new panel
-          const newPanelId = this.addTile<TilePanel>({
+          const newPanelId = this.addTile<TilePanelState>({
             type: 'panel',
             parent: newPanelColumnId,
             tabs: [],
@@ -910,7 +910,7 @@ export class Ttabs {
 
             // Find the row containing the target panel
             let targetRowId: string | null = null;
-            let targetRow: TileRow | null = null;
+            let targetRow: TileRowState | null = null;
 
             for (const rowId of grid.rows) {
               try {
@@ -955,7 +955,7 @@ export class Ttabs {
             this.updateTile(targetRowId, { height: newHeight });
 
             // Create a new row
-            const newRowId = this.addTile<TileRow>({
+            const newRowId = this.addTile<TileRowState>({
               type: 'row',
               parent: gridId,
               height: newHeight,
@@ -963,7 +963,7 @@ export class Ttabs {
             });
 
             // Create a new column in the row
-            const newColumnId = this.addTile<TileColumn>({
+            const newColumnId = this.addTile<TileColumnState>({
               type: 'column',
               parent: newRowId,
               width: { value: 100, unit: '%' as const }, // 100% of the row
@@ -971,7 +971,7 @@ export class Ttabs {
             });
 
             // Create a new panel in the column
-            const newPanelId = this.addTile<TilePanel>({
+            const newPanelId = this.addTile<TilePanelState>({
               type: 'panel',
               parent: newColumnId,
               tabs: [],
@@ -1039,13 +1039,13 @@ export class Ttabs {
     switch (tile.type) {
       case 'panel':
         // Remove the panel if it has no tabs
-        const panel = tile as TilePanel;
+        const panel = tile as TilePanelState;
         shouldRemove = panel.tabs.length === 0;
         break;
 
       case 'column':
         // Remove the column if it has no valid child
-        const column = tile as TileColumn;
+        const column = tile as TileColumnState;
         shouldRemove = !column.child || !this.tiles[column.child];
 
         // Redistribute the width to siblings if removing
@@ -1061,7 +1061,7 @@ export class Ttabs {
 
       case 'row':
         // Remove the row if it has no columns
-        const row = tile as TileRow;
+        const row = tile as TileRowState;
         shouldRemove = row.columns.length === 0;
 
         // Redistribute the height to siblings if removing
@@ -1077,7 +1077,7 @@ export class Ttabs {
 
       case 'grid':
         // Remove the grid if it has no rows and is not the root
-        const grid = tile as TileGrid;
+        const grid = tile as TileGridState;
         shouldRemove = grid.rows.length === 0 && !!grid.parent;
 
         // Check if we can simplify the grid hierarchy (for non root grids)
@@ -1118,7 +1118,7 @@ export class Ttabs {
    * Redistributes width from a removed column to its sibling columns
    * @param removedColumnId ID of the column being removed
    */
-  redistributeWidths(removedColumn: TileColumn): void {
+  redistributeWidths(removedColumn: TileColumnState): void {
     // Get the available width to redistribute
     const availableWidth = removedColumn.width;
     if (availableWidth.value <= 0) return;
@@ -1127,7 +1127,7 @@ export class Ttabs {
     const parentRowId = removedColumn.parent;
     if (!parentRowId) return;
 
-    const parentRow = this.getTile<TileRow>(parentRowId);
+    const parentRow = this.getTile<TileRowState>(parentRowId);
     if (!parentRow || parentRow.type !== 'row') return;
 
     // Get sibling columns (excluding the one being removed)
@@ -1136,8 +1136,8 @@ export class Ttabs {
 
     // Get the sibling column objects
     const siblingColumns = siblingColumnIds
-      .map(id => this.getTile<TileColumn>(id))
-      .filter(Boolean) as TileColumn[];
+      .map(id => this.getTile<TileColumnState>(id))
+      .filter(Boolean) as TileColumnState[];
 
     if (siblingColumns.length === 0) return;
 
@@ -1167,7 +1167,7 @@ export class Ttabs {
    * Redistributes height from a removed row to its sibling rows
    * @param removedRow The row being removed
    */
-  redistributeHeights(removedRow: TileRow): void {
+  redistributeHeights(removedRow: TileRowState): void {
     // Get the available height to redistribute
     const availableHeight = removedRow.height;
     if (availableHeight.value <= 0) return;
@@ -1176,7 +1176,7 @@ export class Ttabs {
     const parentGridId = removedRow.parent;
     if (!parentGridId) return;
 
-    const parentGrid = this.getTile<TileGrid>(parentGridId);
+    const parentGrid = this.getTile<TileGridState>(parentGridId);
     if (!parentGrid || parentGrid.type !== 'grid') return;
 
     // Get sibling rows (excluding the one being removed)
@@ -1185,8 +1185,8 @@ export class Ttabs {
 
     // Get the sibling row objects
     const siblingRows = siblingRowIds
-      .map(id => this.getTile<TileRow>(id))
-      .filter(Boolean) as TileRow[];
+      .map(id => this.getTile<TileRowState>(id))
+      .filter(Boolean) as TileRowState[];
 
     if (siblingRows.length === 0) return;
 
@@ -1288,7 +1288,7 @@ export class Ttabs {
       throw new Error(`Cannot add a row to a parent of type ${parent.type}. Rows can only be children of grids.`);
     }
     
-    const grid = parent as TileGrid;
+    const grid = parent as TileGridState;
     let sizeInfo: SizeInfo;
     
     if (!height) {
@@ -1300,8 +1300,8 @@ export class Ttabs {
         
         // Get existing percentage-based rows
         const percentageRows = grid.rows
-          .map(id => this.getTile<TileRow>(id))
-          .filter((row): row is TileRow => !!row && row.height.unit === '%');
+          .map(id => this.getTile<TileRowState>(id))
+          .filter((row): row is TileRowState => !!row && row.height.unit === '%');
         
         if (percentageRows.length > 0) {
           // Calculate total existing percentage
@@ -1365,7 +1365,7 @@ export class Ttabs {
       throw new Error(`Cannot add a column to a parent of type ${parent.type}. Columns can only be children of rows.`);
     }
 
-    const row = parent as TileRow;
+    const row = parent as TileRowState;
 
     // if width is not specified, calculate it based on the existing columns
     // if it's specified - use it as is for px and calculate size for % based. But also run detection of invalid sizes
@@ -1379,8 +1379,8 @@ export class Ttabs {
         
         // Get existing percentage-based columns
         const percentageColumns = row.columns
-          .map(id => this.getTile<TileColumn>(id))
-          .filter((col): col is TileColumn => !!col && col.width.unit === '%');
+          .map(id => this.getTile<TileColumnState>(id))
+          .filter((col): col is TileColumnState => !!col && col.width.unit === '%');
         
         if (percentageColumns.length > 0) {
           // Calculate total existing percentage
@@ -1450,7 +1450,7 @@ export class Ttabs {
       throw new Error(`Cannot add a panel to a parent of type ${parent.type}. Panels can only be children of columns.`);
     }
 
-    const column = parent as TileColumn;
+    const column = parent as TileColumnState;
 
     // Check if column already has a child
     if (column.child && this.getTile(column.child)) {
@@ -1482,7 +1482,7 @@ export class Ttabs {
    * @returns ID of the new tab
    * @throws Error if parent hierarchy rules are violated
    */
-  private addTabToPanel(panel: TilePanel, name: string, setActive: boolean = true, isLazy: boolean = false): string {
+  private addTabToPanel(panel: TilePanelState, name: string, setActive: boolean = true, isLazy: boolean = false): string {
     // Create the tab
     const tabId = this.addTile({
       type: 'tab',
@@ -1530,11 +1530,11 @@ export class Ttabs {
     switch (parent.type) {
       case 'panel':
         // Panel is the direct container for tabs, add directly
-        return this.addTabToPanel(parent as TilePanel, name, setActive, isLazy);
+        return this.addTabToPanel(parent as TilePanelState, name, setActive, isLazy);
 
       case 'column':
         // Need to check if column already has a child
-        const column = parent as TileColumn;
+        const column = parent as TileColumnState;
         let panelId = '';
 
         if (column.child) {
@@ -1563,7 +1563,7 @@ export class Ttabs {
 
       case 'row':
         // For rows, we need to find or create a column to contain our panel
-        const row = parent as TileRow;
+        const row = parent as TileRowState;
         let columnId: string;
 
         if (row.columns.length > 0) {
@@ -1663,7 +1663,7 @@ export class Ttabs {
     });
   }
 
-  setup(tiles: Tile[], { activePanel, focusedActiveTab }: { activePanel?: string, focusedActiveTab?: string }) {
+  setup(tiles: TileState[], { activePanel, focusedActiveTab }: { activePanel?: string, focusedActiveTab?: string }) {
     this.resetTiles();
 
     try {
@@ -1675,7 +1675,7 @@ export class Ttabs {
         throw new Error('Invalid number of root grids. There has to be a single root grid.');
       }
 
-      tiles.forEach((tile: Tile) => {
+      tiles.forEach((tile: TileState) => {
         this.tiles[tile.id] = tile;
       });
 
@@ -1684,14 +1684,14 @@ export class Ttabs {
       console.log(activePanel, focusedActiveTab);
 
       if (activePanel) {
-        const panel = this.getTile<TilePanel>(activePanel);
+        const panel = this.getTile<TilePanelState>(activePanel);
         if (panel) {
           this.activePanel = activePanel;
         }
       }
 
       if (focusedActiveTab) {
-        const focusedTab = this.getTile<TileTab>(focusedActiveTab);
+        const focusedTab = this.getTile<TileTabState>(focusedActiveTab);
         if (focusedTab) {
           this.focusedActiveTab = focusedActiveTab;
         } else {
@@ -1731,7 +1731,7 @@ export class Ttabs {
   private findAndSetDefaultFocusedTab(): void {
     // If active panel exists, try to use its active tab
     if (this.activePanel) {
-      const panel = this.getTile<TilePanel>(this.activePanel);
+      const panel = this.getTile<TilePanelState>(this.activePanel);
       if (panel && panel.activeTab) {
         this.focusedActiveTab = panel.activeTab;
         return;
@@ -1740,7 +1740,7 @@ export class Ttabs {
 
     // Otherwise find the first panel with an active tab
     const panelsWithActiveTabs = Object.values(this.tiles)
-      .filter((tile): tile is TilePanel =>
+      .filter((tile): tile is TilePanelState =>
         tile.type === 'panel' && tile.activeTab !== null && !!this.getTile(tile.activeTab));
 
     if (panelsWithActiveTabs.length > 0 && panelsWithActiveTabs[0].activeTab) {
@@ -1756,13 +1756,13 @@ export class Ttabs {
    */
   closeTab(tabId: string): boolean {
     try {
-      const tab = this.getTile<TileTab>(tabId);
+      const tab = this.getTile<TileTabState>(tabId);
       if (!tab || tab.type !== 'tab') return false;
 
       const panelId = tab.parent;
       if (!panelId) return false;
 
-      const panel = this.getTile<TilePanel>(panelId);
+      const panel = this.getTile<TilePanelState>(panelId);
       if (!panel || panel.type !== 'panel') return false;
 
       // Find index of tab to remove
@@ -1784,7 +1784,7 @@ export class Ttabs {
         } else {
           // Look for a tab in another panel
           const otherPanels = Object.values(this.tiles)
-            .filter((tile): tile is TilePanel =>
+            .filter((tile): tile is TilePanelState =>
               tile.type === 'panel' && tile.id !== panelId && tile.tabs.length > 0);
 
           // Find the first panel with tabs and use its active tab
@@ -1856,27 +1856,27 @@ export class Ttabs {
    * @param containerId Optional ID of a panel or grid to search within. If not provided, searches all panels.
    * @returns Array of lazy tab tiles
    */
-  getLazyTabs(containerId?: string): TileTab[] {
+  getLazyTabs(containerId?: string): TileTabState[] {
     if (containerId) {
       const container = this.getTile(containerId);
       if (!container) return [];
 
       if (container.type === 'panel') {
         // Get lazy tabs directly from the panel
-        const panel = container as TilePanel;
+        const panel = container as TilePanelState;
         return panel.tabs
-          .map(tabId => this.getTile<TileTab>(tabId))
-          .filter((tab): tab is TileTab => !!tab && tab.isLazy === true);
+          .map(tabId => this.getTile<TileTabState>(tabId))
+          .filter((tab): tab is TileTabState => !!tab && tab.isLazy === true);
       }
       else if (container.type === 'grid') {
         // Find all panels within the grid and get their lazy tabs
-        const lazyTabs: TileTab[] = [];
-        const grid = container as TileGrid;
+        const lazyTabs: TileTabState[] = [];
+        const grid = container as TileGridState;
 
         // Recursively find all panels within the grid
-        const findPanelsInGrid = (gridId: string): TilePanel[] => {
+        const findPanelsInGrid = (gridId: string): TilePanelState[] => {
           const grid = this.getGrid(gridId);
-          const panels: TilePanel[] = [];
+          const panels: TilePanelState[] = [];
 
           for (const rowId of grid.rows) {
             try {
@@ -1887,7 +1887,7 @@ export class Ttabs {
                   if (col.child) {
                     const child = this.getTile(col.child);
                     if (child?.type === 'panel') {
-                      panels.push(child as TilePanel);
+                      panels.push(child as TilePanelState);
                     } else if (child?.type === 'grid') {
                       // Recursive case - grid within grid
                       panels.push(...findPanelsInGrid(child.id));
@@ -1910,8 +1910,8 @@ export class Ttabs {
         // Get lazy tabs from each panel
         for (const panel of panels) {
           const panelLazyTabs = panel.tabs
-            .map(tabId => this.getTile<TileTab>(tabId))
-            .filter((tab): tab is TileTab => !!tab && tab.isLazy === true);
+            .map(tabId => this.getTile<TileTabState>(tabId))
+            .filter((tab): tab is TileTabState => !!tab && tab.isLazy === true);
           lazyTabs.push(...panelLazyTabs);
         }
 
@@ -1922,7 +1922,7 @@ export class Ttabs {
     } else {
       // Search all panels for lazy tabs
       return Object.values(this.tiles)
-        .filter((tile): tile is TileTab =>
+        .filter((tile): tile is TileTabState =>
           tile.type === 'tab' && tile.isLazy === true);
     }
   }
@@ -1938,7 +1938,7 @@ export class Ttabs {
 
     // Depending on container type, recalculate children
     if (container.type === 'row') {
-      const row = container as TileRow;
+      const row = container as TileRowState;
       const containerEl = document.querySelector(
         `[data-tile-id="${containerId}"]`,
       ) as HTMLElement;
@@ -1946,7 +1946,7 @@ export class Ttabs {
 
       const containerWidth = containerEl.offsetWidth;
       const columns = row.columns.map(id => {
-        const col = this.getTile<TileColumn>(id);
+        const col = this.getTile<TileColumnState>(id);
         if (!col) return null;
         return { id, size: col.width };
       }).filter(Boolean) as Array<{ id: string, size: SizeInfo }>;
@@ -1955,7 +1955,7 @@ export class Ttabs {
 
       // Apply the calculated sizes
       calculatedSizes.forEach(({ id, computedSize, scaledDown }) => {
-        const column = this.getTile<TileColumn>(id);
+        const column = this.getTile<TileColumnState>(id);
         if (!column) return;
 
         // Store computed size for reference during resize operations
@@ -1980,7 +1980,7 @@ export class Ttabs {
         }
       });
     } else if (container.type === 'grid') {
-      const grid = container as TileGrid;
+      const grid = container as TileGridState;
       const containerEl = document.querySelector(
         `[data-tile-id="${containerId}"]`,
       ) as HTMLElement;
@@ -1988,7 +1988,7 @@ export class Ttabs {
 
       const containerHeight = containerEl.offsetHeight;
       const rows = grid.rows.map(id => {
-        const row = this.getTile<TileRow>(id);
+        const row = this.getTile<TileRowState>(id);
         if (!row) return null;
         return { id, size: row.height };
       }).filter(Boolean) as Array<{ id: string, size: SizeInfo }>;
@@ -1997,7 +1997,7 @@ export class Ttabs {
 
       // Apply the calculated sizes
       calculatedSizes.forEach(({ id, computedSize, scaledDown }) => {
-        const row = this.getTile<TileRow>(id);
+        const row = this.getTile<TileRowState>(id);
         if (!row) return;
 
         // Store computed size for reference during resize operations
@@ -2029,7 +2029,7 @@ export class Ttabs {
    * @param tileId ID of the tile to find the parent column for
    * @returns The parent column if found, or null if not found
    */
-  getParentColumn(tileId: string): TileColumn | null {
+  getParentColumn(tileId: string): TileColumnState | null {
     const tile = this.getTile(tileId);
     if (!tile) return null;
 
@@ -2037,7 +2037,7 @@ export class Ttabs {
     if (tile.parent) {
       const parent = this.getTile(tile.parent);
       if (parent && parent.type === 'column') {
-        return parent as TileColumn;
+        return parent as TileColumnState;
       }
     }
 
@@ -2048,15 +2048,15 @@ export class Ttabs {
    * Create a new grid or get the existing root grid as an object
    * @returns A TtabsGrid object for the root grid
    */
-  newGrid(): TtabsGrid {
+  newGrid(): Grid {
     // If there's already a root grid, use it
     if (this.rootGridId) {
-      return new TtabsGrid(this, this.rootGridId);
+      return new Grid(this, this.rootGridId);
     }
 
     // Otherwise create a new grid
     const gridId = this.addGrid();
-    return new TtabsGrid(this, gridId);
+    return new Grid(this, gridId);
   }
 
   /**
@@ -2064,8 +2064,8 @@ export class Ttabs {
    * @param id ID of the grid
    * @returns A TtabsGrid object
    */
-  getGridObject(id: string): TtabsGrid {
-    return new TtabsGrid(this, id);
+  getGridObject(id: string): Grid {
+    return new Grid(this, id);
   }
 
   /**
@@ -2073,8 +2073,8 @@ export class Ttabs {
    * @param id ID of the row
    * @returns A TtabsRow object
    */
-  getRowObject(id: string): TtabsRow {
-    return new TtabsRow(this, id);
+  getRowObject(id: string): Row {
+    return new Row(this, id);
   }
 
   /**
@@ -2082,8 +2082,8 @@ export class Ttabs {
    * @param id ID of the column
    * @returns A TtabsColumn object
    */
-  getColumnObject(id: string): TtabsColumn {
-    return new TtabsColumn(this, id);
+  getColumnObject(id: string): Column {
+    return new Column(this, id);
   }
 
   /**
@@ -2091,8 +2091,8 @@ export class Ttabs {
    * @param id ID of the panel
    * @returns A TtabsPanel object
    */
-  getPanelObject(id: string): TtabsPanel {
-    return new TtabsPanel(this, id);
+  getPanelObject(id: string): Panel {
+    return new Panel(this, id);
   }
 
   /**
@@ -2100,7 +2100,7 @@ export class Ttabs {
    * @param id ID of the tab
    * @returns A TtabsTab object
    */
-  getTabObject(id: string): TtabsTab {
-    return new TtabsTab(this, id);
+  getTabObject(id: string): Tab {
+    return new Tab(this, id);
   }
 }

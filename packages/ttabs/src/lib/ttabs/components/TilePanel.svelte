@@ -1,10 +1,7 @@
 <script lang="ts">
   import TileTab from "./TileTab.svelte";
   import type { TtabsProps } from "./props";
-  import type {
-    TilePanel as TilePanelType,
-    TileTab as TileTabType,
-  } from "../types/tile-types";
+  import type { TilePanelState } from "../types/tile-types";
   import { onMount, onDestroy } from "svelte";
   import { BROWSER } from "esm-env";
   import type { Component } from "svelte";
@@ -15,7 +12,7 @@
     ttabs.theme?.components?.closeButton;
 
   // Get panel data
-  const panel = $derived(ttabs.getTile<TilePanelType>(id));
+  const panel = $derived(ttabs.getTile<TilePanelState>(id));
 
   // Get tabs and active tab
   const tabIds = $derived(panel?.type === "panel" ? panel.tabs : []);
@@ -26,7 +23,7 @@
   const tabs = $derived(
     tabIds.map((id) => {
       return ttabs.getTab(id);
-    }),
+    })
   );
 
   // Drag state
@@ -71,7 +68,7 @@
     if (!tabBarElement) return;
 
     const tabElement = tabBarElement.querySelector(
-      `[data-tab-id="${tabId}"]`,
+      `[data-tab-id="${tabId}"]`
     ) as HTMLElement;
     if (!tabElement) return;
 
@@ -106,7 +103,7 @@
   // Helper function to determine which quadrant of the content we're hovering over
   function getQuadrant(
     e: DragEvent,
-    element: HTMLElement,
+    element: HTMLElement
   ): "top" | "right" | "bottom" | "left" {
     if (!element) return "bottom"; // Default fallback
 
@@ -194,7 +191,7 @@
     // Find the tab we're over based on mouse position
     const mouseX = e.clientX;
     const tabElements = Array.from(
-      tabBarElement.querySelectorAll(".ttabs-tab-header"),
+      tabBarElement.querySelectorAll(".ttabs-tab-header")
     ) as HTMLElement[];
 
     // If no tabs, reset state
@@ -464,7 +461,7 @@
     // Prevent event from propagating to parent elements
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Close the tab
     ttabs.closeTab(tabId);
   }
@@ -508,9 +505,11 @@
           draggable="true"
           onmousedown={(e) => {
             // Don't select the tab if the close button was clicked
-            if (e.target instanceof HTMLElement && 
-                (e.target.classList.contains('ttabs-tab-close') || 
-                 e.target.closest('.ttabs-tab-close'))) {
+            if (
+              e.target instanceof HTMLElement &&
+              (e.target.classList.contains("ttabs-tab-close") ||
+                e.target.closest(".ttabs-tab-close"))
+            ) {
               return;
             }
             selectTab(tab.id);
@@ -535,7 +534,11 @@
           </span>
 
           {#if CustomCloseButton}
-            <CustomCloseButton tabId={tab.id} {ttabs} onClose={(e: Event) => closeTab(e, tab.id)} />
+            <CustomCloseButton
+              tabId={tab.id}
+              {ttabs}
+              onClose={(e: Event) => closeTab(e, tab.id)}
+            />
           {:else}
             <button
               class="ttabs-tab-close {ttabs.theme?.classes?.[
@@ -552,7 +555,9 @@
     </div>
 
     <div
-      class="ttabs-tab-content selectable-text {ttabs.theme?.classes?.['tab-content'] || ''}"
+      class="ttabs-tab-content selectable-text {ttabs.theme?.classes?.[
+        'tab-content'
+      ] || ''}"
       id="{id}-content"
       bind:this={contentElement}
       ondragenter={onContentDragEnter}
