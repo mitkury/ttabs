@@ -11,9 +11,10 @@
 
   interface ColumnProps extends TtabsProps {
     widthPx: number;
+    isLast?: boolean;
   }
 
-  let { ttabs, id, widthPx }: ColumnProps = $props();
+  let { ttabs, id, widthPx, isLast = false }: ColumnProps = $props();
 
   const widthStyle = $derived(`width: ${widthPx}px;`);
 
@@ -21,7 +22,6 @@
 
   const parentId = $derived(column?.parent || null);
 
-  // @TODO: do it in a row
   // Check if column width is zero
   const isZeroWidth = $derived(widthPx === 0);
 
@@ -29,16 +29,11 @@
     parentId ? ttabs.getTile<TileRowState>(parentId) : null
   );
 
+  // We keep columnIndex for other calculations, but isLast is now passed as a prop
   const columnIndex = $derived(
     parentRow?.type === "row" && parentRow.columns
       ? parentRow.columns.indexOf(id)
       : -1
-  );
-
-  const isLast = $derived(
-    columnIndex >= 0 && parentRow?.type === "row" && parentRow.columns
-      ? columnIndex === parentRow.columns.length - 1
-      : false
   );
 
   // Get the child panel, grid, or content

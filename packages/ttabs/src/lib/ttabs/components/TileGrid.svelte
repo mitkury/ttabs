@@ -126,8 +126,13 @@
     data-tile-id={id}
     bind:this={gridElement}
   >
-    {#each sizedRows as row (row.id)}
-      <TileRow {ttabs} id={row.id} heightPx={row.heightPx} />
+    {#each sizedRows as row, index (row.id)}
+      <TileRow 
+        {ttabs} 
+        id={row.id} 
+        heightPx={row.heightPx} 
+        isLast={index === sizedRows.length - 1} 
+      />
     {/each}
   </div>
 {:else}

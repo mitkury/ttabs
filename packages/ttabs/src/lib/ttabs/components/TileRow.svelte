@@ -13,9 +13,10 @@
 
   interface RowProps extends TtabsProps {
     heightPx?: number;
+    isLast?: boolean;
   }
 
-  let { ttabs, id, heightPx }: RowProps = $props();
+  let { ttabs, id, heightPx, isLast = false }: RowProps = $props();
   
   const heightStyle = $derived(heightPx !== undefined ? `height: ${heightPx}px;` : "");
 
@@ -55,15 +56,11 @@
   const parentGrid = $derived(
     parentId ? ttabs.getTile<TileGridState>(parentId) : null
   );
+  // We keep rowIndex for other calculations, but isLast is now passed as a prop
   const rowIndex = $derived(
     parentGrid?.type === "grid" && parentGrid.rows
       ? parentGrid.rows.indexOf(id)
       : -1
-  );
-  const isLast = $derived(
-    rowIndex >= 0 && parentGrid?.type === "grid" && parentGrid.rows
-      ? rowIndex === parentGrid.rows.length - 1
-      : false
   );
 
   // Element reference for width calculations
@@ -269,8 +266,13 @@
     style={heightPx !== undefined ? heightStyle : getSizeStyle(row.height)}
     bind:this={rowElement}
   >
-    {#each sizedColumns as column (column.id)}
-      <TileColumn {ttabs} id={column.id} widthPx={column.widthPx} />
+    {#each sizedColumns as column, index (column.id)}
+      <TileColumn 
+        {ttabs} 
+        id={column.id} 
+        widthPx={column.widthPx} 
+        isLast={index === sizedColumns.length - 1} 
+      />
     {/each}
 
     {#if !isLast}
