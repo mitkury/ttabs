@@ -34,8 +34,10 @@
   
   // Column width calculations
   let columnWidths = $state<Record<string, number>>({});
+  let resizeObserver: ResizeObserver | null = null; // Not reactive
   
-  $effect(() => {
+  // Function to calculate column widths
+  function calculateColumnWidths() {
     if (!rowElement || !row || columns.length === 0) return;
     
     const rowWidth = rowElement.offsetWidth;
@@ -53,7 +55,51 @@
       newWidths[id] = computedSize;
     });
     
+    // Update the state in a way that doesn't trigger cascading updates
     columnWidths = newWidths;
+  }
+  
+  // Handle resize events from the ResizeObserver
+  function handleResize() {
+    // Use requestAnimationFrame to avoid excessive updates during resize
+    requestAnimationFrame(calculateColumnWidths);
+  }
+  
+  // Setup ResizeObserver when row element is available
+  $effect(() => {
+    if (!rowElement) return;
+    
+    // Clean up any existing observer
+    if (resizeObserver) {
+      resizeObserver.disconnect();
+    }
+    
+    // Create a new ResizeObserver
+    resizeObserver = new ResizeObserver(handleResize);
+    
+    // Start observing the row element
+    resizeObserver.observe(rowElement);
+    
+    // Initial calculation (after a small delay to ensure DOM is ready)
+    setTimeout(calculateColumnWidths, 0);
+    
+    // Cleanup when component is destroyed or rowElement changes
+    return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+        resizeObserver = null;
+      }
+    };
+  });
+  
+  // Recalculate when columns change (but not on every render)
+  let prevColumnsLength = -1;
+  $effect(() => {
+    // Only recalculate if columns array length actually changed
+    if (rowElement && columns.length > 0 && columns.length !== prevColumnsLength) {
+      prevColumnsLength = columns.length;
+      setTimeout(calculateColumnWidths, 0);
+    }
   });
 
   // Resizing state

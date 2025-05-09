@@ -98,6 +98,9 @@
   function onMouseMove(e: MouseEvent) {
     if (!isResizing || !column || !nextColId || !startWidthA || !startWidthB) return;
 
+    console.log("Resizing...")
+
+    /*
     // Get a reference to the containing row element
     const rowElement = document.querySelector(
       `[data-tile-id="${parentId}"]`,
@@ -174,6 +177,7 @@
       ttabs.updateTile(id, { width: newWidthA });
     }
     // All other cases are handled by the percentage-percentage case or recalculate layout
+    */
   }
 
   function onMouseUp() {
