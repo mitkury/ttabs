@@ -1,12 +1,12 @@
-# ttabs - tiling tabs in Svelte
+# TTabs - tiling tabs like in VSCode
 
 ## Overview
 
-ttabs is a layout system that allows users to create resizable and rearrangeable interfaces with tiles and tabs.
+TTabs is a layout system that allows users to create resizable and rearrangeable interfaces with tiling tabs. Like in VSCode.
 
 ### How it Works
 
-You create an instance of ttabs, register your components (can be any Svelte component), create a layout, and add instances of your components to tabs and columns.
+You create an instance of TTabs, register your components (can be any Svelte component), create a layout, and add instances of your components to tabs and columns.
 
 ## API
 
@@ -19,84 +19,116 @@ npm install ttabs-svelte
 ### Basic Usage
 
 ```javascript
-import { Ttabs, TtabsRoot } from 'ttabs-svelte';
+import { createTtabs, TtabsRoot } from 'ttabs-svelte';
 
 // Create a ttabs instance
-const ttabs = new Ttabs({
-  theme: darkTheme // Optional: specify a theme
+const ttabs = createTtabs({
+  // Optional: provide initial state
+  tiles: savedData?.tiles,
+  focusedTab: savedData?.focusedTab
 });
 
-// In your Svelte component
-<div class="container">
-  <TtabsRoot {ttabs} />
-</div>
+<TtabsRoot {ttabs} />
 ```
 
 TtabsRoot is the container component that renders your layout and manages the root grid.
 
 ### Creating Layouts
 
-```javascript
-// The rootGridId is automatically managed by TtabsRoot
-const rowId = ttabs.addRow(ttabs.getRootGridId());
-const columnId = ttabs.addColumn(rowId);
-const panelId = ttabs.addPanel(columnId);
-const tabId = ttabs.addTab(panelId, 'My Tab');
+First, register your components:
 
-// Split panels
-ttabs.splitPanel(tabId, panelId, 'right'); // directions: 'top', 'right', 'bottom', 'left'
+```javascript
+// Register components that will be used in tabs
+import MyComponent from './MyComponent.svelte';
+ttabs.registerComponent('my-component', MyComponent);
 ```
 
-### Content Components
+Then create your layout using method chaining:
 
 ```javascript
-// Register components
-import MyComponent from './MyComponent.svelte';
-ttabs.registerComponent('my-component', MyComponent, { defaultProp: 'value' });
+// Create a new grid and build the layout using method chaining
+ttabs
+  .newGrid()
+  .newRow()
+  .newColumn()
+  .newPanel()
+  .newTab("My Tab", true)
+  .setComponent("my-component", { prop1: "value1" })
+  .setFocused();
+```
 
-// Add component to a tab
-ttabs.setComponent(tabId, 'my-component', { prop1: 'value1' });
+### Working with Components
 
-// Add component directly to a column (without a panel)
-ttabs.addColumnComponent(columnId, 'my-component', { prop1: 'value1' });
+Once you've registered components, you can add them to tabs in various ways:
+
+```javascript
+// Add component to a tab using method chaining
+panel
+  .newTab("Tab Name", true)
+  .setComponent("my-component", {
+    prop1: "value1"
+  });
+
+// Or set a component on an existing tab
+const tab = ttabs.getTabObject(tabId);
+tab.setComponent("my-component", { prop1: "value1" });
 ```
 
 ### Managing Tabs
 
 ```javascript
-// Create a new tab in the active panel
-const newTabId = ttabs.createNewTabInActivePanel('New Tab');
+// Get the active panel
+const activePanel = ttabs.getActivePanel();
+const panel = ttabs.getPanelObject(activePanel);
 
-// Close a tab
-ttabs.closeTab(tabId);
+// Create a new tab in a panel
+panel
+  .newTab("New Tab", true)
+  .setFocused();
 
-// Set a tab as active
-ttabs.setActiveTab(tabId);
+// Reset the entire layout
+ttabs.resetTiles();
 
-// Move tab between panels
-ttabs.moveTab(tabId, targetPanelId);
+// Create a new layout from scratch
+ttabs
+  .newGrid()
+  .newRow()
+  .newColumn()
+  .newPanel();
 ```
 
 ### Persisting State
 
 ```javascript
-import { LocalStorageAdapter } from 'ttabs-svelte';
+import { createTtabs, LocalStorageAdapter } from 'ttabs-svelte';
+import { onMount } from 'svelte';
 
-// Create storage adapter
-const storage = new LocalStorageAdapter('my-app-layout');
+// Create a storage adapter with optional debounce time in ms
+const storageAdapter = new LocalStorageAdapter("my-app-layout", 500);
 
-// Load saved state
-const savedData = storage.load();
-const ttabs = new Ttabs({ 
+// First, try to load saved state
+const savedData = storageAdapter.load();
+
+// Initialize ttabs with the loaded state
+const ttabs = createTtabs({
+  // Use saved tiles if available, otherwise use empty state
   tiles: savedData?.tiles,
-  focusedTab: savedData?.focusedTab
+  // Use saved focused tab if available
+  focusedTab: savedData?.focusedTab,
 });
 
-// Save changes
-const unsubscribe = ttabs.subscribe(state => storage.save(state));
+// Connect the storage adapter to save changes
+const unsubscribe = ttabs.subscribe((state) => {
+  storageAdapter.save(state);
+});
 
-// Cleanup when component is destroyed
-onDestroy(() => unsubscribe());
+// Register cleanup on component destroy
+onMount(() => {
+  return () => {
+    // Unsubscribe from state changes when component is destroyed
+    unsubscribe();
+  };
+});
 ```
 
 ### Hierarchical Structure
