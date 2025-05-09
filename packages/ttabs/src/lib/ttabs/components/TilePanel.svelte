@@ -36,7 +36,7 @@
   let isDragging = $state(false);
   let dragTarget: { panelId: string; area: "tab-bar" | "content" } | null =
     $state(null);
-  let splitDirection: "top" | "right" | "bottom" | "left" | null = $state(null);
+  let splitDirection: "top" | "right" | "bottom" | "left" | "center" | null = $state(null);
 
   onMount(() => {
     if (BROWSER) {
@@ -100,11 +100,11 @@
     }
   }
 
-  // Helper function to determine which quadrant of the content we're hovering over
+  // Helper function to determine which area of the content we're hovering over
   function getQuadrant(
     e: DragEvent,
     element: HTMLElement
-  ): "top" | "right" | "bottom" | "left" {
+  ): "top" | "right" | "bottom" | "left" | "center" {
     if (!element) return "bottom"; // Default fallback
 
     const rect = element.getBoundingClientRect();
@@ -116,8 +116,17 @@
     // Calculate relative position (0-1)
     const relativeX = x / width;
     const relativeY = y / height;
-
-    // Simple quadrant detection
+    
+    // Define the central area (60% of width and height)
+    const centerMargin = 0.2; // (1 - 0.6) / 2 = 0.2 for 60% center area
+    
+    // Check if we're in the central area
+    if (relativeX >= centerMargin && relativeX <= (1 - centerMargin) && 
+        relativeY >= centerMargin && relativeY <= (1 - centerMargin)) {
+      return "center";
+    }
+    
+    // If not in center, use the quadrant detection for the outer areas
     // We use a diamond-like area division rather than just rectangles
     // This creates more natural quadrants for splitting
     if (relativeY < relativeX) {
@@ -334,15 +343,24 @@
           return;
         }
 
-        console.log("Dropping tab for split:", {
+        console.log("Dropping tab:", {
           tabId: dragData.tabId,
           targetPanelId: id,
           splitDirection: finalSplitDirection,
         });
 
-        // Call the splitPanel method in ttabs
+        // Handle the action based on the drop area
         if (dragData.action === "move" && dragData.tabId) {
-          ttabs.splitPanel(dragData.tabId, id, finalSplitDirection);
+          if (finalSplitDirection === "center") {
+            // Skip if dropping in the center of its own panel
+            if (dragData.panelId !== id) {
+              // If dropping in center, move the tab to this panel
+              ttabs.moveTab(dragData.tabId, id);
+            }
+          } else {
+            // Otherwise split the panel
+            ttabs.splitPanel(dragData.tabId, id, finalSplitDirection);
+          }
         }
       }
     } catch (error) {
@@ -571,6 +589,7 @@
       class:split-indicator-right={splitDirection === "right"}
       class:split-indicator-bottom={splitDirection === "bottom"}
       class:split-indicator-left={splitDirection === "left"}
+      class:split-indicator-center={splitDirection === "center"}
     >
       {#if activeTab}
         <TileTab {ttabs} id={activeTab} />
@@ -756,6 +775,20 @@
       background-color: var(--ttabs-split-indicator-color);
       z-index: 10;
       pointer-events: none;
+    }
+    
+    .ttabs-tab-content.split-indicator-center::before {
+      content: "";
+      position: absolute;
+      top: 20%;
+      left: 20%;
+      width: 60%;
+      height: 60%;
+      background-color: var(--ttabs-split-indicator-color);
+      z-index: 10;
+      pointer-events: none;
+      opacity: 0.7;
+      border-radius: 4px;
     }
 
     .ttabs-empty-state {
