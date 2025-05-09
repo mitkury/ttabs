@@ -41,6 +41,15 @@
   // Keep track of new tab count for naming
   let newTabCount = $state(1);
 
+  // Track sidebar visibility
+  let sidebarVisible = $state(true);
+
+  // Toggle sidebar visibility
+  function toggleSidebar() {
+    sidebarVisible = !sidebarVisible;
+    resetLayout();
+  }
+
   // Setup the custom layout using the object-oriented API
   function setupCustomLayout() {    
     // Get or create a grid object
@@ -55,7 +64,7 @@
     const mainRow = grid.newRow();
 
     // Create columns
-    const leftColumn = mainRow.newColumn("260px");
+    const leftColumn = mainRow.newColumn(sidebarVisible ? "260px" : "0px");
     const rightColumn = mainRow.newColumn();
 
     // Add side panel directly to left column (no panel/tabs)
@@ -250,6 +259,7 @@
     <div class="controls">
       <button onclick={() => resetLayout()}>Reset Layout</button>
       <button onclick={() => createNewTab()}>New Tab</button>
+      <button onclick={() => toggleSidebar()}>{sidebarVisible ? 'Hide Sidebar' : 'Show Sidebar'}</button>
     </div>
   </div>
 
