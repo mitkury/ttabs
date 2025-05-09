@@ -43,11 +43,20 @@
 
   // Track sidebar visibility
   let sidebarVisible = $state(true);
+  
+  // Store reference to sidebar column ID
+  let sidebarColumnId = $state("");
 
   // Toggle sidebar visibility
   function toggleSidebar() {
     sidebarVisible = !sidebarVisible;
-    resetLayout();
+    
+    // Update the sidebar column width directly if we have its ID
+    if (sidebarColumnId) {
+      ttabs.updateTile(sidebarColumnId, {
+        width: { value: sidebarVisible ? 260 : 0, unit: "px" as const }
+      });
+    }
   }
 
   // Setup the custom layout using the object-oriented API
@@ -65,6 +74,8 @@
 
     // Create columns
     const leftColumn = mainRow.newColumn(sidebarVisible ? "260px" : "0px");
+    // Store reference to the sidebar column
+    sidebarColumnId = leftColumn.id;
     const rightColumn = mainRow.newColumn();
 
     // Add side panel directly to left column (no panel/tabs)
