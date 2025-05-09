@@ -780,15 +780,15 @@
     .ttabs-tab-content.split-indicator-center::before {
       content: "";
       position: absolute;
-      top: 20%;
-      left: 20%;
-      width: 60%;
-      height: 60%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       background-color: var(--ttabs-split-indicator-color);
       z-index: 10;
       pointer-events: none;
-      opacity: 0.7;
-      border-radius: 4px;
+      opacity: 0.4;
+      box-sizing: border-box;
     }
 
     .ttabs-empty-state {
