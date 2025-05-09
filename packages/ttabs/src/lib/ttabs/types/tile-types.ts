@@ -18,7 +18,7 @@ export interface TileBase {
  */
 export interface SizeInfo {
   value: number;
-  unit: 'px' | '%' | 'auto';
+  unit: 'px' | '%';
 }
 
 /**

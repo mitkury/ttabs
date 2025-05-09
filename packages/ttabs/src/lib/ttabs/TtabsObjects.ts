@@ -22,7 +22,7 @@ export class TtabsGrid extends TtabsObject {
    * Create a new row in this grid
    * @param height Height of the row (e.g., "100%", "260px", "auto")
    */
-  newRow(height: string = 'auto'): TtabsRow {
+  newRow(height?: string): TtabsRow {
     const rowId = this.ttabs.addRow(this._id, height);
     return new TtabsRow(this.ttabs, rowId);
   }
@@ -36,7 +36,7 @@ export class TtabsRow extends TtabsObject {
    * Create a new column in this row
    * @param width Width of the column (e.g., "100%", "260px", "auto")
    */
-  newColumn(width: string = 'auto'): TtabsColumn {
+  newColumn(width?: string): TtabsColumn {
     const columnId = this.ttabs.addColumn(this._id, width);
     return new TtabsColumn(this.ttabs, columnId);
   }

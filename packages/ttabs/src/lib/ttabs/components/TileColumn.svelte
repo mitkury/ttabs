@@ -137,8 +137,8 @@
       ttabs.updateTile(id, { width: newWidthA });
       ttabs.updateTile(nextColId, { width: newWidthB });
     }
-    else if (startWidthA.unit === 'px' && (startWidthB.unit === '%' || startWidthB.unit === 'auto')) {
-      // First column in pixels (fixed width like sidebar), second is flexible (% or auto)
+    else if (startWidthA.unit === 'px' && startWidthB.unit === '%') {
+      // First column in pixels (fixed width), second is percentage-based
       const MIN_WIDTH_PX = 50;
       
       // Adjust pixel column directly with constraints
@@ -148,13 +148,13 @@
       // Update first column
       ttabs.updateTile(id, { width: newWidthA });
       
-      // Let recalculate handle the second column
-      if (parentId) {
-        ttabs.recalculateLayout(parentId as string);
-      }
+      // Update second column
+      const newWidthValueB = Math.max(0, startWidthB.value - (deltaPixels / rowElement.offsetWidth) * 100);
+      const newWidthB = { value: newWidthValueB, unit: '%' as const };
+      ttabs.updateTile(nextColId, { width: newWidthB });
     }
-    else if ((startWidthA.unit === '%' || startWidthA.unit === 'auto') && startWidthB.unit === 'px') {
-      // First column is flexible (% or auto), second in pixels
+    else if (startWidthA.unit === '%' && startWidthB.unit === 'px') {
+      // First column is percentage-based, second in pixels
       const MIN_WIDTH_PX = 50;
       
       // Adjust pixel column directly
@@ -164,44 +164,12 @@
       // Update second column
       ttabs.updateTile(nextColId, { width: newWidthB });
       
-      // Let recalculate handle the first column
-      if (parentId) {
-        ttabs.recalculateLayout(parentId as string);
-      }
+      // Update first column
+      const newWidthValueA = Math.max(0, startWidthA.value + (deltaPixels / rowElement.offsetWidth) * 100);
+      const newWidthA = { value: newWidthValueA, unit: '%' as const };
+      ttabs.updateTile(id, { width: newWidthA });
     }
-    else if (startWidthA.unit === 'auto' || startWidthB.unit === 'auto') {
-      // Handle auto columns - convert to percentage during resize
-      const MIN_WIDTH_PERCENT = 5;
-      
-      // Get current sizes
-      const totalWidth = rowElement.offsetWidth;
-      const currentWidthA = column.computedSize || (rowElement.offsetWidth * 0.5);
-      const currentWidthB = ttabs.getTile<TileColumnType>(nextColId)?.computedSize || (rowElement.offsetWidth * 0.5);
-      
-      // Convert pixel movement to percentage
-      const deltaPercent = (deltaPixels / totalWidth) * 100;
-      
-      // If first column is auto, convert to percentage
-      if (startWidthA.unit === 'auto') {
-        const currentPercentA = (currentWidthA / totalWidth) * 100;
-        const newWidthValueA = Math.max(MIN_WIDTH_PERCENT, currentPercentA + deltaPercent);
-        const newWidthA = { value: newWidthValueA, unit: '%' as const };
-        ttabs.updateTile(id, { width: newWidthA });
-      }
-      
-      // If second column is auto, convert to percentage
-      if (startWidthB.unit === 'auto') {
-        const currentPercentB = (currentWidthB / totalWidth) * 100;
-        const newWidthValueB = Math.max(MIN_WIDTH_PERCENT, currentPercentB - deltaPercent);
-        const newWidthB = { value: newWidthValueB, unit: '%' as const };
-        ttabs.updateTile(nextColId, { width: newWidthB });
-      }
-      
-      // Recalculate layout
-      if (parentId) {
-        ttabs.recalculateLayout(parentId as string);
-      }
-    }
+    // All other cases are handled by the percentage-percentage case or recalculate layout
   }
 
   function onMouseUp() {
@@ -211,10 +179,6 @@
   // Add a function to generate the style string based on SizeInfo
   function getSizeStyle(size: SizeInfo | undefined): string {
     if (!size) return '';
-    
-    if (size.unit === 'auto') {
-      return 'flex: 1; width: auto;';
-    }
     
     return `width: ${size.value}${size.unit};`;
   }

@@ -111,10 +111,11 @@
       // Update first row
       ttabs.updateTile(id, { height: newHeightA });
       
-      // Let recalculate handle the second row
-      if (parentId) {
-        ttabs.recalculateLayout(parentId as string);
-      }
+      // Update second row with percentage adjustment
+      const deltaPercent = (deltaPixels / gridElement.offsetHeight) * 100;
+      const newHeightValueB = Math.max(MIN_HEIGHT_PERCENT, startHeightB.value - deltaPercent);
+      const newHeightB = { value: newHeightValueB, unit: '%' as const };
+      ttabs.updateTile(nextRowId, { height: newHeightB });
     }
     else if (startHeightA.unit === '%' && startHeightB.unit === 'px') {
       // First row in percentage, second in pixels
@@ -128,44 +129,13 @@
       // Update second row
       ttabs.updateTile(nextRowId, { height: newHeightB });
       
-      // Let recalculate handle the first row
-      if (parentId) {
-        ttabs.recalculateLayout(parentId as string);
-      }
+      // Update first row with percentage adjustment
+      const deltaPercent = (deltaPixels / gridElement.offsetHeight) * 100;
+      const newHeightValueA = Math.max(MIN_HEIGHT_PERCENT, startHeightA.value + deltaPercent);
+      const newHeightA = { value: newHeightValueA, unit: '%' as const };
+      ttabs.updateTile(id, { height: newHeightA });
     }
-    else if (startHeightA.unit === 'auto' || startHeightB.unit === 'auto') {
-      // Handle auto rows - convert to percentage during resize
-      const MIN_HEIGHT_PERCENT = 5;
-      
-      // Get current sizes
-      const totalHeight = gridElement.offsetHeight;
-      const currentHeightA = row.computedSize || (gridElement.offsetHeight * 0.5);
-      const currentHeightB = ttabs.getTile<TileRowType>(nextRowId)?.computedSize || (gridElement.offsetHeight * 0.5);
-      
-      // Convert pixel movement to percentage
-      const deltaPercent = (deltaPixels / totalHeight) * 100;
-      
-      // If first row is auto, convert to percentage
-      if (startHeightA.unit === 'auto') {
-        const currentPercentA = (currentHeightA / totalHeight) * 100;
-        const newHeightValueA = Math.max(MIN_HEIGHT_PERCENT, currentPercentA + deltaPercent);
-        const newHeightA = { value: newHeightValueA, unit: '%' as const };
-        ttabs.updateTile(id, { height: newHeightA });
-      }
-      
-      // If second row is auto, convert to percentage
-      if (startHeightB.unit === 'auto') {
-        const currentPercentB = (currentHeightB / totalHeight) * 100;
-        const newHeightValueB = Math.max(MIN_HEIGHT_PERCENT, currentPercentB - deltaPercent);
-        const newHeightB = { value: newHeightValueB, unit: '%' as const };
-        ttabs.updateTile(nextRowId, { height: newHeightB });
-      }
-      
-      // Recalculate layout
-      if (parentId) {
-        ttabs.recalculateLayout(parentId as string);
-      }
-    }
+    // No more auto unit handling - all rows now use either px or %
   }
 
   function onMouseUp() {
@@ -175,10 +145,6 @@
   // Add a function to generate the style string based on SizeInfo
   function getSizeStyle(size: SizeInfo | undefined): string {
     if (!size) return '';
-    
-    if (size.unit === 'auto') {
-      return 'flex: 1; height: auto;';
-    }
     
     return `height: ${size.value}${size.unit};`;
   }

@@ -49,7 +49,6 @@ export function calculateSizes(
   let totalPercentage = 0;
   const fixedElements: Array<{id: string, size: number}> = [];
   const percentElements: Array<{id: string, percent: number}> = [];
-  const autoElements: Array<string> = [];
   
   // First pass: categorize elements and calculate fixed totals
   elements.forEach(element => {
@@ -59,8 +58,6 @@ export function calculateSizes(
     } else if (element.size.unit === '%') {
       totalPercentage += element.size.value;
       percentElements.push({id: element.id, percent: element.size.value});
-    } else if (element.size.unit === 'auto') {
-      autoElements.push(element.id);
     }
   });
   
@@ -77,17 +74,6 @@ export function calculateSizes(
   // Determine if percentages need normalization
   const percentageScaleFactor = totalPercentage > 0 ? 
     (totalPercentage > 100 ? 100 / totalPercentage : 1) : 1;
-  
-  // Calculate space used by percentage elements
-  let percentageSpace = 0;
-  if (totalPercentage > 0) {
-    // If percentages add up to more than 100%, normalize them
-    percentageSpace = remainingAfterFixed * Math.min(totalPercentage * percentageScaleFactor, 100) / 100;
-  }
-  
-  // Space for auto elements
-  const remainingForAuto = Math.max(0, remainingAfterFixed - percentageSpace);
-  const autoElementSize = autoElements.length > 0 ? remainingForAuto / autoElements.length : 0;
   
   // Results array
   const results: Array<{id: string, computedSize: number, scaledDown: boolean}> = [];
@@ -116,15 +102,6 @@ export function calculateSizes(
       });
     });
   }
-  
-  // Process auto elements
-  autoElements.forEach(elementId => {
-    results.push({
-      id: elementId,
-      computedSize: autoElementSize,
-      scaledDown: false
-    });
-  });
   
   return results;
 } 
