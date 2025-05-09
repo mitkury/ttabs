@@ -11,7 +11,13 @@
   import { onMount } from "svelte";
   import { areTileArraysEqual } from "../utils/tile-comparisons";
 
-  let { ttabs, id }: TtabsProps = $props();
+  interface RowProps extends TtabsProps {
+    heightPx?: number;
+  }
+
+  let { ttabs, id, heightPx }: RowProps = $props();
+  
+  const heightStyle = $derived(heightPx !== undefined ? `height: ${heightPx}px;` : "");
 
   // Get row data
   let row: TileRowState | undefined = $state();
@@ -298,7 +304,7 @@
     class="ttabs-row {ttabs.theme?.classes?.row || ''}"
     class:is-resizing={isResizing}
     data-tile-id={id}
-    style={getSizeStyle(row.height)}
+    style={heightPx !== undefined ? heightStyle : getSizeStyle(row.height)}
     bind:this={rowElement}
   >
     {#each sizedColumns as column (column.id)}
