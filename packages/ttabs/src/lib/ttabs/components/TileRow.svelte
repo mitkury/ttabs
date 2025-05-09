@@ -119,11 +119,6 @@
   });
 
   $effect(() => {
-    //console.log(columnTiles);
-  });
-
-  // Setup ResizeObserver when row element is available
-  $effect(() => {
     if (!rowElement) return;
 
     const resizeObserver = new ResizeObserver(handleResize);

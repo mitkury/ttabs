@@ -21,7 +21,6 @@
   let rowTiles: TileRowState[] = $state([]);
   let gridElement = $state<HTMLElement | null>(null);
   let rowHeights: number[] = $state([]);
-  let resizeObserver: ResizeObserver | null = null;
 
   // We construct it out of two states: rowTiles and rowHeights
   // Those states update independently that is why we make sure that
@@ -99,23 +98,11 @@
   $effect(() => {
     if (!gridElement) return;
 
-    // Clean up any existing observer
-    if (resizeObserver) {
-      resizeObserver.disconnect();
-    }
-
-    // Create a new ResizeObserver
-    resizeObserver = new ResizeObserver(handleResize);
-
-    // Start observing the grid element
+    const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(gridElement);
 
-    // Cleanup when component is destroyed or gridElement changes
     return () => {
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-        resizeObserver = null;
-      }
+      resizeObserver?.disconnect();
     };
   });
 </script>
