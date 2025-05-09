@@ -11,31 +11,33 @@
   import type { Component } from "svelte";
 
   interface ColumnProps extends TtabsProps {
-    widthPx?: number;
+    widthPx: number;
   }
 
-  let { ttabs, id, widthPx = 0 }: ColumnProps = $props();
+  let { ttabs, id, widthPx }: ColumnProps = $props();
+
+  const widthStyle = $derived(`width: ${widthPx}px;`);
 
   // Get column data
   const column = $derived(ttabs.getTile<TileColumnType>(id));
   const parentId = $derived(column?.parent || null);
 
   // Check if column width is zero
-  const isZeroWidth = $derived(widthPx === 0 || column?.computedSize === 0);
+  const isZeroWidth = $derived(widthPx === 0);
 
   // Get parent row to access siblings
   const parentRow = $derived(
-    parentId ? ttabs.getTile<TileRow>(parentId) : null,
+    parentId ? ttabs.getTile<TileRow>(parentId) : null
   );
   const columnIndex = $derived(
     parentRow?.type === "row" && parentRow.columns
       ? parentRow.columns.indexOf(id)
-      : -1,
+      : -1
   );
   const isLast = $derived(
     columnIndex >= 0 && parentRow?.type === "row" && parentRow.columns
       ? columnIndex === parentRow.columns.length - 1
-      : false,
+      : false
   );
 
   // Get the child panel, grid, or content
@@ -96,107 +98,83 @@
   }
 
   function onMouseMove(e: MouseEvent) {
-    if (!isResizing || !column || !nextColId || !startWidthA || !startWidthB) return;
+    if (!isResizing || !column || !nextColId || !startWidthA || !startWidthB)
+      return;
 
-    console.log("Resizing...")
+    if (!parentId) return;
 
-    /*
     // Get a reference to the containing row element
     const rowElement = document.querySelector(
-      `[data-tile-id="${parentId}"]`,
+      `[data-tile-id="${parentId}"]`
     ) as HTMLElement;
     if (!rowElement) return;
 
     // Calculate pixel movement
     const deltaPixels = e.clientX - startX;
-    
-    // Handle resizing based on unit types
-    if (startWidthA.unit === 'px' && startWidthB.unit === 'px') {
-      // Both columns use pixels - direct pixel adjustment
-      const MIN_WIDTH_PX = 50; // Minimum width in pixels
-      
-      // Calculate new widths ensuring minimum width
-      const newWidthValueA = Math.max(MIN_WIDTH_PX, startWidthA.value + deltaPixels);
-      const newWidthValueB = Math.max(MIN_WIDTH_PX, startWidthB.value - deltaPixels);
-      
-      // Apply the new widths
-      const newWidthA = { value: newWidthValueA, unit: 'px' as const };
-      const newWidthB = { value: newWidthValueB, unit: 'px' as const };
-      
-      ttabs.updateTile(id, { width: newWidthA });
-      ttabs.updateTile(nextColId, { width: newWidthB });
-    } 
-    else if (startWidthA.unit === '%' && startWidthB.unit === '%') {
-      // Both columns use percentage - percentage adjustment
-      const MIN_WIDTH_PERCENT = 5; // Minimum width in percentage
-      
-      // Convert pixel movement to percentage
-      const deltaPercent = (deltaPixels / rowElement.offsetWidth) * 100;
-      
-      // Calculate new widths ensuring minimum width
-      const newWidthValueA = Math.max(MIN_WIDTH_PERCENT, startWidthA.value + deltaPercent);
-      const newWidthValueB = Math.max(MIN_WIDTH_PERCENT, startWidthB.value - deltaPercent);
-      
-      // Apply the new widths
-      const newWidthA = { value: newWidthValueA, unit: '%' as const };
-      const newWidthB = { value: newWidthValueB, unit: '%' as const };
-      
-      ttabs.updateTile(id, { width: newWidthA });
-      ttabs.updateTile(nextColId, { width: newWidthB });
+
+    // Get the next column
+    const nextColumn = ttabs.getTile<TileColumnType>(nextColId);
+    if (!nextColumn) return;
+
+    // Get current widths in pixels from the widthPx prop
+    // This is the actual rendered width in pixels
+    const currentWidthA = widthPx;
+
+    // For the next column, we need to access its widthPx
+    // We'll get the parent row to find the next column's width
+    const parentRow = ttabs.getTile<TileRow>(parentId);
+    if (!parentRow) return;
+
+    // Get the row's total width
+    const rowWidth = rowElement.offsetWidth;
+
+    // Calculate the next column's width based on its proportion of the row
+    // This is a simplification - ideally we would access the next column's widthPx directly
+    let currentWidthB: number;
+
+    if (nextColumn.width.unit === "px") {
+      // For pixel-based columns, use the original width value
+      currentWidthB = nextColumn.width.value;
+    } else {
+      // For percentage-based columns, calculate the pixel width
+      currentWidthB = (nextColumn.width.value / 100) * rowWidth;
     }
-    else if (startWidthA.unit === 'px' && startWidthB.unit === '%') {
-      // First column in pixels (fixed width), second is percentage-based
-      const MIN_WIDTH_PX = 50;
-      
-      // Adjust pixel column directly with constraints
-      const newWidthValueA = Math.max(MIN_WIDTH_PX, startWidthA.value + deltaPixels);
-      const newWidthA = { value: newWidthValueA, unit: 'px' as const };
-      
-      // Update first column
-      ttabs.updateTile(id, { width: newWidthA });
-      
-      // Update second column
-      const newWidthValueB = Math.max(0, startWidthB.value - (deltaPixels / rowElement.offsetWidth) * 100);
-      const newWidthB = { value: newWidthValueB, unit: '%' as const };
-      ttabs.updateTile(nextColId, { width: newWidthB });
+
+    // Calculate new widths in pixels with constraints
+    const MIN_WIDTH_PX = 50; // Minimum width in pixels
+    const newWidthAPixels = Math.max(MIN_WIDTH_PX, currentWidthA + deltaPixels);
+    const newWidthBPixels = Math.max(MIN_WIDTH_PX, currentWidthB - deltaPixels);
+
+    // Update the columns based on their original unit types
+    if (startWidthA.unit === "px") {
+      // Update column A with pixel value
+      ttabs.updateTile(id, {
+        width: { value: newWidthAPixels, unit: "px" as const },
+      });
+    } else if (startWidthA.unit === "%") {
+      // Convert pixels to percentage for column A
+      const newPercentageA = (newWidthAPixels / rowWidth) * 100;
+      ttabs.updateTile(id, {
+        width: { value: newPercentageA, unit: "%" as const },
+      });
     }
-    else if (startWidthA.unit === '%' && startWidthB.unit === 'px') {
-      // First column is percentage-based, second in pixels
-      const MIN_WIDTH_PX = 50;
-      
-      // Adjust pixel column directly
-      const newWidthValueB = Math.max(MIN_WIDTH_PX, startWidthB.value - deltaPixels);
-      const newWidthB = { value: newWidthValueB, unit: 'px' as const };
-      
-      // Update second column
-      ttabs.updateTile(nextColId, { width: newWidthB });
-      
-      // Update first column
-      const newWidthValueA = Math.max(0, startWidthA.value + (deltaPixels / rowElement.offsetWidth) * 100);
-      const newWidthA = { value: newWidthValueA, unit: '%' as const };
-      ttabs.updateTile(id, { width: newWidthA });
+
+    if (startWidthB.unit === "px") {
+      // Update column B with pixel value
+      ttabs.updateTile(nextColId, {
+        width: { value: newWidthBPixels, unit: "px" as const },
+      });
+    } else if (startWidthB.unit === "%") {
+      // Convert pixels to percentage for column B
+      const newPercentageB = (newWidthBPixels / rowWidth) * 100;
+      ttabs.updateTile(nextColId, {
+        width: { value: newPercentageB, unit: "%" as const },
+      });
     }
-    // All other cases are handled by the percentage-percentage case or recalculate layout
-    */
   }
 
   function onMouseUp() {
     isResizing = false;
-  }
-
-  // Add a function to generate the style string
-  function getWidthStyle(): string {
-    // If we have a calculated pixel width, use it
-    if (widthPx > 0) {
-      return `width: ${widthPx}px;`;
-    }
-    
-    // Fallback to the column's size info
-    if (column?.width) {
-      return `width: ${column.width.value}${column.width.unit};`;
-    }
-    
-    return '';
   }
 </script>
 
@@ -208,7 +186,7 @@
     class:is-resizing={isResizing}
     class:zero-width={isZeroWidth}
     data-tile-id={id}
-    style={getWidthStyle()}
+    style={widthStyle}
   >
     {#if childTile?.type === "panel" && childId !== null}
       <TilePanel {ttabs} id={childId} />
@@ -282,7 +260,10 @@
 
     .column-resizer:hover,
     .is-resizing .column-resizer {
-      background-color: var(--ttabs-resizer-hover-color, rgba(74, 108, 247, 0.6));
+      background-color: var(
+        --ttabs-resizer-hover-color,
+        rgba(74, 108, 247, 0.6)
+      );
       transition-delay: 200ms;
     }
 
