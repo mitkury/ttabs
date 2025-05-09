@@ -1,28 +1,27 @@
 <script lang="ts">
   import TileRow from "./TileRow.svelte";
   import type { TtabsProps } from "./props";
-  import type { TileGridState, TileRowState, SizeInfo } from "../types/tile-types";
+  import type {
+    TileGridState,
+    TileRowState,
+    SizeInfo,
+  } from "../types/tile-types";
   import { calculateSizes } from "../utils/size-utils";
   import { onMount } from "svelte";
   import { areTileArraysEqual } from "../utils/tile-comparisons";
-
-  let { ttabs, id }: TtabsProps = $props();
-
-  // Get grid data
-  let grid: TileGridState | undefined = $state();
-  let rowTiles: TileRowState[] = $state([]);
-  
-  // Element reference for height calculations
-  let gridElement = $state<HTMLElement | null>(null);
-
-  // Row height calculations
-  let rowHeights: number[] = $state([]);
-  let resizeObserver: ResizeObserver | null = null;
 
   type SizedRows = {
     id: string;
     heightPx: number;
   };
+
+  let { ttabs, id }: TtabsProps = $props();
+
+  let grid: TileGridState | undefined = $state();
+  let rowTiles: TileRowState[] = $state([]);
+  let gridElement = $state<HTMLElement | null>(null);
+  let rowHeights: number[] = $state([]);
+  let resizeObserver: ResizeObserver | null = null;
 
   // We construct it out of two states: rowTiles and rowHeights
   // Those states update independently that is why we make sure that
@@ -97,7 +96,6 @@
     };
   });
 
-  // Setup ResizeObserver when grid element is available
   $effect(() => {
     if (!gridElement) return;
 
@@ -123,8 +121,8 @@
 </script>
 
 {#if grid?.type === "grid"}
-  <div 
-    class="ttabs-grid {ttabs.theme?.classes?.grid || ''}" 
+  <div
+    class="ttabs-grid {ttabs.theme?.classes?.grid || ''}"
     data-tile-id={id}
     bind:this={gridElement}
   >

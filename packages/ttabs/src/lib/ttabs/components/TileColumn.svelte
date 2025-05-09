@@ -17,22 +17,24 @@
 
   const widthStyle = $derived(`width: ${widthPx}px;`);
 
-  // Get column data
   const column = $derived(ttabs.getTile<TileColumnState>(id));
+
   const parentId = $derived(column?.parent || null);
 
+  // @TODO: do it in a row
   // Check if column width is zero
   const isZeroWidth = $derived(widthPx === 0);
 
-  // Get parent row to access siblings
   const parentRow = $derived(
     parentId ? ttabs.getTile<TileRowState>(parentId) : null
   );
+
   const columnIndex = $derived(
     parentRow?.type === "row" && parentRow.columns
       ? parentRow.columns.indexOf(id)
       : -1
   );
+
   const isLast = $derived(
     columnIndex >= 0 && parentRow?.type === "row" && parentRow.columns
       ? columnIndex === parentRow.columns.length - 1
@@ -41,9 +43,9 @@
 
   // Get the child panel, grid, or content
   const childId = $derived(column?.type === "column" ? column.child : null);
+  
   const childTile = $derived(childId ? ttabs.getTile(childId) : null);
 
-  // Component instance for direct content
   let DirectComponent = $state<Component<any> | null>(null);
   let componentProps = $state<Record<string, any>>({});
 
@@ -70,17 +72,15 @@
     }
   });
 
-  // Resizing state
   let isResizing = $state(false);
-  let startX = $state(0);
-  let startWidthA = $state<SizeInfo | null>(null);
-  let startWidthB = $state<SizeInfo | null>(null);
-  let nextColId = $state<string | null>(null);
+  let startX = 0;
+  let startWidthA: SizeInfo | null = null;
+  let startWidthB: SizeInfo | null = null;
+  let nextColId: string | null = null;
 
   function onResizerMouseDown(e: MouseEvent) {
     if (isLast || !column || !parentRow || !parentRow.columns) return;
 
-    // Store the next column ID
     nextColId = parentRow.columns[columnIndex + 1];
     if (!nextColId) return;
 
