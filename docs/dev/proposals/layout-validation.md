@@ -8,6 +8,8 @@ This proposal outlines a system for validating ttabs layouts during initializati
 2. A middleware pattern that allows users to add custom validation rules
 3. A default layout initialization mechanism that serves as a fallback
 
+Validation will run automatically when creating a ttabs instance with tiles (in the constructor) or when running the setup function.
+
 ## Motivation
 
 As ttabs is used in more complex applications, ensuring layout integrity becomes increasingly important. Invalid layouts can lead to:
@@ -23,18 +25,24 @@ By implementing a validation system with fallbacks, we can:
 - Prevent runtime errors due to invalid layouts
 - Provide graceful degradation when layouts are corrupted
 - Allow applications to enforce their own layout constraints
+- Expose validation errors to the UI for better user feedback
 
 ## Implementation Details
 
 ### 1. Validation Interface
 
 ```typescript
+// Custom error type for layout validation
+export class LayoutValidationError extends Error {
+  constructor(message: string, public code: string) {
+    super(message);
+    this.name = 'LayoutValidationError';
+  }
+}
+
 interface LayoutValidator {
-  // Returns true if layout is valid, false otherwise
+  // Returns true if layout is valid, throws LayoutValidationError otherwise
   validate(ttabs: Ttabs): boolean;
-  
-  // Optional error message explaining why validation failed
-  errorMessage?: string;
 }
 ```
 
@@ -50,8 +58,7 @@ class DefaultValidator implements LayoutValidator {
     // Check for root grid
     const rootGridId = ttabs.getRootGridId();
     if (!rootGridId || !tiles[rootGridId]) {
-      this.errorMessage = "Missing root grid";
-      return false;
+      throw new LayoutValidationError("Missing root grid", "MISSING_ROOT_GRID");
     }
     
     // Check for orphaned tiles (tiles with non-existent parents)
@@ -60,15 +67,19 @@ class DefaultValidator implements LayoutValidator {
     );
     
     if (orphanedTiles.length > 0) {
-      this.errorMessage = `Found ${orphanedTiles.length} orphaned tiles`;
-      return false;
+      throw new LayoutValidationError(
+        `Found ${orphanedTiles.length} orphaned tiles`, 
+        "ORPHANED_TILES"
+      );
     }
     
     // Check for basic structure (grid should have at least one row)
     const rootGrid = tiles[rootGridId] as TileGridState;
     if (!rootGrid.rows || rootGrid.rows.length === 0) {
-      this.errorMessage = "Root grid has no rows";
-      return false;
+      throw new LayoutValidationError(
+        "Root grid has no rows", 
+        "EMPTY_ROOT_GRID"
+      );
     }
     
     // Check that rows have columns
@@ -78,20 +89,22 @@ class DefaultValidator implements LayoutValidator {
     });
     
     if (emptyRows.length > 0) {
-      this.errorMessage = `Found ${emptyRows.length} empty rows`;
-      return false;
+      throw new LayoutValidationError(
+        `Found ${emptyRows.length} empty rows`, 
+        "EMPTY_ROWS"
+      );
     }
     
     return true;
   }
-  
-  errorMessage?: string;
 }
 ```
 
 ### 3. Validation Middleware System
 
 ```typescript
+type ValidationErrorHandler = (error: LayoutValidationError) => void;
+
 interface ValidationMiddleware {
   // Array of validators to run
   validators: LayoutValidator[];
@@ -99,11 +112,17 @@ interface ValidationMiddleware {
   // Default layout creator function
   defaultLayoutCreator?: (ttabs: Ttabs) => void;
   
+  // Error handlers
+  errorHandlers: ValidationErrorHandler[];
+  
   // Run all validators
   validate(ttabs: Ttabs): boolean;
   
   // Reset to default layout
   resetToDefault(ttabs: Ttabs): void;
+  
+  // Add error handler
+  addErrorHandler(handler: ValidationErrorHandler): void;
 }
 ```
 
@@ -125,12 +144,6 @@ interface TtabsOptions {
    * Function to create a default layout when validation fails
    */
   defaultLayoutCreator?: (ttabs: Ttabs) => void;
-  
-  /**
-   * Whether to automatically reset to default layout when validation fails
-   * Default: false
-   */
-  autoResetOnValidationFailure?: boolean;
 }
 
 // In Ttabs class
@@ -138,24 +151,42 @@ class Ttabs {
   // ... existing properties
   
   private validationMiddleware: ValidationMiddleware;
-  private autoResetOnValidationFailure: boolean;
   
   constructor(options: TtabsOptions = {}) {
     // ... existing initialization
     
     // Initialize validation middleware
     this.validationMiddleware = {
-      validators: [new DefaultValidator(), ...(options.validators || [])],
+      validators: [...(options.validators || [])],
       defaultLayoutCreator: options.defaultLayoutCreator,
+      errorHandlers: [],
       
       validate: (ttabs: Ttabs): boolean => {
-        for (const validator of this.validationMiddleware.validators) {
-          if (!validator.validate(ttabs)) {
-            console.warn(`Layout validation failed: ${validator.errorMessage}`);
+        try {
+          // Always run the default validator first
+          this.runDefaultValidator();
+          
+          // Then run custom validators
+          for (const validator of this.validationMiddleware.validators) {
+            validator.validate(ttabs);
+          }
+          return true;
+        } catch (error) {
+          if (error instanceof LayoutValidationError) {
+            // Notify error handlers
+            this.validationMiddleware.errorHandlers.forEach(handler => {
+              handler(error);
+            });
+            
+            console.warn(`Layout validation failed: ${error.message} (${error.code})`);
+            
+            // Reset to default layout
+            this.validationMiddleware.resetToDefault(this);
             return false;
           }
+          // Re-throw other errors
+          throw error;
         }
-        return true;
       },
       
       resetToDefault: (ttabs: Ttabs): void => {
@@ -178,16 +209,26 @@ class Ttabs {
         
         // Notify state change
         this.notifyStateChange();
+      },
+      
+      addErrorHandler: (handler: ValidationErrorHandler): void => {
+        this.validationMiddleware.errorHandlers.push(handler);
       }
     };
     
-    this.autoResetOnValidationFailure = options.autoResetOnValidationFailure || false;
-    
-    // Validate initial layout
-    if (!this.validationMiddleware.validate(this) && this.autoResetOnValidationFailure) {
-      console.warn('Initial layout validation failed, resetting to default layout');
-      this.validationMiddleware.resetToDefault(this);
+    // Validate initial layout when created with tiles
+    if (Object.keys(this.tiles).length > 0) {
+      this.validateLayout();
     }
+  }
+  
+  /**
+   * Run the default validator
+   * @private
+   */
+  private runDefaultValidator(): void {
+    const defaultValidator = new DefaultValidator();
+    defaultValidator.validate(this);
   }
   
   /**
@@ -220,20 +261,52 @@ class Ttabs {
   resetToDefaultLayout(): void {
     this.validationMiddleware.resetToDefault(this);
   }
+  
+  /**
+   * Setup the ttabs instance with the given tiles
+   * This will validate the layout and reset to default if invalid
+   * @param tiles The tiles to set up
+   */
+  setup(tiles: Record<string, TileState>): void {
+    this.tiles = tiles;
+    this.rootGridId = this.findRootGridId();
+    this.validateLayout();
+  }
+  
+  /**
+   * Subscribe to layout validation errors
+   * @param handler Function to call when validation errors occur
+   * @returns Unsubscribe function
+   */
+  onValidationError(handler: ValidationErrorHandler): () => void {
+    this.validationMiddleware.addErrorHandler(handler);
+    
+    // Return unsubscribe function
+    return () => {
+      this.validationMiddleware.errorHandlers = 
+        this.validationMiddleware.errorHandlers.filter(h => h !== handler);
+    };
+  }
 }
 ```
 
 ## Usage Examples
 
-### Basic Usage with Auto-Reset
+### Basic Usage
 
 ```typescript
-// Create ttabs with auto-reset enabled
-const ttabs = new Ttabs({
-  autoResetOnValidationFailure: true
+// Create ttabs with default validation
+const ttabs = new Ttabs();
+
+// Validation happens automatically when tiles are provided in constructor
+const ttabsWithTiles = new Ttabs({
+  tiles: existingTiles
 });
 
-// If the layout is ever invalid, it will automatically reset to a default layout
+// Or when using the setup function
+ttabs.setup(loadedTiles);
+
+// In both cases, if the layout is invalid, it will reset to a default layout
 ```
 
 ### Custom Validator for Application-Specific Requirements
@@ -242,21 +315,43 @@ const ttabs = new Ttabs({
 // Create a custom validator that requires a sidebar
 class SidebarValidator implements LayoutValidator {
   validate(ttabs: Ttabs): boolean {
-    // Check if there's a column with the 'sidebar' class
+    // Check if there's a column with a specific width that serves as a sidebar
     const tiles = ttabs.getTiles();
-    const hasSidebar = Object.values(tiles).some(tile => 
-      tile.type === 'column' && tile.className?.includes('sidebar')
-    );
+    const rootGridId = ttabs.getRootGridId();
+    const rootGrid = tiles[rootGridId] as TileGridState;
     
-    if (!hasSidebar) {
-      this.errorMessage = "Layout must include a sidebar";
-      return false;
+    if (!rootGrid || !rootGrid.rows || rootGrid.rows.length === 0) {
+      throw new LayoutValidationError(
+        "Invalid root grid structure", 
+        "INVALID_GRID_STRUCTURE"
+      );
+    }
+    
+    // Get the first row
+    const mainRowId = rootGrid.rows[0];
+    const mainRow = tiles[mainRowId] as TileRowState;
+    
+    if (!mainRow || !mainRow.columns || mainRow.columns.length < 2) {
+      throw new LayoutValidationError(
+        "Layout must include at least two columns in the main row", 
+        "MISSING_COLUMNS"
+      );
+    }
+    
+    // Check if the first column has the expected width for a sidebar
+    const leftColumnId = mainRow.columns[0];
+    const leftColumn = tiles[leftColumnId] as TileColumnState;
+    
+    if (!leftColumn || leftColumn.width.unit !== 'px' || 
+        (leftColumn.width.value !== 260 && leftColumn.width.value !== 0)) {
+      throw new LayoutValidationError(
+        "Layout must include a sidebar column with width 260px or 0px", 
+        "INVALID_SIDEBAR"
+      );
     }
     
     return true;
   }
-  
-  errorMessage?: string;
 }
 
 // Create ttabs with custom validator
@@ -266,24 +361,27 @@ const ttabs = new Ttabs({
     // Create a layout with a sidebar
     const rowId = t.addRow(t.getRootGridId());
     
-    // Add sidebar column (20% width)
-    const sidebarId = t.addColumn(rowId, { width: { value: 20, unit: '%' } });
-    t.updateTile(sidebarId, { className: 'sidebar' });
+    // Add sidebar column (260px width)
+    const leftColumn = t.addColumn(rowId, { width: { value: 260, unit: 'px' } });
     
-    // Add main content column (80% width)
-    const mainId = t.addColumn(rowId, { width: { value: 80, unit: '%' } });
+    // Add main content column (percentage-based)
+    const mainId = t.addColumn(rowId, { width: { value: 100, unit: '%' } });
     const panelId = t.addPanel(mainId);
     t.addTab(panelId, 'Main Content');
+    
+    // Add component to sidebar
+    t.setComponent(leftColumn, 'sidepanel', {
+      title: "Navigation",
+      items: [
+        { id: "files", label: "Files", icon: "📁" },
+        { id: "search", label: "Search", icon: "🔍" },
+      ]
+    });
   }
 });
-
-// Manually validate and reset if needed
-if (!ttabs.validateLayout()) {
-  ttabs.resetToDefaultLayout();
-}
 ```
 
-### Persisting Valid Layouts
+### Persisting Valid Layouts and Handling Errors
 
 ```typescript
 import { LocalStorageAdapter } from 'ttabs-svelte';
@@ -298,18 +396,21 @@ const savedData = storage.load();
 const ttabs = new Ttabs({
   tiles: savedData?.tiles,
   validators: [new MyCustomValidator()],
-  defaultLayoutCreator: createDefaultAppLayout,
-  autoResetOnValidationFailure: true
+  defaultLayoutCreator: createDefaultAppLayout
 });
 
-// Save layout when it changes, but only if valid
+// Subscribe to validation errors and show them in UI
+ttabs.onValidationError((error) => {
+  showErrorNotification(`Layout validation failed: ${error.message}`);
+  console.error(`Validation error: ${error.code} - ${error.message}`);
+});
+
+// Save layout when it changes
 ttabs.subscribe((state) => {
-  if (ttabs.validateLayout()) {
-    storage.save({
-      tiles: state,
-      focusedTab: ttabs.focusedActiveTab
-    });
-  }
+  storage.save({
+    tiles: state,
+    focusedTab: ttabs.focusedActiveTab
+  });
 });
 ```
 
@@ -319,15 +420,13 @@ ttabs.subscribe((state) => {
 2. **Customization**: Developers can enforce application-specific layout requirements
 3. **Integrity**: Prevents runtime errors from invalid layouts
 4. **Flexibility**: The middleware pattern allows for composable validation rules
-
-## Compatibility
-
-This proposal is backward compatible with existing ttabs implementations. Applications that don't need validation can ignore these features, while those that need them can opt-in.
+5. **Error Handling**: Provides a way to display validation errors in the UI
 
 ## Implementation Plan
 
 1. Add validation interfaces and default validator
 2. Integrate validation middleware into Ttabs constructor
 3. Add public methods for validation and reset
-4. Update documentation and examples
-5. Add tests for validation scenarios
+4. Implement error subscription mechanism
+5. Update documentation and examples
+6. Add tests for validation scenarios
