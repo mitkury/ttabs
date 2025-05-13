@@ -52,12 +52,15 @@ export function createValidationMiddleware(
       // Clear existing tiles
       ttabs.resetTiles();
       
+      // Create a root grid first
+      const gridId = ttabs.addGrid();
+      
       // Apply default layout if provided
       if (this.defaultLayoutCreator) {
         this.defaultLayoutCreator(ttabs);
       } else {
         // Create a minimal valid layout
-        const grid = ttabs.newGrid();
+        const grid = ttabs.getGridObject(gridId);
         const row = grid.newRow();
         const column = row.newColumn();
         const panel = column.newPanel();
