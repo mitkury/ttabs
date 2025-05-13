@@ -440,7 +440,7 @@ export class Ttabs {
   updateTile<T extends TileState>(id: string, updates: Partial<T>): boolean {
     const tile = this.getTile(id);
     if (!tile) return false;
-    
+
     // Special handling for grid rows to ensure it's always an array
     if (tile.type === 'grid' && 'rows' in updates) {
       updates = { ...updates, rows: updates.rows || [] };
@@ -1291,32 +1291,32 @@ export class Ttabs {
     if (parent.type !== 'grid') {
       throw new Error(`Cannot add a row to a parent of type ${parent.type}. Rows can only be children of grids.`);
     }
-    
+
     const grid = parent as TileGridState;
     let sizeInfo: SizeInfo;
-    
+
     if (!height) {
       if (grid.rows.length === 0) {
         height = '100%';
       } else {
         // Calculate default percentage for the new row
         const newRowPercentage = 100 / (grid.rows.length + 1);
-        
+
         // Get existing percentage-based rows
         const percentageRows = grid.rows
           .map(id => this.getTile<TileRowState>(id))
           .filter((row): row is TileRowState => !!row && row.height.unit === '%');
-        
+
         if (percentageRows.length > 0) {
           // Calculate total existing percentage
           const totalExistingPercentage = percentageRows.reduce(
             (sum, row) => sum + row.height.value, 0
           );
-          
+
           // Calculate scaling factor to redistribute remaining space
           const remainingPercentage = 100 - newRowPercentage;
           const scalingFactor = remainingPercentage / totalExistingPercentage;
-          
+
           // Update existing rows proportionally
           percentageRows.forEach(row => {
             const newPercentage = row.height.value * scalingFactor;
@@ -1325,11 +1325,11 @@ export class Ttabs {
             });
           });
         }
-        
+
         height = `${newRowPercentage}%`;
       }
     }
-    
+
     // Parse the height value
     sizeInfo = parseSizeValue(height);
 
@@ -1373,29 +1373,29 @@ export class Ttabs {
 
     // if width is not specified, calculate it based on the existing columns
     // if it's specified - use it as is for px and calculate size for % based. But also run detection of invalid sizes
-    
+
     if (!width) {
       if (row.columns.length === 0) {
         width = '100%';
       } else {
         // Calculate default percentage for the new column
         const newColumnPercentage = 100 / (row.columns.length + 1);
-        
+
         // Get existing percentage-based columns
         const percentageColumns = row.columns
           .map(id => this.getTile<TileColumnState>(id))
           .filter((col): col is TileColumnState => !!col && col.width.unit === '%');
-        
+
         if (percentageColumns.length > 0) {
           // Calculate total existing percentage
           const totalExistingPercentage = percentageColumns.reduce(
             (sum, col) => sum + col.width.value, 0
           );
-          
+
           // Calculate scaling factor to redistribute remaining space
           const remainingPercentage = 100 - newColumnPercentage;
           const scalingFactor = remainingPercentage / totalExistingPercentage;
-          
+
           // Update existing columns proportionally
           percentageColumns.forEach(col => {
             const newPercentage = col.width.value * scalingFactor;
@@ -1404,7 +1404,7 @@ export class Ttabs {
             });
           });
         }
-        
+
         width = `${newColumnPercentage}%`;
       }
     } else {
