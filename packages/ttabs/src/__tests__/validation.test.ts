@@ -1,7 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Ttabs } from '../Ttabs.svelte';
-import { LayoutValidationError, type LayoutValidator } from '../validation';
-import type { TileState, TileGridState, TileRowState, TileColumnState } from '../types/tile-types';
+import { 
+  Ttabs, 
+  LayoutValidationError, 
+  type LayoutValidator,
+  type TileState, 
+  type TileGridState, 
+  type TileRowState, 
+  type TileColumnState 
+} from 'ttabs-svelte';
 
 describe('Layout Validation', () => {
   // Mock console.warn to avoid cluttering test output

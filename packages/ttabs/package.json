@@ -19,9 +19,9 @@
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"test": "vitest run",
-		"test:watch": "vitest",
-		"test:coverage": "vitest run --coverage"
+		"test": "npm run build && vitest run",
+		"test:watch": "npm run build && vitest",
+		"test:coverage": "npm run build && vitest run --coverage"
 	},
 	"sideEffects": [
 		"**/*.css"

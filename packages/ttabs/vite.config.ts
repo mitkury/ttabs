@@ -1,6 +1,7 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import { configDefaults } from 'vitest/config';
+import path from 'path';
 
 export default defineConfig({
 	plugins: [sveltekit()],
@@ -20,9 +21,12 @@ export default defineConfig({
 		}
 	},
 	// Tell Vitest to use the `browser` entry points in `package.json` files, even though it's running in Node
-	resolve: process.env.VITEST
-		? {
-				conditions: ['browser']
-			}
-		: undefined
+	resolve: {
+		// Use browser conditions when running tests
+		...(process.env.VITEST ? { conditions: ['browser'] } : {}),
+		// Always alias ttabs-svelte to the dist folder for testing
+		alias: {
+			'ttabs-svelte': path.resolve(__dirname, './dist')
+		}
+	}
 });

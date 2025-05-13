@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Ttabs } from '../Ttabs.svelte';
-import { DEFAULT_THEME } from '../types/theme-types';
+import { Ttabs, DEFAULT_THEME } from 'ttabs-svelte';
 import type { Component } from 'svelte';
 
 describe('Ttabs', () => {
