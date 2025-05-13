@@ -49,6 +49,15 @@ export { LocalStorageAdapter } from './storage/local-storage';
 // Utilities
 export { generateId } from './utils/tile-utils';
 
+// Validation system
+export { 
+  LayoutValidationError,
+  type LayoutValidator,
+  type ValidationErrorHandler,
+  type ValidationMiddleware
+} from './validation';
+export { DefaultValidator } from './validation';
+
 // Convenience factory function for Svelte
 export function createTtabs(options: TtabsOptions = {}): Ttabs {
   return new Ttabs(options);
