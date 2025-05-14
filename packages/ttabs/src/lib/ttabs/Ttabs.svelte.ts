@@ -5,7 +5,7 @@ import type { TtabsTheme } from './types/theme-types';
 import { DEFAULT_THEME, resolveTheme } from './types/theme-types';
 import { parseSizeValue, calculateSizes } from './utils/size-utils';
 import { Column, Grid, Panel, Row, Tab } from './ttabsObjects';
-import { DefaultValidator, createValidationMiddleware, type LayoutValidator, type ValidationErrorHandler, type ValidationMiddleware } from './validation';
+import { createValidationMiddleware, type LayoutValidator, type ValidationErrorHandler, type ValidationMiddleware } from './validation';
 
 /**
  * Type for component registry

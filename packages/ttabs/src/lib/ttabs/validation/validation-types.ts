@@ -11,16 +11,11 @@ export class LayoutValidationError extends Error {
 }
 
 /**
- * Interface for layout validators
+ * Function type for layout validators
+ * @param ttabs The ttabs instance to validate
+ * @returns true if layout is valid, throws LayoutValidationError otherwise
  */
-export interface LayoutValidator {
-  /**
-   * Validates a ttabs layout
-   * @param ttabs The ttabs instance to validate
-   * @returns true if layout is valid, throws LayoutValidationError otherwise
-   */
-  validate(ttabs: Ttabs): boolean;
-}
+export type LayoutValidator = (ttabs: Ttabs) => boolean;
 
 /**
  * Type for validation error handlers
@@ -32,7 +27,7 @@ export type ValidationErrorHandler = (error: LayoutValidationError) => void;
  */
 export interface ValidationMiddleware {
   /**
-   * Array of validators to run
+   * Array of validator functions to run
    */
   validators: LayoutValidator[];
   

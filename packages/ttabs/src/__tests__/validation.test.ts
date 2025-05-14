@@ -123,14 +123,15 @@ describe('Layout Validation', () => {
   describe('Custom Validators', () => {
     it('should run custom validators', () => {
       // Create a custom validator that requires at least one panel
-      const customValidator: LayoutValidator = {
-        validate: (ttabs) => {
-          const hasPanels = Object.values(ttabs.getTiles()).some(tile => tile.type === 'panel');
-          if (!hasPanels) {
-            throw new LayoutValidationError('Layout must have at least one panel', 'MISSING_PANEL');
-          }
-          return true;
+      const customValidator: LayoutValidator = (ttabs) => {
+        const hasPanels = Object.values(ttabs.getTiles()).some(tile => tile.type === 'panel');
+        if (!hasPanels) {
+          throw new LayoutValidationError(
+            "Layout must include at least one panel", 
+            "MISSING_PANEL"
+          );
         }
+        return true;
       };
       
       // Create a ttabs instance with the custom validator
@@ -140,7 +141,7 @@ describe('Layout Validation', () => {
       
       // Create a layout without panels
       const rowId = ttabs.addRow(ttabs.rootGridId);
-      ttabs.addColumn(rowId);
+      const columnId = ttabs.addColumn(rowId);
       
       // Mock the error handler
       const errorHandler = vi.fn();
@@ -157,24 +158,25 @@ describe('Layout Validation', () => {
       );
     });
 
-    it('should add validators after initialization', () => {
+    it('should allow adding validators after creation', () => {
       // Create a ttabs instance
       const ttabs = new Ttabs();
       
-      // Create a layout without tabs
+      // Create a valid layout with a panel but no tabs
       const rowId = ttabs.addRow(ttabs.rootGridId);
       const columnId = ttabs.addColumn(rowId);
       ttabs.addPanel(columnId);
       
       // Add a custom validator that requires at least one tab
-      const customValidator: LayoutValidator = {
-        validate: (ttabs) => {
-          const hasTabs = Object.values(ttabs.getTiles()).some(tile => tile.type === 'tab');
-          if (!hasTabs) {
-            throw new LayoutValidationError('Layout must have at least one tab', 'MISSING_TAB');
-          }
-          return true;
+      const customValidator: LayoutValidator = (ttabs) => {
+        const hasTabs = Object.values(ttabs.getTiles()).some(tile => tile.type === 'tab');
+        if (!hasTabs) {
+          throw new LayoutValidationError(
+            "Layout must include at least one tab", 
+            "MISSING_TAB"
+          );
         }
+        return true;
       };
       
       ttabs.addValidator(customValidator);

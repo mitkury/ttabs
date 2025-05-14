@@ -1,5 +1,5 @@
 import type { Ttabs } from '../Ttabs.svelte';
-import { DefaultValidator } from './default-validator';
+import { defaultValidator } from './default-validator';
 import { LayoutValidationError, type LayoutValidator, type ValidationErrorHandler, type ValidationMiddleware } from './validation-types';
 
 /**
@@ -22,12 +22,11 @@ export function createValidationMiddleware(
     validate(ttabs: Ttabs): boolean {
       try {
         // Always run the default validator first
-        const defaultValidator = new DefaultValidator();
-        defaultValidator.validate(ttabs);
+        defaultValidator(ttabs);
         
         // Then run custom validators
         for (const validator of this.validators) {
-          validator.validate(ttabs);
+          validator(ttabs);
         }
         return true;
       } catch (error) {
