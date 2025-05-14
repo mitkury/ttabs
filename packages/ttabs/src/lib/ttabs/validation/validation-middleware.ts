@@ -53,18 +53,11 @@ export function createValidationMiddleware(
       ttabs.resetTiles();
       
       // Create a root grid first
-      const gridId = ttabs.addGrid();
+      ttabs.addGrid();
       
       // Apply default layout if provided
       if (this.defaultLayoutCreator) {
         this.defaultLayoutCreator(ttabs);
-      } else {
-        // Create a minimal valid layout
-        const grid = ttabs.getGridObject(gridId);
-        const row = grid.newRow();
-        const column = row.newColumn();
-        const panel = column.newPanel();
-        panel.newTab("Default Tab");
       }
     },
     

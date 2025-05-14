@@ -21,6 +21,11 @@ interface ContentComponent {
 export type StateChangeCallback = (state: Record<string, TileState>) => void;
 
 /**
+ * Type for setup callback
+ */
+export type SetupCallback = (result: { didResetToDefaultLayout: boolean }) => void;
+
+/**
  * Options for creating a ttabs instance
  */
 export interface TtabsOptions {
@@ -42,18 +47,20 @@ export interface TtabsOptions {
    * If not provided, the default theme will be used
    */
   theme?: TtabsTheme;
-  
+
   /**
    * Custom validators to add to the validation middleware (optional)
    * These will be run after the default validator
    */
   validators?: LayoutValidator[];
-  
+
   /**
    * Function to create a default layout when validation fails (optional)
    * If not provided, a minimal valid layout will be created
    */
   defaultLayoutCreator?: (ttabs: Ttabs) => void;
+
+  setupFromScratch?: SetupCallback;
 }
 
 /**
@@ -69,9 +76,11 @@ export class Ttabs {
 
   // State change listeners
   stateChangeListeners: StateChangeCallback[] = [];
-  
+
   // Validation middleware
   private validationMiddleware: ValidationMiddleware;
+
+  private setupFromScratchCallback?: SetupCallback;
 
   /**
    * Find the root grid ID from the current tiles
@@ -97,7 +106,9 @@ export class Ttabs {
       options.validators || [],
       options.defaultLayoutCreator
     );
-    
+
+    this.setupFromScratchCallback = options.setupFromScratch;
+
     // Initialize state
     if (options.tiles) {
       if (Array.isArray(options.tiles)) {
@@ -118,7 +129,7 @@ export class Ttabs {
         // Find the root grid
         this.rootGridId = this.findRootGridId();
       }
-      
+
       // Validate initial layout when created with tiles
       this.validateLayout();
     } else {
@@ -1254,7 +1265,7 @@ export class Ttabs {
     this.focusedActiveTab = null;
     this.rootGridId = "";
   }
-  
+
   /**
    * Validate the current layout
    * @returns True if layout is valid, false otherwise
@@ -1262,14 +1273,14 @@ export class Ttabs {
   validateLayout(): boolean {
     return this.validationMiddleware.validate(this);
   }
-  
+
   /**
    * Reset to the default layout
    */
   resetToDefaultLayout(): void {
     this.validationMiddleware.resetToDefault(this);
   }
-  
+
   /**
    * Add a custom validator to the validation middleware
    * @param validator The validator to add
@@ -1277,7 +1288,7 @@ export class Ttabs {
   addValidator(validator: LayoutValidator): void {
     this.validationMiddleware.validators.push(validator);
   }
-  
+
   /**
    * Set the default layout creator function
    * @param creator Function that creates a default layout
@@ -1285,7 +1296,7 @@ export class Ttabs {
   setDefaultLayoutCreator(creator: (ttabs: Ttabs) => void): void {
     this.validationMiddleware.defaultLayoutCreator = creator;
   }
-  
+
   /**
    * Subscribe to layout validation errors
    * @param handler Function to call when validation errors occur
@@ -1293,10 +1304,10 @@ export class Ttabs {
    */
   onValidationError(handler: ValidationErrorHandler): () => void {
     this.validationMiddleware.addErrorHandler(handler);
-    
+
     // Return unsubscribe function
     return () => {
-      this.validationMiddleware.errorHandlers = 
+      this.validationMiddleware.errorHandlers =
         this.validationMiddleware.errorHandlers.filter(h => h !== handler);
     };
   }
@@ -1751,6 +1762,9 @@ export class Ttabs {
   setup(tiles: TileState[], { activePanel, focusedActiveTab }: { activePanel?: string, focusedActiveTab?: string } = {}) {
     this.resetTiles();
 
+    let didResetToDefaultLayout = false;
+    let success = true;
+
     try {
       const rootGrids = tiles.filter(tile =>
         tile.type === 'grid' && !tile.parent
@@ -1784,40 +1798,58 @@ export class Ttabs {
           this.findAndSetDefaultFocusedTab();
         }
       }
-      
+
       this.notifyStateChange();
     } catch (error) {
       console.error('Failed to setup ttabs:', error);
       // If setup fails, reset to default layout
       this.resetToDefaultLayout();
+      didResetToDefaultLayout = true;
+      success = false;
     }
+
+    // Call the callback with the result if provided
+    this.setupFromScratchCallback?.({
+      didResetToDefaultLayout
+    });
   }
-  
+
   /**
    * Setup the ttabs instance with the given tiles as a record
-   * This will validate the layout and reset to default if invalid
    * @param tiles The tiles to set up as a record
+   * @param callback Optional callback that will be called when setup is complete with information about the result
    */
   setupWithRecord(tiles: Record<string, TileState>): void {
     this.resetTiles();
     this.tiles = tiles;
-    
+
     try {
       this.rootGridId = this.findRootGridId();
-      
+
       // Validate the layout after setting up tiles
       this.validateLayout();
-      
+
       this.notifyStateChange();
+
+      this.setupFromScratchCallback?.({
+        didResetToDefaultLayout: false
+      });
     } catch (error) {
       console.error('Failed to setup ttabs with record:', error);
       // If setup fails, reset to default layout
       this.resetToDefaultLayout();
+
+      this.setupFromScratchCallback?.({
+        didResetToDefaultLayout: true
+      });
     }
   }
 
   /**
    * Deserialize a layout from JSON
+   * @param json The JSON string to deserialize
+   * @param callback Optional callback that will be called when setup is complete with information about the result
+   * @returns True if deserialization was successful, false otherwise
    */
   deserializeLayout(json: string): boolean {
     try {
@@ -1833,6 +1865,14 @@ export class Ttabs {
       return false;
     } catch (e) {
       console.error('Failed to deserialize layout:', e);
+
+      // If we couldn't even parse the JSON, reset to default layout and call callback
+      this.resetToDefaultLayout();
+
+      this.setupFromScratchCallback?.({
+        didResetToDefaultLayout: true
+      });
+
       return false;
     }
   }
