@@ -56,7 +56,6 @@ export {
   type ValidationErrorHandler,
   type ValidationMiddleware
 } from './validation';
-export { DefaultValidator } from './validation';
 
 // Convenience factory function for Svelte
 export function createTtabs(options: TtabsOptions = {}): Ttabs {
