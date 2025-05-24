@@ -36,7 +36,8 @@
   let isDragging = $state(false);
   let dragTarget: { panelId: string; area: "tab-bar" | "content" } | null =
     $state(null);
-  let splitDirection: "top" | "right" | "bottom" | "left" | "center" | null = $state(null);
+  let splitDirection: "top" | "right" | "bottom" | "left" | "center" | null =
+    $state(null);
 
   onMount(() => {
     if (BROWSER) {
@@ -116,16 +117,20 @@
     // Calculate relative position (0-1)
     const relativeX = x / width;
     const relativeY = y / height;
-    
+
     // Define the central area (60% of width and height)
     const centerMargin = 0.2; // (1 - 0.6) / 2 = 0.2 for 60% center area
-    
+
     // Check if we're in the central area
-    if (relativeX >= centerMargin && relativeX <= (1 - centerMargin) && 
-        relativeY >= centerMargin && relativeY <= (1 - centerMargin)) {
+    if (
+      relativeX >= centerMargin &&
+      relativeX <= 1 - centerMargin &&
+      relativeY >= centerMargin &&
+      relativeY <= 1 - centerMargin
+    ) {
       return "center";
     }
-    
+
     // If not in center, use the quadrant detection for the outer areas
     // We use a diamond-like area division rather than just rectangles
     // This creates more natural quadrants for splitting
@@ -485,25 +490,31 @@
     class:drop-target={draggedTabId && draggedPanelId !== id}
     role="tabpanel"
   >
-    <div class="ttabs-panel-bar">
+    <div
+      class="ttabs-panel-bar"
+      class:has-right-components={panel?.rightComponents?.length}
+      class:has-left-components={panel?.leftComponents?.length}
+    >
       <!-- Left panel UI components -->
-      <div class="ttabs-panel-left">
-        {#if panel?.leftComponents?.length}
+      {#if panel?.leftComponents?.length}
+        <div class="ttabs-panel-left">
           {#each panel.leftComponents as leftComp}
-            {@const componentData = ttabs.getContentComponent(leftComp.componentId)}
+            {@const componentData = ttabs.getContentComponent(
+              leftComp.componentId
+            )}
             {#if componentData}
               {@const LeftComponent = componentData.component}
               {@const leftProps = {
                 ...componentData.defaultProps,
                 ...leftComp.props,
                 ttabs,
-                panelId: id
+                panelId: id,
               }}
               <LeftComponent {...leftProps} />
             {/if}
           {/each}
-        {/if}
-      </div>
+        </div>
+      {/if}
 
       <!-- Regular tab bar -->
       <div
@@ -517,93 +528,95 @@
         aria-label="Tabs"
         tabindex="0"
       >
-      {#each tabs as tab (tab.id)}
-        <!-- Default tab header implementation -->
-        <div
-          class="ttabs-tab-header {ttabs.theme?.classes?.['tab-header'] ||
-            ''} {tab.id === activeTab
-            ? `ttabs-tab-header-active ${ttabs.theme?.classes?.['tab-header-active'] || ''}`
-            : ''} {tab.id === focusedTab
-            ? `ttabs-tab-header-focused ${ttabs.theme?.classes?.['tab-header-focused'] || ''}`
-            : ''}"
-          class:active={tab.id === activeTab}
-          class:focused={tab.id === focusedTab}
-          class:is-dragging={tab.id === draggedTabId}
-          class:drop-before={tab.id === dragOverTabId &&
-            dragPosition === "before"}
-          class:drop-after={tab.id === dragOverTabId &&
-            dragPosition === "after"}
-          data-tab-id={tab.id}
-          draggable="true"
-          onmousedown={(e) => {
-            // Don't select the tab if the close button was clicked
-            if (
-              e.target instanceof HTMLElement &&
-              (e.target.classList.contains("ttabs-tab-close") ||
-                e.target.closest(".ttabs-tab-close"))
-            ) {
-              return;
-            }
-            selectTab(tab.id);
-          }}
-          onkeydown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
+        {#each tabs as tab (tab.id)}
+          <!-- Default tab header implementation -->
+          <div
+            class="ttabs-tab-header {ttabs.theme?.classes?.['tab-header'] ||
+              ''} {tab.id === activeTab
+              ? `ttabs-tab-header-active ${ttabs.theme?.classes?.['tab-header-active'] || ''}`
+              : ''} {tab.id === focusedTab
+              ? `ttabs-tab-header-focused ${ttabs.theme?.classes?.['tab-header-focused'] || ''}`
+              : ''}"
+            class:active={tab.id === activeTab}
+            class:focused={tab.id === focusedTab}
+            class:is-dragging={tab.id === draggedTabId}
+            class:drop-before={tab.id === dragOverTabId &&
+              dragPosition === "before"}
+            class:drop-after={tab.id === dragOverTabId &&
+              dragPosition === "after"}
+            data-tab-id={tab.id}
+            draggable="true"
+            onmousedown={(e) => {
+              // Don't select the tab if the close button was clicked
+              if (
+                e.target instanceof HTMLElement &&
+                (e.target.classList.contains("ttabs-tab-close") ||
+                  e.target.closest(".ttabs-tab-close"))
+              ) {
+                return;
+              }
               selectTab(tab.id);
-            }
-          }}
-          ondragstart={(e) => onDragStart(e, tab.id)}
-          ondragend={onDragEnd}
-          role="tab"
-          aria-selected={tab.id === activeTab}
-          aria-controls="{id}-content"
-          tabindex="0"
-        >
-          <span class="ttabs-tab-title">
-            <span class:ttabs-lazy-tab={tab.isLazy === true}>
-              {tab.name || "Unnamed Tab"}
+            }}
+            onkeydown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                selectTab(tab.id);
+              }
+            }}
+            ondragstart={(e) => onDragStart(e, tab.id)}
+            ondragend={onDragEnd}
+            role="tab"
+            aria-selected={tab.id === activeTab}
+            aria-controls="{id}-content"
+            tabindex="0"
+          >
+            <span class="ttabs-tab-title">
+              <span class:ttabs-lazy-tab={tab.isLazy === true}>
+                {tab.name || "Unnamed Tab"}
+              </span>
             </span>
-          </span>
 
-          {#if CustomCloseButton}
-            <CustomCloseButton
-              tabId={tab.id}
-              {ttabs}
-              onClose={(e: Event) => closeTab(e, tab.id)}
-            />
-          {:else}
-            <button
-              class="ttabs-tab-close {ttabs.theme?.classes?.[
-                'tab-close-button'
-              ] || ''}"
-              style="display: var(--ttabs-show-close-button, none)"
-              onclick={(e) => closeTab(e, tab.id)}
-            >
-              ✕
-            </button>
-          {/if}
-        </div>
-      {/each}
+            {#if CustomCloseButton}
+              <CustomCloseButton
+                tabId={tab.id}
+                {ttabs}
+                onClose={(e: Event) => closeTab(e, tab.id)}
+              />
+            {:else}
+              <button
+                class="ttabs-tab-close {ttabs.theme?.classes?.[
+                  'tab-close-button'
+                ] || ''}"
+                style="display: var(--ttabs-show-close-button, none)"
+                onclick={(e) => closeTab(e, tab.id)}
+              >
+                ✕
+              </button>
+            {/if}
+          </div>
+        {/each}
       </div>
 
       <!-- Right panel UI components -->
-      <div class="ttabs-panel-right">
-        {#if panel?.rightComponents?.length}
+      {#if panel?.rightComponents?.length}
+        <div class="ttabs-panel-right">
           {#each panel.rightComponents as rightComp}
-            {@const componentData = ttabs.getContentComponent(rightComp.componentId)}
+            {@const componentData = ttabs.getContentComponent(
+              rightComp.componentId
+            )}
             {#if componentData}
               {@const RightComponent = componentData.component}
               {@const rightProps = {
                 ...componentData.defaultProps,
                 ...rightComp.props,
                 ttabs,
-                panelId: id
+                panelId: id,
               }}
               <RightComponent {...rightProps} />
             {/if}
           {/each}
-        {/if}
-      </div>
+        </div>
+      {/if}
     </div>
 
     <div
@@ -656,7 +669,7 @@
       border: var(--ttabs-border);
       border-radius: none;
     }
-    
+
     .ttabs-panel-bar {
       display: flex;
       width: 100%;
@@ -664,8 +677,9 @@
       background-color: var(--ttabs-tab-bar-bg);
       border-bottom: var(--ttabs-tab-bar-border);
     }
-    
-    .ttabs-panel-left, .ttabs-panel-right {
+
+    .ttabs-panel-left,
+    .ttabs-panel-right {
       display: flex;
       align-items: center;
       padding: 0 var(--ttabs-panel-ui-padding, 4px);
@@ -690,7 +704,6 @@
     .ttabs-tab-header {
       padding: var(--ttabs-tab-header-padding);
       cursor: pointer;
-      border-right: var(--ttabs-tab-header-border);
       white-space: nowrap;
       font-size: var(--ttabs-tab-header-font-size);
       transition: background-color var(--ttabs-transition-duration)
@@ -701,10 +714,6 @@
       color: var(--ttabs-tab-text-color);
       border-top-left-radius: none;
       border-top-right-radius: none;
-    }
-
-    .ttabs-tab-bar > .ttabs-tab-header:last-child {
-      border-right: none;
     }
 
     .ttabs-tab-title {
@@ -825,7 +834,7 @@
       z-index: 10;
       pointer-events: none;
     }
-    
+
     .ttabs-tab-content.split-indicator-center::before {
       content: "";
       position: absolute;

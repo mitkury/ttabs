@@ -36,7 +36,6 @@ This document provides a comprehensive list of all CSS variables available for t
 | Variable | Description | Default Value |
 | --- | --- | --- |
 | `--ttabs-tab-header-padding` | Tab header padding | `0.5rem 1rem` |
-| `--ttabs-tab-header-border` | Tab header border style | `1px solid #ddd` |
 | `--ttabs-tab-header-font-size` | Tab header font size | `0.9rem` |
 | `--ttabs-tab-bar-border` | Tab bar border style | `1px solid #ddd` |
 

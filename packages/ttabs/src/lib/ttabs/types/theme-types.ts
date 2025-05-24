@@ -168,7 +168,6 @@ export const DEFAULT_THEME: TtabsTheme = {
     
     // Tab headers
     '--ttabs-tab-header-padding': '0.5rem 1rem',
-    '--ttabs-tab-header-border': '1px solid #ddd',
     '--ttabs-tab-header-font-size': '0.9rem',
     '--ttabs-tab-bar-border': '1px solid #ddd',
     '--ttabs-tab-indicator-size': '3px',
