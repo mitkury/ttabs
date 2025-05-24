@@ -485,17 +485,38 @@
     class:drop-target={draggedTabId && draggedPanelId !== id}
     role="tabpanel"
   >
-    <div
-      class="ttabs-tab-bar {ttabs.theme?.classes?.['tab-bar'] || ''}"
-      bind:this={tabBarElement}
-      ondragover={onDragOver}
-      ondragenter={onDragEnter}
-      ondragleave={onDragLeave}
-      ondrop={onDrop}
-      role="tablist"
-      aria-label="Tabs"
-      tabindex="0"
-    >
+    <div class="ttabs-panel-bar">
+      <!-- Left panel UI components -->
+      <div class="ttabs-panel-left">
+        {#if panel?.leftComponents?.length}
+          {#each panel.leftComponents as leftComp}
+            {@const componentData = ttabs.getContentComponent(leftComp.componentId)}
+            {#if componentData}
+              {@const LeftComponent = componentData.component}
+              {@const leftProps = {
+                ...componentData.defaultProps,
+                ...leftComp.props,
+                ttabs,
+                panelId: id
+              }}
+              <LeftComponent {...leftProps} />
+            {/if}
+          {/each}
+        {/if}
+      </div>
+
+      <!-- Regular tab bar -->
+      <div
+        class="ttabs-tab-bar {ttabs.theme?.classes?.['tab-bar'] || ''}"
+        bind:this={tabBarElement}
+        ondragover={onDragOver}
+        ondragenter={onDragEnter}
+        ondragleave={onDragLeave}
+        ondrop={onDrop}
+        role="tablist"
+        aria-label="Tabs"
+        tabindex="0"
+      >
       {#each tabs as tab (tab.id)}
         <!-- Default tab header implementation -->
         <div
@@ -563,6 +584,26 @@
           {/if}
         </div>
       {/each}
+      </div>
+
+      <!-- Right panel UI components -->
+      <div class="ttabs-panel-right">
+        {#if panel?.rightComponents?.length}
+          {#each panel.rightComponents as rightComp}
+            {@const componentData = ttabs.getContentComponent(rightComp.componentId)}
+            {#if componentData}
+              {@const RightComponent = componentData.component}
+              {@const rightProps = {
+                ...componentData.defaultProps,
+                ...rightComp.props,
+                ttabs,
+                panelId: id
+              }}
+              <RightComponent {...rightProps} />
+            {/if}
+          {/each}
+        {/if}
+      </div>
     </div>
 
     <div
@@ -615,6 +656,20 @@
       border: var(--ttabs-border);
       border-radius: none;
     }
+    
+    .ttabs-panel-bar {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      background-color: var(--ttabs-tab-bar-bg);
+      border-bottom: var(--ttabs-tab-bar-border);
+    }
+    
+    .ttabs-panel-left, .ttabs-panel-right {
+      display: flex;
+      align-items: center;
+      padding: 0 var(--ttabs-panel-ui-padding, 4px);
+    }
 
     .ttabs-panel.drop-target {
       outline: var(--ttabs-drop-target-outline);
@@ -624,6 +679,7 @@
     .ttabs-tab-bar {
       display: flex;
       flex-direction: row;
+      flex: 1;
       background-color: var(--ttabs-tab-bar-bg);
       border-bottom: var(--ttabs-tab-bar-border);
       overflow-x: auto;

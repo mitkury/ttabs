@@ -4,6 +4,14 @@
 export type TileType = 'grid' | 'row' | 'column' | 'panel' | 'tab' | 'content';
 
 /**
+ * Type for panel UI component
+ */
+export interface PanelUIComponent {
+  componentId: string;
+  props?: Record<string, any>;
+}
+
+/**
  * Base tile interface with common properties
  */
 export interface TileBaseState {
@@ -58,6 +66,9 @@ export interface TilePanelState extends TileBaseState {
   type: 'panel';
   tabs: string[];
   activeTab: string | null;
+  // UI components that can be placed on the left or right side of the panel
+  leftComponents?: PanelUIComponent[];
+  rightComponents?: PanelUIComponent[];
 }
 
 /**

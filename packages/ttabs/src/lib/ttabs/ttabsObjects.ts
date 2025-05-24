@@ -86,6 +86,40 @@ export class Panel extends TileObject {
     this.ttabs.setActivePanel(this._id);
     return this;
   }
+
+  /**
+   * Get or set the left components of the panel
+   */
+  get leftComponents(): Array<{ componentId: string, props?: Record<string, any> }> {
+    const panel = this.ttabs.getPanel(this._id);
+    return panel.leftComponents || [];
+  }
+  
+  set leftComponents(components: Array<{ componentId: string, props?: Record<string, any> }>) {
+    this.ttabs.updateTile(this._id, { 
+      leftComponents: components.map(c => ({
+        componentId: c.componentId,
+        props: c.props || {}
+      }))
+    });
+  }
+  
+  /**
+   * Get or set the right components of the panel
+   */
+  get rightComponents(): Array<{ componentId: string, props?: Record<string, any> }> {
+    const panel = this.ttabs.getPanel(this._id);
+    return panel.rightComponents || [];
+  }
+  
+  set rightComponents(components: Array<{ componentId: string, props?: Record<string, any> }>) {
+    this.ttabs.updateTile(this._id, { 
+      rightComponents: components.map(c => ({
+        componentId: c.componentId,
+        props: c.props || {}
+      }))
+    });
+  }
 }
 
 /**
