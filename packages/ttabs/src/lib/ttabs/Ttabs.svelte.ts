@@ -482,9 +482,19 @@ export class Ttabs {
     if (tile.type === 'grid' && 'rows' in updates) {
       updates = { ...updates, rows: updates.rows || [] };
     }
-
-    this.tiles[id] = { ...tile, ...updates };
-
+    
+    // Create the new tile state
+    const newTile = { ...tile, ...updates };
+    
+    // Check if anything actually changed
+    if (JSON.stringify(tile) === JSON.stringify(newTile)) {
+      // No changes, return without updating or notifying
+      return true;
+    }
+    
+    // Apply changes
+    this.tiles[id] = newTile;
+    
     // Notify state changes
     this.notifyStateChange();
     return true;
@@ -2024,7 +2034,6 @@ export class Ttabs {
       else if (container.type === 'grid') {
         // Find all panels within the grid and get their lazy tabs
         const lazyTabs: TileTabState[] = [];
-        const grid = container as TileGridState;
 
         // Recursively find all panels within the grid
         const findPanelsInGrid = (gridId: string): TilePanelState[] => {
