@@ -682,7 +682,7 @@
     .ttabs-panel-right {
       display: flex;
       align-items: center;
-      padding: 0 var(--ttabs-panel-ui-padding, 4px);
+      padding: 0 var(--ttabs-panel-ui-padding, 7px);
     }
 
     .ttabs-panel.drop-target {
