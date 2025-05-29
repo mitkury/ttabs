@@ -76,6 +76,9 @@ export class Ttabs {
 
   // State change listeners
   stateChangeListeners: StateChangeCallback[] = [];
+  debouncedStateChangeListeners: StateChangeCallback[] = [];
+  pendingNotification: number | null = null;
+  pendingStateChanges: boolean = false;
 
   // Validation middleware
   private validationMiddleware: ValidationMiddleware;
@@ -168,12 +171,48 @@ export class Ttabs {
   }
 
   /**
+   * Subscribe to state changes with debouncing (calls at the end of the frame)
+   * @param callback Function to call when state changes
+   * @returns Unsubscribe function
+   */
+  subscribeDebounced(callback: StateChangeCallback): () => void {
+    this.debouncedStateChangeListeners.push(callback);
+
+    // Call immediately with current state
+    callback(this.tiles);
+
+    // Return unsubscribe function
+    return () => {
+      this.debouncedStateChangeListeners = this.debouncedStateChangeListeners.filter(cb => cb !== callback);
+    };
+  }
+
+  /**
    * Notify all subscribers of state change
    */
   private notifyStateChange(): void {
+    // Immediately notify regular subscribers
     this.stateChangeListeners.forEach(callback => {
       callback(this.tiles);
     });
+
+    // Mark that we have pending state changes
+    this.pendingStateChanges = true;
+    
+    // Schedule debounced notifications at the end of the frame
+    if (this.debouncedStateChangeListeners.length > 0 && this.pendingNotification === null) {
+      this.pendingNotification = requestAnimationFrame(() => {
+        // Only process if we have pending changes
+        if (this.pendingStateChanges) {
+          this.debouncedStateChangeListeners.forEach(callback => {
+            callback(this.tiles);
+          });
+          // Reset the pending state changes flag
+          this.pendingStateChanges = false;
+        }
+        this.pendingNotification = null;
+      });
+    }
   }
 
   /**
