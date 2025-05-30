@@ -589,8 +589,8 @@
                 ] || ''}"
                 style="display: var(--ttabs-show-close-button, none)"
                 onclick={(e) => closeTab(e, tab.id)}
-              >
-                ✕
+              >defaultComponentIdForEmptyTiles
+                ✕defaultComponentIdForEmptyTiles
               </button>
             {/if}
           </div>
@@ -640,6 +640,13 @@
     >
       {#if activeTab}
         <TileTab {ttabs} id={activeTab} />
+      {:else if ttabs.defaultComponentIdForEmptyTiles}
+        {@const NoContent = ttabs.getContentComponent(
+          ttabs.defaultComponentIdForEmptyTiles
+        )?.component}
+        {#if NoContent}
+          <NoContent />
+        {/if}
       {:else}
         <div
           class="ttabs-empty-state {ttabs.theme?.classes?.['empty-state'] ||

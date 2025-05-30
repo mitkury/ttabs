@@ -1,9 +1,9 @@
 /**
  * Common props interface for ttabs components
  */
-import { Ttabs } from '../Ttabs.svelte';
+import { TTabs } from '../TTabs.svelte';
 
 export interface TtabsProps {
-  ttabs: Ttabs;
+  ttabs: TTabs;
   id: string;
 } 

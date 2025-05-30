@@ -3,8 +3,8 @@
  * A flexible layout management system with draggable, resizable tiles and tabs
  */
 
-import type { TtabsOptions } from './Ttabs.svelte';
-import { Ttabs } from './Ttabs.svelte';
+import type { TtabsOptions } from './TTabs.svelte';
+import { TTabs } from './TTabs.svelte';
 export { Grid, Row as Row, Column, Panel, Tab } from './ttabsObjects';
 
 // Export tile types
@@ -24,7 +24,7 @@ export type { TtabsTheme } from './types/theme-types';
 export { DEFAULT_THEME } from './types/theme-types';
 
 // Export options type
-export type { TtabsOptions } from './Ttabs.svelte';
+export type { TtabsOptions } from './TTabs.svelte';
 
 // Tile components
 export { default as TileGridComponent } from './components/TileGrid.svelte';
@@ -32,7 +32,7 @@ export { default as TileRowComponent } from './components/TileRow.svelte';
 export { default as TileColumnComponent } from './components/TileColumn.svelte';
 export { default as TilePanelComponent } from './components/TilePanel.svelte';
 export { default as TileTabComponent } from './components/TileTab.svelte';
-export { default as TtabsRoot } from './components/TtabsRoot.svelte';
+export { default as TTabsRoot } from './components/TTabsRoot.svelte';
 
 // Types
 export type * from './types/tile-types';
@@ -58,6 +58,6 @@ export {
 } from './validation';
 
 // Convenience factory function for Svelte
-export function createTtabs(options: TtabsOptions = {}): Ttabs {
-  return new Ttabs(options);
+export function createTtabs(options: TtabsOptions = {}): TTabs {
+  return new TTabs(options);
 }

@@ -1,4 +1,4 @@
-import type { Ttabs } from '../Ttabs.svelte';
+import type { TTabs } from '../TTabs.svelte';
 import { defaultValidator } from './default-validator';
 import { LayoutValidationError, type LayoutValidator, type ValidationErrorHandler, type ValidationMiddleware } from './validation-types';
 
@@ -10,16 +10,16 @@ import { LayoutValidationError, type LayoutValidator, type ValidationErrorHandle
  * @returns A validation middleware instance
  */
 export function createValidationMiddleware(
-  ttabs: Ttabs,
+  ttabs: TTabs,
   validators: LayoutValidator[] = [],
-  defaultLayoutCreator?: (ttabs: Ttabs) => void
+  defaultLayoutCreator?: (ttabs: TTabs) => void
 ): ValidationMiddleware {
   return {
     validators,
     defaultLayoutCreator,
     errorHandlers: [],
     
-    validate(ttabs: Ttabs): boolean {
+    validate(ttabs: TTabs): boolean {
       try {
         // Always run the default validator first
         defaultValidator(ttabs);
@@ -47,7 +47,7 @@ export function createValidationMiddleware(
       }
     },
     
-    resetToDefault(ttabs: Ttabs): void {
+    resetToDefault(ttabs: TTabs): void {
       // Clear existing tiles
       ttabs.resetTiles();
       

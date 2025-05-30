@@ -1,8 +1,8 @@
 <script lang="ts">
   import TileGrid from "./TileGrid.svelte";
-  import type { Ttabs } from "../Ttabs.svelte";
+  import { TTabs } from "../TTabs.svelte";
 
-  let { ttabs }: { ttabs: Ttabs } = $props();
+  let { ttabs }: { ttabs: TTabs } = $props();
 
   // Generate CSS variable style string from theme
   let themeStyle = $derived.by(() =>
@@ -10,7 +10,7 @@
       ? Object.entries(ttabs.theme.variables)
           .map(([key, value]) => `${key}: ${value};`)
           .join(" ")
-      : "",
+      : ""
   );
 </script>
 
@@ -25,9 +25,7 @@
     <div
       class="ttabs-empty-state {ttabs.theme?.classes?.['empty-state'] || ''}"
     >
-      <div class="error-message">
-        No root grid found. Need to create one.
-      </div>
+      <div class="error-message">No root grid found. Need to create one.</div>
     </div>
   {/if}
 </div>

@@ -1,4 +1,4 @@
-import type { Ttabs } from '../Ttabs.svelte';
+import type { TTabs } from '../TTabs.svelte';
 
 /**
  * Custom error type for layout validation
@@ -15,7 +15,7 @@ export class LayoutValidationError extends Error {
  * @param ttabs The ttabs instance to validate
  * @returns true if layout is valid, throws LayoutValidationError otherwise
  */
-export type LayoutValidator = (ttabs: Ttabs) => boolean;
+export type LayoutValidator = (ttabs: TTabs) => boolean;
 
 /**
  * Type for validation error handlers
@@ -34,7 +34,7 @@ export interface ValidationMiddleware {
   /**
    * Default layout creator function
    */
-  defaultLayoutCreator?: (ttabs: Ttabs) => void;
+  defaultLayoutCreator?: (ttabs: TTabs) => void;
   
   /**
    * Error handlers
@@ -46,13 +46,13 @@ export interface ValidationMiddleware {
    * @param ttabs The ttabs instance to validate
    * @returns true if layout is valid, false otherwise
    */
-  validate(ttabs: Ttabs): boolean;
+  validate(ttabs: TTabs): boolean;
   
   /**
    * Reset to default layout
    * @param ttabs The ttabs instance to reset
    */
-  resetToDefault(ttabs: Ttabs): void;
+  resetToDefault(ttabs: TTabs): void;
   
   /**
    * Add error handler

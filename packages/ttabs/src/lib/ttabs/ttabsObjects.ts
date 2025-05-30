@@ -1,10 +1,10 @@
-import { Ttabs } from "./Ttabs.svelte";
+import { TTabs } from "./TTabs.svelte";
 
 /**
  * Base class for all ttabs objects
  */
 abstract class TileObject {
-  constructor(protected ttabs: Ttabs, protected _id: string) {}
+  constructor(protected ttabs: TTabs, protected _id: string) {}
 
   /**
    * Get the ID of this object

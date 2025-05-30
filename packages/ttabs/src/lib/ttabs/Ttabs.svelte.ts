@@ -55,10 +55,15 @@ export interface TtabsOptions {
   validators?: LayoutValidator[];
 
   /**
+   * Component ID to render when the grid/column/panel is empty
+   */
+  defaultComponentIdForEmptyTiles?: string;
+
+  /**
    * Function to create a default layout when validation fails (optional)
    * If not provided, a minimal valid layout will be created
    */
-  defaultLayoutCreator?: (ttabs: Ttabs) => void;
+  defaultLayoutCreator?: (ttabs: TTabs) => void;
 
   setupFromScratch?: SetupCallback;
 }
@@ -66,7 +71,7 @@ export interface TtabsOptions {
 /**
  * Ttabs class implementation
  */
-export class Ttabs {
+export class TTabs {
   tiles: Record<string, TileState> = $state({});
   activePanel: string | null = $state(null);
   focusedActiveTab: string | null = $state(null);
@@ -79,6 +84,8 @@ export class Ttabs {
   debouncedStateChangeListeners: StateChangeCallback[] = [];
   pendingNotification: number | null = null;
   pendingStateChanges: boolean = false;
+
+  defaultComponentIdForEmptyTiles?: string;
 
   // Validation middleware
   private validationMiddleware: ValidationMiddleware;
@@ -151,6 +158,8 @@ export class Ttabs {
     if (options.focusedTab && this.getTile<TileTabState>(options.focusedTab)) {
       this.focusedActiveTab = options.focusedTab;
     }
+
+    this.defaultComponentIdForEmptyTiles = options.defaultComponentIdForEmptyTiles;
   }
 
   /**
@@ -1342,7 +1351,7 @@ export class Ttabs {
    * Set the default layout creator function
    * @param creator Function that creates a default layout
    */
-  setDefaultLayoutCreator(creator: (ttabs: Ttabs) => void): void {
+  setDefaultLayoutCreator(creator: (ttabs: TTabs) => void): void {
     this.validationMiddleware.defaultLayoutCreator = creator;
   }
 
@@ -2247,7 +2256,7 @@ export class Ttabs {
 
   /**
    * Create a new grid or get the existing root grid as an object
-   * @returns A TtabsGrid object for the root grid
+   * @returns A Grid object for the root grid
    */
   newGrid(): Grid {
     // If there's already a root grid, use it
@@ -2263,7 +2272,7 @@ export class Ttabs {
   /**
    * Get a grid object for an existing grid
    * @param id ID of the grid
-   * @returns A TtabsGrid object
+   * @returns A Grid object
    */
   getGridObject(id: string): Grid {
     return new Grid(this, id);
@@ -2272,7 +2281,7 @@ export class Ttabs {
   /**
    * Get a row object for an existing row
    * @param id ID of the row
-   * @returns A TtabsRow object
+   * @returns A Row object
    */
   getRowObject(id: string): Row {
     return new Row(this, id);
@@ -2281,7 +2290,7 @@ export class Ttabs {
   /**
    * Get a column object for an existing column
    * @param id ID of the column
-   * @returns A TtabsColumn object
+   * @returns A Column object
    */
   getColumnObject(id: string): Column {
     return new Column(this, id);
@@ -2299,7 +2308,7 @@ export class Ttabs {
   /**
    * Get a tab object for an existing tab
    * @param id ID of the tab
-   * @returns A TtabsTab object
+   * @returns A Tab object
    */
   getTabObject(id: string): Tab {
     return new Tab(this, id);

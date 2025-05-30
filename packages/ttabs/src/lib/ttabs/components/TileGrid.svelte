@@ -119,6 +119,7 @@
     data-tile-id={id}
     bind:this={gridElement}
   >
+    {#if sizedRows.length > 0}
     {#each sizedRows as row, index (row.id)}
       <TileRow 
         {ttabs} 
@@ -127,6 +128,16 @@
         isLast={index === sizedRows.length - 1} 
       />
     {/each}
+    {:else if ttabs.defaultComponentIdForEmptyTiles}
+      {@const NoContent = ttabs.getContentComponent(
+        ttabs.defaultComponentIdForEmptyTiles
+      )?.component}
+      {#if NoContent}
+        <div class="ttabs-panel">
+          <NoContent />
+        </div>
+      {/if}
+    {/if}
   </div>
 {:else}
   <div class="ttabs-error {ttabs.theme?.classes?.error || ''}">

@@ -1,5 +1,5 @@
 import type { TileGridState, TileRowState } from '../types/tile-types';
-import type { Ttabs } from '../Ttabs.svelte';
+import type { TTabs } from '../TTabs.svelte';
 import { LayoutValidationError, type LayoutValidator } from './validation-types';
 
 /**
@@ -7,7 +7,7 @@ import { LayoutValidationError, type LayoutValidator } from './validation-types'
  * @param ttabs The ttabs instance to validate
  * @returns true if layout is valid, throws LayoutValidationError otherwise
  */
-export const defaultValidator: LayoutValidator = (ttabs: Ttabs): boolean => {
+export const defaultValidator: LayoutValidator = (ttabs: TTabs): boolean => {
   const tiles = ttabs.getTiles();
   
   // Check for root grid
