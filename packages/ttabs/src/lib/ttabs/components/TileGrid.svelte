@@ -133,7 +133,7 @@
         ttabs.defaultComponentIdForEmptyTiles
       )?.component}
       {#if NoContent}
-        <div class="ttabs-panel">
+        <div class="ttabs-direct-content">
           <NoContent />
         </div>
       {/if}

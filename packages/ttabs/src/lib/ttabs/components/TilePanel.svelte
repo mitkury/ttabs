@@ -589,7 +589,7 @@
                 ] || ''}"
                 style="display: var(--ttabs-show-close-button, none)"
                 onclick={(e) => closeTab(e, tab.id)}
-              >defaultComponentIdForEmptyTiles
+                >defaultComponentIdForEmptyTiles
                 ✕defaultComponentIdForEmptyTiles
               </button>
             {/if}
@@ -645,7 +645,9 @@
           ttabs.defaultComponentIdForEmptyTiles
         )?.component}
         {#if NoContent}
-          <NoContent />
+          <div class="ttabs-direct-content">
+            <NoContent />
+          </div>
         {/if}
       {:else}
         <div
