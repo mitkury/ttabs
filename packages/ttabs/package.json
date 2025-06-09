@@ -12,6 +12,10 @@
 		"url": "https://github.com/mitkury/ttabs/issues"
 	},
 	"homepage": "https://github.com/mitkury/ttabs#readme",
+	"files": [
+		"dist",
+		"README.md"
+	],
 	"scripts": {
 		"dev": "vite dev",
 		"prebuild": "cp ../../README.md ./",
