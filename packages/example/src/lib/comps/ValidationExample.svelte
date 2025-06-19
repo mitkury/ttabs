@@ -1,11 +1,11 @@
 <script lang="ts">
   import {
     createTtabs,
-    TtabsRoot,
+    TTabsRoot,
     type TileState,
     LayoutValidationError,
     type ValidationErrorHandler
-  } from "ttabs-svelte";
+    } from "ttabs-svelte";
   import { onMount } from "svelte";
 
   // Create a ttabs instance
@@ -126,7 +126,7 @@
   </div>
 
   <div class="ttabs-container">
-    <TtabsRoot {ttabs} />
+    <TTabsRoot {ttabs} />
   </div>
 
   {#if validationErrors.length > 0}

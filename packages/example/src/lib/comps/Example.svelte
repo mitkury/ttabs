@@ -2,7 +2,7 @@
   import {
     createTtabs,
     Grid,
-    TtabsRoot,
+    TTabsRoot,
     LocalStorageAdapter,
     DEFAULT_THEME,
     type TilePanelState,
@@ -11,7 +11,7 @@
 
   import { onMount } from "svelte";
   import EditorComponent from "./EditorComponent.svelte";
-  import DocumentComponent from "./DocumentComponent.svelte";
+    import DocumentComponent from "./DocumentComponent.svelte";
   import SidePanelComponent from "./SidePanelComponent.svelte";
 
   // Create a storage adapter for persisting layout
@@ -276,7 +276,7 @@
 
   {#if isInitialized}
     <div class="ttabs-container">
-      <TtabsRoot {ttabs} />
+      <TTabsRoot {ttabs} />
     </div>
   {/if}
 </div>

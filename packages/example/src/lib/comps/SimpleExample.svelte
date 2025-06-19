@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createTtabs, TtabsRoot, LocalStorageAdapter } from "ttabs-svelte";
+    import { createTtabs, TTabsRoot, LocalStorageAdapter } from "ttabs-svelte";
   import { onMount } from "svelte";
   import SimpleTextComponent from "./SimpleTextComponent.svelte";
 
@@ -129,7 +129,7 @@
   </header>
 
   <main>
-    <TtabsRoot {ttabs} />
+    <TTabsRoot {ttabs} />
   </main>
 </div>
 

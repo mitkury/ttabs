@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createTtabs, TtabsRoot, LocalStorageAdapter } from "ttabs-svelte";
+  import { createTtabs, TTabsRoot, LocalStorageAdapter } from "ttabs-svelte";
   import { onMount } from "svelte";
   import Example from "$lib/comps/Example.svelte";
   import SimpleExample from "$lib/comps/SimpleExample.svelte";
@@ -33,8 +33,7 @@
   
   // Function to reset the layout
   function resetLayout() {
-    ttabs.resetState();
-    ttabs.createDefaultLayout();
+    ttabs.resetToDefaultLayout();
   }
   
   // Function to create a new tab
