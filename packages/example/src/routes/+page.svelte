@@ -3,6 +3,7 @@
   import { onMount } from "svelte";
   import Example from "$lib/comps/Example.svelte";
   import SimpleExample from "$lib/comps/SimpleExample.svelte";
+  import TtabsSwitchingExample from "$lib/comps/TtabsSwitchingExample.svelte";
   
   // Create a storage adapter
   const storageAdapter = new LocalStorageAdapter("ttabs-demo", 500);
@@ -45,9 +46,9 @@
     }
   }
   
-  let exampleType = $state("simple"); // "simple" or "advanced"
+  let exampleType = $state("simple"); // "simple", "advanced", or "switching"
   
-  function switchExample(type: "simple" | "advanced") {
+  function switchExample(type: "simple" | "advanced" | "switching") {
     exampleType = type;
   }
 </script>
@@ -66,6 +67,12 @@
     >
       Advanced Example
     </button>
+    <button 
+      class:active={exampleType === "switching"}
+      on:click={() => switchExample("switching")}
+    >
+      Switching Test
+    </button>
   </div>
   
   <div class="example-content">
@@ -73,6 +80,8 @@
       <SimpleExample />
     {:else if exampleType === "advanced"}
       <Example />
+    {:else if exampleType === "switching"}
+      <TtabsSwitchingExample />
     {/if}
   </div>
 </div>

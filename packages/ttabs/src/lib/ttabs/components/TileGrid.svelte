@@ -68,7 +68,7 @@
     });
   }
 
-  onMount(() => {
+  $effect(() => {
     const sub = ttabs.subscribe((state) => {
       const tile = state[id];
       if (!tile) {
@@ -96,18 +96,15 @@
       }
     });
 
+    let resizeObserver: ResizeObserver | null = null;
+    if (gridElement) {
+      resizeObserver = new ResizeObserver(handleResize);
+      resizeObserver.observe(gridElement);
+    }
+
     return () => {
       sub();
-    };
-  });
 
-  $effect(() => {
-    if (!gridElement) return;
-
-    const resizeObserver = new ResizeObserver(handleResize);
-    resizeObserver.observe(gridElement);
-
-    return () => {
       resizeObserver?.disconnect();
     };
   });
@@ -120,17 +117,17 @@
     bind:this={gridElement}
   >
     {#if sizedRows.length > 0}
-    {#each sizedRows as row, index (row.id)}
-      <TileRow 
-        {ttabs} 
-        id={row.id} 
-        heightPx={row.heightPx} 
-        isLast={index === sizedRows.length - 1} 
-      />
-    {/each}
+      {#each sizedRows as row, index (row.id)}
+        <TileRow
+          {ttabs}
+          id={row.id}
+          heightPx={row.heightPx}
+          isLast={index === sizedRows.length - 1}
+        />
+      {/each}
     {:else if ttabs.defaultComponentIdForEmptyTiles}
       {@const NoContent = ttabs.getContentComponent(
-        ttabs.defaultComponentIdForEmptyTiles
+        ttabs.defaultComponentIdForEmptyTiles,
       )?.component}
       {#if NoContent}
         <div class="ttabs-direct-content">

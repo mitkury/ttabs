@@ -17,8 +17,10 @@
   }
 
   let { ttabs, id, heightPx, isLast = false }: RowProps = $props();
-  
-  const heightStyle = $derived(heightPx !== undefined ? `height: ${heightPx}px;` : "");
+
+  const heightStyle = $derived(
+    heightPx !== undefined ? `height: ${heightPx}px;` : "",
+  );
 
   // Get row data
   let row: TileRowState | undefined = $state();
@@ -35,7 +37,7 @@
   // we render only when they're ready (of the same length, assuming that they
   // address the same columns)
   const sizedColumns: SizedColumns[] = $derived.by(() => {
-    if (columnTiles.length !== columnWidths.length) {
+    if (!id || columnTiles.length !== columnWidths.length) {
       // This happens when the html element we use to calculate the width is not ready
       return [];
     }
@@ -54,13 +56,13 @@
 
   // Get parent grid to access siblings
   const parentGrid = $derived(
-    parentId ? ttabs.getTile<TileGridState>(parentId) : null
+    parentId ? ttabs.getTile<TileGridState>(parentId) : null,
   );
   // We keep rowIndex for other calculations, but isLast is now passed as a prop
   const rowIndex = $derived(
     parentGrid?.type === "grid" && parentGrid.rows
       ? parentGrid.rows.indexOf(id)
-      : -1
+      : -1,
   );
 
   // Element reference for width calculations
@@ -91,7 +93,7 @@
     columnWidths = getColumnWidths(columnTiles);
   }
 
-  onMount(() => {
+  $effect(() => {
     const sub = ttabs.subscribe((state) => {
       const tile = state[id];
       if (!tile) {
@@ -119,18 +121,15 @@
       }
     });
 
+    let resizeObserver: ResizeObserver | null = null;
+    if (rowElement) {
+      resizeObserver = new ResizeObserver(handleResize);
+      resizeObserver.observe(rowElement);
+    }
+
     return () => {
       sub();
-    };
-  });
 
-  $effect(() => {
-    if (!rowElement) return;
-
-    const resizeObserver = new ResizeObserver(handleResize);
-    resizeObserver.observe(rowElement);
-
-    return () => {
       resizeObserver?.disconnect();
     };
   });
@@ -167,7 +166,7 @@
 
     // Get a reference to the containing grid element
     const gridElement = document.querySelector(
-      `[data-tile-id="${parentId}"]`
+      `[data-tile-id="${parentId}"]`,
     ) as HTMLElement;
     if (!gridElement) return;
 
@@ -187,20 +186,28 @@
 
     if (startHeightA.unit === "px") {
       originalHeightAPixels = startHeightA.value;
-    } else { // percentage
+    } else {
+      // percentage
       originalHeightAPixels = (startHeightA.value / 100) * gridHeight;
     }
 
     if (startHeightB.unit === "px") {
       originalHeightBPixels = startHeightB.value;
-    } else { // percentage
+    } else {
+      // percentage
       originalHeightBPixels = (startHeightB.value / 100) * gridHeight;
     }
 
     // Calculate new heights in pixels with constraints, based on original heights
     const MIN_HEIGHT_PX = 50; // Minimum height in pixels
-    const newHeightAPixels = Math.max(MIN_HEIGHT_PX, originalHeightAPixels + deltaPixels);
-    const newHeightBPixels = Math.max(MIN_HEIGHT_PX, originalHeightBPixels - deltaPixels);
+    const newHeightAPixels = Math.max(
+      MIN_HEIGHT_PX,
+      originalHeightAPixels + deltaPixels,
+    );
+    const newHeightBPixels = Math.max(
+      MIN_HEIGHT_PX,
+      originalHeightBPixels - deltaPixels,
+    );
 
     // Update the rows based on their original unit types
     if (startHeightA.unit === "px") {
@@ -253,11 +260,11 @@
     bind:this={rowElement}
   >
     {#each sizedColumns as column, index (column.id)}
-      <TileColumn 
-        {ttabs} 
-        id={column.id} 
-        widthPx={column.widthPx} 
-        isLast={index === sizedColumns.length - 1} 
+      <TileColumn
+        {ttabs}
+        id={column.id}
+        widthPx={column.widthPx}
+        isLast={index === sizedColumns.length - 1}
       />
     {/each}
 
