@@ -30,13 +30,15 @@
     const col1B = row1.newColumn("70%");
     
     const panel1A = col1A.newPanel();
-    panel1A.newTab("Left").setComponent("text", { 
-      content: "TTabs Instance 1\nRow 1 (80% height)\nLeft Column (30% width)" 
+    const tab1A = panel1A.newTab("Left");
+    tab1A.setComponent("text", { 
+      text: "TTabs Instance 1\nRow 1 (80% height)\nLeft Column (30% width)" 
     });
 
     const panel1B = col1B.newPanel();
-    panel1B.newTab("Right").setComponent("text", { 
-      content: "TTabs Instance 1\nRow 1 (80% height)\nRight Column (70% width)" 
+    const tab1B = panel1B.newTab("Right");
+    tab1B.setComponent("text", { 
+      text: "TTabs Instance 1\nRow 1 (80% height)\nRight Column (70% width)" 
     });
 
     // Second row: two columns with same widths - 50% and 50%
@@ -44,13 +46,15 @@
     const col2B = row2.newColumn("50%");
     
     const panel2A = col2A.newPanel();
-    panel2A.newTab("Bottom Left").setComponent("text", { 
-      content: "TTabs Instance 1\nRow 2 (20% height)\nLeft Column (50% width)" 
+    const tab2A = panel2A.newTab("Bottom Left");
+    tab2A.setComponent("text", { 
+      text: "TTabs Instance 1\nRow 2 (20% height)\nLeft Column (50% width)" 
     });
 
     const panel2B = col2B.newPanel();
-    panel2B.newTab("Bottom Right").setComponent("text", { 
-      content: "TTabs Instance 1\nRow 2 (20% height)\nRight Column (50% width)" 
+    const tab2B = panel2B.newTab("Bottom Right");
+    tab2B.setComponent("text", { 
+      text: "TTabs Instance 1\nRow 2 (20% height)\nRight Column (50% width)" 
     });
 
     panel1A.setActive();
@@ -72,13 +76,15 @@
     const col1B = row1.newColumn("30%");
     
     const panel1A = col1A.newPanel();
-    panel1A.newTab("Left").setComponent("text", { 
-      content: "TTabs Instance 2\nRow 1 (40% height)\nLeft Column (70% width)" 
+    const tab1A = panel1A.newTab("Left");
+    tab1A.setComponent("text", { 
+      text: "TTabs Instance 2\nRow 1 (40% height)\nLeft Column (70% width)" 
     });
 
     const panel1B = col1B.newPanel();
-    panel1B.newTab("Right").setComponent("text", { 
-      content: "TTabs Instance 2\nRow 1 (40% height)\nRight Column (30% width)" 
+    const tab1B = panel1B.newTab("Right");
+    tab1B.setComponent("text", { 
+      text: "TTabs Instance 2\nRow 1 (40% height)\nRight Column (30% width)" 
     });
 
     // Second row: two columns with different widths - 25% and 75%
@@ -86,132 +92,100 @@
     const col2B = row2.newColumn("75%");
     
     const panel2A = col2A.newPanel();
-    panel2A.newTab("Bottom Left").setComponent("text", { 
-      content: "TTabs Instance 2\nRow 2 (60% height)\nLeft Column (25% width)" 
+    const tab2A = panel2A.newTab("Bottom Left");
+    tab2A.setComponent("text", { 
+      text: "TTabs Instance 2\nRow 2 (60% height)\nLeft Column (25% width)" 
     });
 
     const panel2B = col2B.newPanel();
-    panel2B.newTab("Bottom Right").setComponent("text", { 
-      content: "TTabs Instance 2\nRow 2 (60% height)\nRight Column (75% width)" 
+    const tab2B = panel2B.newTab("Bottom Right");
+    tab2B.setComponent("text", { 
+      text: "TTabs Instance 2\nRow 2 (60% height)\nRight Column (75% width)" 
     });
 
     panel1A.setActive();
   }
 
   // Switch between ttabs instances
-  function switchToTtabs1() {
-    activeInstance = 'ttabs1';
-    currentTtabs = ttabs1;
+  function switchTtabs(instance: 'ttabs1' | 'ttabs2') {
+    activeInstance = instance;
+    currentTtabs = instance === 'ttabs1' ? ttabs1 : ttabs2;
   }
 
-  function switchToTtabs2() {
-    activeInstance = 'ttabs2';
-    currentTtabs = ttabs2;
-  }
-
-  // Initialize both instances on mount
+  // Initialize both instances
   setupTtabs1();
   setupTtabs2();
 </script>
 
-<div class="switching-example">
-  <div class="controls">
-    <h3>TTabs Switching Test</h3>
-    <p>This example demonstrates the issue where switching ttabs instances doesn't update row heights and column widths properly.</p>
-    
-    <div class="button-group">
+<div class="example-container">
+  <header>
+    <h1>ttabs switching example</h1>
+    <div class="actions">
       <button 
         class:active={activeInstance === 'ttabs1'}
-        onclick={switchToTtabs1}
+        onclick={() => switchTtabs('ttabs1')}
       >
-        Switch to TTabs 1 (80%/20% rows, 30%/70% & 50%/50% cols)
+        Instance 1
       </button>
-      
       <button 
         class:active={activeInstance === 'ttabs2'}
-        onclick={switchToTtabs2}
+        onclick={() => switchTtabs('ttabs2')}
       >
-        Switch to TTabs 2 (40%/60% rows, 70%/30% & 25%/75% cols)
+        Instance 2
       </button>
     </div>
+  </header>
 
-    <div class="info">
-      <p><strong>Current Instance:</strong> {activeInstance}</p>
-      <p><strong>Root Grid ID:</strong> {currentTtabs.rootGridId}</p>
-      <p><strong>Expected Behavior:</strong> Row heights and column widths should immediately update when switching</p>
-      <p><strong>Bug:</strong> Sizes may not update because sizedRows/sizedColumns don't recalculate when ttabs prop changes</p>
-    </div>
-  </div>
-  
-  <div class="ttabs-container">
+  <main>
     <TTabsRoot ttabs={currentTtabs} />
-  </div>
+  </main>
 </div>
 
 <style>
-  .switching-example {
+  .example-container {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    font-family: system-ui, sans-serif;
+    width: 100%;
   }
 
-  .controls {
-    padding: 1rem;
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
     background: #f5f5f5;
     border-bottom: 1px solid #ddd;
-    flex-shrink: 0;
   }
 
-  .controls h3 {
-    margin: 0 0 0.5rem 0;
-    color: #333;
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
   }
 
-  .controls p {
-    margin: 0 0 1rem 0;
-    color: #666;
-    font-size: 0.9rem;
-  }
-
-  .button-group {
+  .actions {
     display: flex;
     gap: 0.5rem;
-    margin-bottom: 1rem;
   }
 
   button {
     padding: 0.5rem 1rem;
-    border: 1px solid #ccc;
-    background: white;
+    background: #475569;
+    color: white;
+    border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9rem;
   }
 
   button:hover {
-    background: #f0f0f0;
+    background: #64748b;
   }
 
   button.active {
-    background: #007acc;
-    color: white;
-    border-color: #005a9e;
+    background: #4a6cf7;
   }
 
-  .info {
-    background: #fff;
-    padding: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 0.9rem;
-  }
-
-  .info p {
-    margin: 0.25rem 0;
-  }
-
-  .ttabs-container {
+  main {
     flex: 1;
     overflow: hidden;
   }

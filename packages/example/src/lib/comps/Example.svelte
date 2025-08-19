@@ -1,7 +1,6 @@
 <script lang="ts">
   import {
     createTtabs,
-    Grid,
     TTabsRoot,
     LocalStorageAdapter,
     DEFAULT_THEME,
@@ -11,7 +10,7 @@
 
   import { onMount } from "svelte";
   import EditorComponent from "./EditorComponent.svelte";
-    import DocumentComponent from "./DocumentComponent.svelte";
+  import DocumentComponent from "./DocumentComponent.svelte";
   import SidePanelComponent from "./SidePanelComponent.svelte";
 
   // Create a storage adapter for persisting layout
@@ -68,7 +67,7 @@
   }
 
   // Helper to create the actual layout structure
-  function createLayoutStructure(grid: Grid) {
+  function createLayoutStructure(grid: any) {
     // Create main row
     const mainRow = grid.newRow();
 
@@ -175,13 +174,12 @@
 
     // Create a new tab with editor component using method chaining
     const tabName = `New Tab ${newTabCount}`;
-    panel
-      .newTab(tabName, true) // true to make it active
-      .setComponent("editor", {
-        content: `// New tab ${newTabCount}\n// Write your code here...\n`,
-        language: "typescript",
-        readOnly: newTabCount % 2 === 0, // Alternate between editable and read-only
-      });
+    const tab = panel.newTab(tabName, true); // true to make it active
+    tab.setComponent("editor", {
+      content: `// New tab ${newTabCount}\n// Write your code here...\n`,
+      language: "typescript",
+      readOnly: newTabCount % 2 === 0, // Alternate between editable and read-only
+    });
 
     // Increment tab counter
     newTabCount++;
@@ -200,108 +198,56 @@
     console.log("Layout reset complete, new upperPanelId:", upperPanelId);
   }
 
-  // Setup the layout on mount
+  // Initialize the layout on mount if not already initialized
   onMount(() => {
-    // Check if we have a stored layout
-    if (savedData?.tiles) {
-      console.log("Found saved layout, loading...");
-
-      // Try to find the upper panel in the saved layout
-      findUpperPanel();
-
-      // Mark as initialized
-      isInitialized = true;
-    } else {
-      console.log("No saved layout found, creating custom layout...");
-
-      // Set up the custom layout
+    if (!isInitialized) {
       setupCustomLayout();
-
-      // Mark as initialized
       isInitialized = true;
     }
 
-    // Save the layout whenever it changes
-    ttabs.subscribe((state) => {
+    // Connect storage
+    const unsubscribe = ttabs.subscribe((state) => {
       storage.save(state);
     });
+
+    return () => {
+      unsubscribe();
+    };
   });
-
-  // Helper to find the upper panel in the saved layout
-  function findUpperPanel() {
-    // Look for a panel with an 'Editor' tab
-    const tiles = ttabs.getTiles();
-
-    // Find panels
-    const panels = Object.values(tiles).filter((tile) => tile.type === "panel");
-
-    // Look for a panel with an 'Editor' tab
-    for (const panel of panels as TilePanelState[]) {
-      const tabs = panel.tabs || [];
-
-      // Check if this panel has a tab named 'Editor'
-      if (
-        tabs &&
-        tabs.some((tabId: string) => {
-          const tab = tiles[tabId] as TileTabState;
-          return tab.name === "Editor";
-        })
-      ) {
-        // Found our panel
-        upperPanelId = panel.id;
-        console.log("Found upper panel in saved layout:", upperPanelId);
-        return;
-      }
-    }
-
-    // If we didn't find a panel with an 'Editor' tab, just use the first panel
-    if (panels.length > 0) {
-      upperPanelId = panels[0].id;
-      console.log("Using first panel as upper panel:", upperPanelId);
-    } else {
-      console.error("No panels found in the layout!");
-    }
-  }
 </script>
 
-<div class="container">
-  <div class="header">
-    <h1>ttabs Example</h1>
-    <div class="controls">
-      <button onclick={() => resetLayout()}>Reset Layout</button>
-      <button onclick={() => createNewTab()}>New Tab</button>
-      <button onclick={() => toggleSidebar()}>{sidebarVisible ? 'Hide Sidebar' : 'Show Sidebar'}</button>
+<div class="example-container">
+  <header>
+    <h1>ttabs advanced example</h1>
+    <div class="actions">
+      <button onclick={resetLayout}>Reset Layout</button>
+      <button onclick={createNewTab}>Add Tab</button>
+      <button onclick={toggleSidebar}>
+        {sidebarVisible ? "Hide" : "Show"} Sidebar
+      </button>
     </div>
-  </div>
+  </header>
 
-  {#if isInitialized}
-    <div class="ttabs-container">
-      <TTabsRoot {ttabs} />
-    </div>
-  {/if}
+  <main>
+    <TTabsRoot {ttabs} />
+  </main>
 </div>
 
 <style>
-  .container {
+  .example-container {
     display: flex;
     flex-direction: column;
     height: 100vh;
     width: 100%;
-    overflow: hidden;
   }
 
-  .header {
+  header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0.5rem 1rem;
-    background-color: #2c3e50;
-    color: white;
-  }
-
-  .ttabs-container {
-    flex: 1;
-    overflow: hidden;
+    background: #f5f5f5;
+    border-bottom: 1px solid #ddd;
   }
 
   h1 {
@@ -309,22 +255,26 @@
     font-size: 1.5rem;
   }
 
-  .controls {
+  .actions {
     display: flex;
     gap: 0.5rem;
   }
 
   button {
     padding: 0.5rem 1rem;
-    background-color: #3498db;
+    background: #4a6cf7;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9rem;
   }
 
   button:hover {
-    background-color: #2980b9;
+    background: #3a5ce7;
+  }
+
+  main {
+    flex: 1;
+    overflow: hidden;
   }
 </style>

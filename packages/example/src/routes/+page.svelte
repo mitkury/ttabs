@@ -4,6 +4,7 @@
   import Example from "$lib/comps/Example.svelte";
   import SimpleExample from "$lib/comps/SimpleExample.svelte";
   import TtabsSwitchingExample from "$lib/comps/TtabsSwitchingExample.svelte";
+  import ThemeExample from "$lib/comps/ThemeExample.svelte";
   
   // Create a storage adapter
   const storageAdapter = new LocalStorageAdapter("ttabs-demo", 500);
@@ -46,9 +47,9 @@
     }
   }
   
-  let exampleType = $state("simple"); // "simple", "advanced", or "switching"
+  let exampleType = $state("simple"); // "simple", "advanced", "switching", or "theme"
   
-  function switchExample(type: "simple" | "advanced" | "switching") {
+  function switchExample(type: "simple" | "advanced" | "switching" | "theme") {
     exampleType = type;
   }
 </script>
@@ -57,21 +58,27 @@
   <div class="example-switcher">
     <button 
       class:active={exampleType === "simple"}
-      on:click={() => switchExample("simple")}
+      onclick={() => switchExample("simple")}
     >
       Simple Example
     </button>
     <button 
       class:active={exampleType === "advanced"}
-      on:click={() => switchExample("advanced")}
+      onclick={() => switchExample("advanced")}
     >
       Advanced Example
     </button>
     <button 
       class:active={exampleType === "switching"}
-      on:click={() => switchExample("switching")}
+      onclick={() => switchExample("switching")}
     >
       Switching Test
+    </button>
+    <button 
+      class:active={exampleType === "theme"}
+      onclick={() => switchExample("theme")}
+    >
+      Theme Example
     </button>
   </div>
   
@@ -82,6 +89,8 @@
       <Example />
     {:else if exampleType === "switching"}
       <TtabsSwitchingExample />
+    {:else if exampleType === "theme"}
+      <ThemeExample />
     {/if}
   </div>
 </div>

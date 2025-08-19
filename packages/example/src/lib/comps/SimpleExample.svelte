@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { createTtabs, TTabsRoot, LocalStorageAdapter } from "ttabs-svelte";
+  import { createTtabs, TTabsRoot, LocalStorageAdapter } from "ttabs-svelte";
   import { onMount } from "svelte";
   import SimpleTextComponent from "./SimpleTextComponent.svelte";
 
@@ -39,19 +39,21 @@
   function resetLayout() {
     console.log("Resetting layout...");
 
+    // Clear all tiles and create a fresh layout
     ttabs.resetTiles();
 
     // Create a new grid and build the layout using method chaining
-    ttabs
-      .newGrid()
-      .newRow()
-      .newColumn()
-      .newPanel()
-      .newTab("Welcome", true)
-      .setComponent("text", {
-        text: "Welcome to ttabs simple example!\n\nThis is a basic demo showing how ttabs layout system works with storage.",
-      })
-      .setFocused();
+    const grid = ttabs.newGrid();
+    const row = grid.newRow();
+    const column = row.newColumn();
+    const panel = column.newPanel();
+    
+    // Create the welcome tab
+    const tab = panel.newTab("Welcome", true);
+    tab.setComponent("text", {
+      text: "Welcome to ttabs simple example!\n\nThis is a basic demo showing how ttabs layout system works with storage.",
+    });
+    tab.setFocused();
   }
 
   // Function to create a new tab
@@ -103,14 +105,11 @@
 
     try {
       // Create the tab and set its content using method chaining
-      panel
-        .newTab(tabName, true)
-        .setComponent("text", {
-          data: {
-            text: `Content for ${tabName}\nCreated at ${new Date().toISOString()}`,
-          },
-        })
-        .setFocused();
+      const tab = panel.newTab(tabName, true);
+      tab.setComponent("text", {
+        text: `Content for ${tabName}\nCreated at ${new Date().toISOString()}`,
+      });
+      tab.setFocused();
 
       console.log("Tab created successfully");
     } catch (err) {
