@@ -10,6 +10,8 @@ This proposal outlines a system for validating ttabs layouts during initializati
 
 Validation will run automatically when creating a ttabs instance with tiles (in the constructor) or when running the setup function.
 
+Note: This document is a proposal. Some identifiers use conceptual names (like direct `new Ttabs()` construction and `getRootGridId`). In the current implementation, import from `ttabs-svelte` and prefer `createTtabs()`.
+
 ## Motivation
 
 As ttabs is used in more complex applications, ensuring layout integrity becomes increasingly important. Invalid layouts can lead to:
@@ -42,7 +44,7 @@ export class LayoutValidationError extends Error {
 
 interface LayoutValidator {
   // Returns true if layout is valid, throws LayoutValidationError otherwise
-  validate(ttabs: Ttabs): boolean;
+  validate(ttabs: TTabs): boolean;
 }
 ```
 
@@ -52,7 +54,7 @@ A built-in validator that performs basic integrity checks:
 
 ```typescript
 class DefaultValidator implements LayoutValidator {
-  validate(ttabs: Ttabs): boolean {
+  validate(ttabs: TTabs): boolean {
     const tiles = ttabs.getTiles();
     
     // Check for root grid
@@ -110,16 +112,16 @@ interface ValidationMiddleware {
   validators: LayoutValidator[];
   
   // Default layout creator function
-  defaultLayoutCreator?: (ttabs: Ttabs) => void;
+  defaultLayoutCreator?: (ttabs: TTabs) => void;
   
   // Error handlers
   errorHandlers: ValidationErrorHandler[];
   
   // Run all validators
-  validate(ttabs: Ttabs): boolean;
+  validate(ttabs: TTabs): boolean;
   
   // Reset to default layout
-  resetToDefault(ttabs: Ttabs): void;
+  resetToDefault(ttabs: TTabs): void;
   
   // Add error handler
   addErrorHandler(handler: ValidationErrorHandler): void;
@@ -143,7 +145,7 @@ interface TtabsOptions {
   /**
    * Function to create a default layout when validation fails
    */
-  defaultLayoutCreator?: (ttabs: Ttabs) => void;
+  defaultLayoutCreator?: (ttabs: TTabs) => void;
 }
 
 // In Ttabs class
@@ -161,7 +163,7 @@ class Ttabs {
       defaultLayoutCreator: options.defaultLayoutCreator,
       errorHandlers: [],
       
-      validate: (ttabs: Ttabs): boolean => {
+      validate: (ttabs: TTabs): boolean => {
         try {
           // Always run the default validator first
           this.runDefaultValidator();
@@ -189,7 +191,7 @@ class Ttabs {
         }
       },
       
-      resetToDefault: (ttabs: Ttabs): void => {
+      resetToDefault: (ttabs: TTabs): void => {
         // Clear existing tiles
         this.tiles = {};
         
@@ -243,7 +245,7 @@ class Ttabs {
    * Set the default layout creator function
    * @param creator Function that creates a default layout
    */
-  setDefaultLayoutCreator(creator: (ttabs: Ttabs) => void): void {
+  setDefaultLayoutCreator(creator: (ttabs: TTabs) => void): void {
     this.validationMiddleware.defaultLayoutCreator = creator;
   }
   
@@ -296,10 +298,10 @@ class Ttabs {
 
 ```typescript
 // Create ttabs with default validation
-const ttabs = new Ttabs();
+const ttabs = createTtabs();
 
 // Validation happens automatically when tiles are provided in constructor
-const ttabsWithTiles = new Ttabs({
+const ttabsWithTiles = createTtabs({
   tiles: existingTiles
 });
 
@@ -314,7 +316,7 @@ ttabs.setup(loadedTiles);
 ```typescript
 // Create a custom validator that requires a sidebar
 class SidebarValidator implements LayoutValidator {
-  validate(ttabs: Ttabs): boolean {
+  validate(ttabs: TTabs): boolean {
     // Check if there's a column with a specific width that serves as a sidebar
     const tiles = ttabs.getTiles();
     const rootGridId = ttabs.getRootGridId();
@@ -355,7 +357,7 @@ class SidebarValidator implements LayoutValidator {
 }
 
 // Create ttabs with custom validator
-const ttabs = new Ttabs({
+const ttabs = createTtabs({
   validators: [new SidebarValidator()],
   defaultLayoutCreator: (t) => {
     // Create a layout with a sidebar
@@ -393,7 +395,7 @@ const storage = new LocalStorageAdapter('my-app-layout');
 const savedData = storage.load();
 
 // Create ttabs with validation
-const ttabs = new Ttabs({
+const ttabs = createTtabs({
   tiles: savedData?.tiles,
   validators: [new MyCustomValidator()],
   defaultLayoutCreator: createDefaultAppLayout

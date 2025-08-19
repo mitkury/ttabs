@@ -6,11 +6,10 @@ ttabs uses a flexible sizing system that supports multiple unit types and automa
 
 ## Supported Size Units
 
-The layout system supports three types of size units:
+The layout system supports two types of size units:
 
 - **Percentage (`%`)**: Relative to the parent container's size
 - **Pixels (`px`)**: Fixed size in pixels
-- **Auto (`auto`)**: Takes remaining space after fixed and percentage-based elements
 
 ## How Sizing Works
 
@@ -19,7 +18,7 @@ The layout system supports three types of size units:
 Internally, sizes are represented as a `SizeInfo` object:
 
 ```typescript
-{ value: number; unit: 'px' | '%' | 'auto' }
+{ value: number; unit: 'px' | '%' }
 ```
 
 ### Size Distribution Logic

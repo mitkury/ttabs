@@ -7,7 +7,7 @@ ttabs provides a flexible theming system that allows you to customize the appear
 A theme in ttabs is simply an object with a name, CSS variables, and optional class overrides:
 
 ```typescript
-import { type TtabsTheme } from 'ttabs';
+import { type TtabsTheme } from 'ttabs-svelte';
 
 const myTheme: TtabsTheme = {
   name: 'my-theme',
@@ -28,7 +28,7 @@ const myTheme: TtabsTheme = {
 Apply a theme when creating your ttabs instance:
 
 ```typescript
-import { createTtabs } from 'ttabs';
+import { createTtabs } from 'ttabs-svelte';
 import { myTheme } from './themes/my-theme';
 
 const ttabs = createTtabs({
@@ -99,22 +99,12 @@ With this approach, your ttabs components will automatically adapt when Skeleton
 
 ## Global Styles
 
-For more complex styling, you can use global CSS with the `ThemeStyles` component:
+To add global styling, target ttabs classes or your own `classes` from the theme in your app's global CSS. For example:
 
-```svelte
-<script>
-  import { ThemeStyles } from 'ttabs';
-</script>
-
-<ThemeStyles />
-
-<!-- Add your own global theme styles -->
-<style global>
-  /* Add custom theme variants */
-  .ttabs-root.variant-primary .ttabs-tab-header.active {
-    border-color: var(--color-primary-500);
-  }
-</style>
+```css
+.ttabs-root.variant-primary .ttabs-tab-header.active {
+  border-color: var(--color-primary-500);
+}
 ```
 
 ## Available Variables
@@ -137,8 +127,8 @@ See the [theme reference](./theme-reference.md) for a complete list of available
 For maximum flexibility, ttabs allows you to replace entire components with your own implementations:
 
 ```typescript
-import { type TtabsTheme } from 'ttabs';
-import MyCustomTabHeader from './MyCustomTabHeader.svelte';
+import { type TtabsTheme } from 'ttabs-svelte';
+import CloseButton from './CloseButton.svelte';
 
 const customTheme: TtabsTheme = {
   name: 'custom',
@@ -146,50 +136,12 @@ const customTheme: TtabsTheme = {
     '--ttabs-active-tab-indicator': '#3b82f6',
   },
   components: {
-    tabHeader: MyCustomTabHeader,
-    tabHeaderProps: { 
-      showCloseButton: true,
-      closeIcon: 'x',
-      confirmClose: true
-    }
+    closeButton: CloseButton
   }
 };
 ```
 
-Your custom component would implement a standard interface:
-
-```svelte
-<!-- MyCustomTabHeader.svelte -->
-<script lang="ts">
-  // Required props that ttabs will pass to your component
-  export let tabId: string;
-  export let tabName: string;
-  export let isActive: boolean;
-  export let ttabs: Ttabs;
-  export let onSelect: () => void;
-  export let onClose: () => void;
-  export let onDragStart: (event: DragEvent) => void;
-  export let onDragEnd: (event: DragEvent) => void;
-  
-  // Custom props from tabHeaderProps
-  export let showCloseButton = false;
-  export let closeIcon = '×';
-  export let confirmClose = false;
-</script>
-
-<!-- Your custom tab header implementation -->
-<div class="my-fancy-tab" class:active={isActive} on:click={onSelect}>
-  {tabName}
-  
-  {#if showCloseButton}
-    <button on:click|stopPropagation={onClose}>
-      {closeIcon}
-    </button>
-  {/if}
-</div>
-```
-
-This approach gives you complete control over the appearance and behavior of specific elements while maintaining the core layout functionality.
+This approach lets you replace the default close button while keeping core layout behavior intact.
 
 ## Active Tab Styling
 

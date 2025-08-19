@@ -17,13 +17,13 @@ The content components system lets you:
 First, import and register your components with ttabs:
 
 ```typescript
-import { Ttabs } from 'ttabs';
+import { createTtabs } from 'ttabs-svelte';
 import EditorComponent from './EditorComponent.svelte';
 import DocumentComponent from './DocumentComponent.svelte';
 import SidePanelComponent from './SidePanelComponent.svelte';
 
 // Initialize ttabs
-const ttabs = new Ttabs();
+const ttabs = createTtabs();
 
 // Register components with unique IDs
 ttabs.registerComponent('editor', EditorComponent, { readOnly: false });
@@ -80,8 +80,8 @@ For components like sidebars that don't need tabs, you can add them directly to 
 // Create a layout with two columns
 const rootId = ttabs.addGrid();
 const rowId = ttabs.addRow(rootId);
-const sidebarColumnId = ttabs.addColumn(rowId, 20); // 20% width
-const mainColumnId = ttabs.addColumn(rowId, 80);    // 80% width
+const sidebarColumnId = ttabs.addColumn(rowId, '20%'); // 20% width
+const mainColumnId = ttabs.addColumn(rowId, '80%');    // 80% width
 
 // Add sidebar component directly to the column (no panel or tabs)
 ttabs.setComponent(sidebarColumnId, 'sidepanel', {

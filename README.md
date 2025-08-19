@@ -19,7 +19,7 @@ npm install ttabs-svelte
 ### Basic Usage
 
 ```javascript
-import { createTtabs, TtabsRoot } from 'ttabs-svelte';
+import { createTtabs, TTabsRoot } from 'ttabs-svelte';
 
 // Create a ttabs instance
 const ttabs = createTtabs({
@@ -28,7 +28,7 @@ const ttabs = createTtabs({
   focusedTab: savedData?.focusedTab
 });
 
-<TtabsRoot {ttabs} />
+<TTabsRoot {ttabs} />
 ```
 
 TtabsRoot is the container component that renders your layout and manages the root grid.
@@ -136,7 +136,7 @@ onMount(() => {
 ```
 TileGrid -> TileRow[] -> TileColumn[] -> TileContent | TilePanel | TileGrid
 
-TilePanel -> TileTab[] -> TileContnet
+TilePanel -> TileTab[] -> TileContent
 ```
 
 Each level follows strict containment rules:
