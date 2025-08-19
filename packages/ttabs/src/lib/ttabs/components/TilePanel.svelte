@@ -39,6 +39,17 @@
   let splitDirection: "top" | "right" | "bottom" | "left" | "center" | null =
     $state(null);
 
+  // Custom MIME type used to mark ttabs tab drags
+  const TTABS_DND_MIME = "application/x-ttabs+json";
+
+  function isTtabsDrag(e: DragEvent): boolean {
+    const types = e.dataTransfer?.types;
+    if (!types) return false;
+    // Some browsers expose DOMStringList, normalize to array
+    const typeList = Array.from(types as unknown as Array<string>);
+    return typeList.includes(TTABS_DND_MIME);
+  }
+
   onMount(() => {
     if (BROWSER) {
       // Add mouseup event to reset visual indicators immediately
@@ -178,19 +189,23 @@
     draggedPanelId = id;
     isDragging = true;
 
-    // Store the panel ID and tab ID in the dataTransfer
+    // Store the panel ID and tab ID in the dataTransfer with a ttabs-specific MIME type
     if (e.dataTransfer) {
       const dragData = {
         tabId,
         panelId: id,
-        action: "move", // Changed from 'reorder' to 'move' to indicate it can be moved between panels
+        action: "move",
       };
+      e.dataTransfer.setData(TTABS_DND_MIME, JSON.stringify(dragData));
+      // Keep legacy key for backward compatibility (no-op for other handlers now)
       e.dataTransfer.setData("application/json", JSON.stringify(dragData));
       e.dataTransfer.effectAllowed = "move";
     }
   }
 
   function onDragOver(e: DragEvent) {
+    // Only react to ttabs drags
+    if (!isTtabsDrag(e)) return;
     // Prevent default to allow drop
     e.preventDefault();
 
@@ -263,12 +278,14 @@
   }
 
   function onDragEnter(e: DragEvent) {
+    if (!isTtabsDrag(e)) return;
     e.preventDefault();
     dragTarget = { panelId: id, area: "tab-bar" };
     splitDirection = null;
   }
 
   function onDragLeave(e: DragEvent) {
+    if (!isTtabsDrag(e)) return;
     e.preventDefault();
     // Only clear if we're the current target
     if (dragTarget?.panelId === id && dragTarget?.area === "tab-bar") {
@@ -280,6 +297,7 @@
 
   // Content area drag handlers
   function onContentDragEnter(e: DragEvent) {
+    if (!isTtabsDrag(e)) return;
     e.preventDefault();
     dragTarget = { panelId: id, area: "content" };
 
@@ -296,6 +314,7 @@
   }
 
   function onContentDragLeave(e: DragEvent) {
+    if (!isTtabsDrag(e)) return;
     e.preventDefault();
     // Only clear if we're the current target
     if (dragTarget?.panelId === id && dragTarget?.area === "content") {
@@ -305,6 +324,7 @@
   }
 
   function onContentDragOver(e: DragEvent) {
+    if (!isTtabsDrag(e)) return;
     e.preventDefault();
     // Set the current drag target
     dragTarget = { panelId: id, area: "content" };
@@ -322,11 +342,14 @@
   }
 
   function onContentDrop(e: DragEvent) {
+    if (!isTtabsDrag(e)) return;
     e.preventDefault();
 
     try {
       // Get the drag data
-      const dataText = e.dataTransfer?.getData("application/json");
+      const dataText =
+        e.dataTransfer?.getData(TTABS_DND_MIME) ||
+        e.dataTransfer?.getData("application/json");
       if (!dataText) return;
 
       const dragData = JSON.parse(dataText);
@@ -370,11 +393,14 @@
 
   function onDrop(e: DragEvent) {
     // Prevent default browser handling
+    if (!isTtabsDrag(e)) return;
     e.preventDefault();
 
     try {
       // Get the drag data
-      const dataText = e.dataTransfer?.getData("application/json");
+      const dataText =
+        e.dataTransfer?.getData(TTABS_DND_MIME) ||
+        e.dataTransfer?.getData("application/json");
       if (!dataText) return;
 
       const dragData = JSON.parse(dataText);
