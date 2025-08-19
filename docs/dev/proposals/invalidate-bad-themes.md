@@ -8,6 +8,8 @@ This proposal outlines a system for validating themes in ttabs to ensure they me
 
 Currently, ttabs allows any theme to be applied without validation. This can lead to several issues:
 
+Note: This document is a proposal. The `TtabsTheme` snippets below illustrate concepts; in the current implementation import types from `ttabs-svelte` and use `setTheme` or assign `ttabs.theme` with a `TtabsTheme`.
+
 1. Text colors that are too similar to background colors, making content unreadable
 2. Active/inactive tab colors that are indistinguishable
 3. Missing theme properties that cause visual inconsistencies

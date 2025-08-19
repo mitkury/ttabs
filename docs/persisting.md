@@ -9,7 +9,7 @@ This guide explains how to save and load ttabs layouts using storage adapters.
 ttabs includes a `LocalStorageAdapter` by default, but you can create your own adapters for different storage systems.
 
 ```typescript
-import { createTtabs, LocalStorageAdapter } from "$lib/ttabs";
+import { createTtabs, LocalStorageAdapter } from 'ttabs-svelte';
 
 // Create a localStorage adapter with a unique key and debounce time
 const storageAdapter = new LocalStorageAdapter("my-app-layout", 500);
@@ -51,7 +51,7 @@ onMount(() => {
 You can create custom storage adapters by implementing the `TtabsStorageAdapter` interface:
 
 ```typescript
-import { TtabsStorageAdapter, TtabsStorageData } from "$lib/ttabs";
+import { TtabsStorageAdapter, TtabsStorageData } from 'ttabs-svelte';
 
 class MyCustomAdapter implements TtabsStorageAdapter {
   // Save state to your storage
@@ -111,7 +111,7 @@ class IndexedDBAdapter implements TtabsStorageAdapter {
 ## Complete Example
 
 ```typescript
-import { createTtabs, TtabsRoot, LocalStorageAdapter } from "$lib/ttabs";
+import { createTtabs, TTabsRoot, LocalStorageAdapter } from 'ttabs-svelte';
 import { onMount } from "svelte";
 
 // Create adapter and load saved data

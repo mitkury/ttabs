@@ -41,7 +41,8 @@ You can also split panels programmatically using the `splitPanel` method:
 
 ```typescript
 // Get references to the ttabs instance
-const ttabs = new Ttabs();
+import { createTtabs } from 'ttabs-svelte';
+const ttabs = createTtabs();
 
 // Create your initial layout
 const rootId = ttabs.addGrid();
