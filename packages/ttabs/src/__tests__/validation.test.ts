@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { 
-  Ttabs, 
+  createTtabs,
   LayoutValidationError, 
   type LayoutValidator,
   type TileState, 
@@ -18,7 +18,7 @@ describe('Layout Validation', () => {
   describe('Default Validator', () => {
     it('should validate a valid layout', () => {
       // Create a valid layout
-      const ttabs = new Ttabs();
+      const ttabs = createTtabs();
       const rowId = ttabs.addRow(ttabs.rootGridId);
       const columnId = ttabs.addColumn(rowId);
       const panelId = ttabs.addPanel(columnId);
@@ -30,7 +30,7 @@ describe('Layout Validation', () => {
 
     it('should detect missing root grid', () => {
       // Create an invalid layout with no root grid
-      const ttabs = new Ttabs();
+      const ttabs = createTtabs();
       
       // Clear tiles to create an invalid state
       ttabs.resetTiles();
@@ -52,7 +52,7 @@ describe('Layout Validation', () => {
 
     it('should detect orphaned tiles', () => {
       // Create a layout with orphaned tiles
-      const ttabs = new Ttabs();
+      const ttabs = createTtabs();
       const rowId = ttabs.addRow(ttabs.rootGridId);
       const columnId = ttabs.addColumn(rowId);
       
@@ -76,7 +76,7 @@ describe('Layout Validation', () => {
 
     it('should detect empty root grid (no rows)', () => {
       // Create a layout with no rows in the root grid
-      const ttabs = new Ttabs();
+      const ttabs = createTtabs();
       
       // Remove all rows from the root grid
       const rootGrid = ttabs.tiles[ttabs.rootGridId] as TileGridState;
@@ -99,7 +99,7 @@ describe('Layout Validation', () => {
 
     it('should detect empty rows (no columns)', () => {
       // Create a layout with an empty row
-      const ttabs = new Ttabs();
+      const ttabs = createTtabs();
       const rowId = ttabs.addRow(ttabs.rootGridId);
       
       // Don't add any columns to the row
@@ -135,7 +135,7 @@ describe('Layout Validation', () => {
       };
       
       // Create a ttabs instance with the custom validator
-      const ttabs = new Ttabs({
+      const ttabs = createTtabs({
         validators: [customValidator]
       });
       
@@ -160,7 +160,7 @@ describe('Layout Validation', () => {
 
     it('should allow adding validators after creation', () => {
       // Create a ttabs instance
-      const ttabs = new Ttabs();
+      const ttabs = createTtabs();
       
       // Create a valid layout with a panel but no tabs
       const rowId = ttabs.addRow(ttabs.rootGridId);
@@ -200,7 +200,7 @@ describe('Layout Validation', () => {
   describe('Default Layout Reset', () => {
     it('should reset to default layout when validation fails', () => {
       // Create a ttabs instance
-      const ttabs = new Ttabs();
+      const ttabs = createTtabs();
       
       // Create an invalid layout
       ttabs.resetTiles();
@@ -234,7 +234,7 @@ describe('Layout Validation', () => {
       let creatorCalled = false;
       
       // Create a ttabs instance with a custom default layout creator
-      const ttabs = new Ttabs({
+      const ttabs = createTtabs({
         defaultLayoutCreator: (t) => {
           creatorCalled = true;
           
@@ -267,7 +267,7 @@ describe('Layout Validation', () => {
   describe('Setup Validation', () => {
     it('should validate layout during setup', () => {
       // Create a ttabs instance
-      const ttabs = new Ttabs();
+      const ttabs = createTtabs();
       
       // Create an invalid layout (missing columns in row)
       const invalidTiles: TileState[] = [
@@ -307,7 +307,7 @@ describe('Layout Validation', () => {
 
     it('should validate layout during setupWithRecord', () => {
       // Create a ttabs instance
-      const ttabs = new Ttabs();
+      const ttabs = createTtabs();
       
       // Create an invalid layout (orphaned tile)
       const invalidTiles: Record<string, TileState> = {

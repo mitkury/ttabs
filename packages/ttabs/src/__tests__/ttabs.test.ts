@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { Ttabs, DEFAULT_THEME } from 'ttabs-svelte';
+import { createTtabs, DEFAULT_THEME } from 'ttabs-svelte';
 import type { Component } from 'svelte';
 
 describe('Ttabs', () => {
   it('should create a ttabs instance with default options', () => {
-    const ttabs = new Ttabs();
+    const ttabs = createTtabs();
     
     // Should create a root grid automatically
     expect(ttabs.rootGridId).toBeTruthy();
@@ -19,7 +19,7 @@ describe('Ttabs', () => {
   });
 
   it('should add a row to the grid', () => {
-    const ttabs = new Ttabs();
+    const ttabs = createTtabs();
     const rowId = ttabs.addRow(ttabs.rootGridId);
     
     // Row should be added to the grid
@@ -29,7 +29,7 @@ describe('Ttabs', () => {
   });
 
   it('should add a column to a row', () => {
-    const ttabs = new Ttabs();
+    const ttabs = createTtabs();
     const rowId = ttabs.addRow(ttabs.rootGridId);
     const columnId = ttabs.addColumn(rowId);
     
@@ -40,7 +40,7 @@ describe('Ttabs', () => {
   });
 
   it('should add a panel to a column', () => {
-    const ttabs = new Ttabs();
+    const ttabs = createTtabs();
     const rowId = ttabs.addRow(ttabs.rootGridId);
     const columnId = ttabs.addColumn(rowId);
     const panelId = ttabs.addPanel(columnId);
@@ -52,7 +52,7 @@ describe('Ttabs', () => {
   });
 
   it('should add a tab to a panel', () => {
-    const ttabs = new Ttabs();
+    const ttabs = createTtabs();
     const rowId = ttabs.addRow(ttabs.rootGridId);
     const columnId = ttabs.addColumn(rowId);
     const panelId = ttabs.addPanel(columnId);
@@ -65,7 +65,7 @@ describe('Ttabs', () => {
   });
 
   it('should register and set components', () => {
-    const ttabs = new Ttabs();
+    const ttabs = createTtabs();
     const rowId = ttabs.addRow(ttabs.rootGridId);
     const columnId = ttabs.addColumn(rowId);
     const panelId = ttabs.addPanel(columnId);
