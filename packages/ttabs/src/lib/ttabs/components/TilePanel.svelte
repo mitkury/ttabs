@@ -589,8 +589,8 @@
                 ] || ''}"
                 style="display: var(--ttabs-show-close-button, none)"
                 onclick={(e) => closeTab(e, tab.id)}
-                >defaultComponentIdForEmptyTiles
-                ✕defaultComponentIdForEmptyTiles
+                aria-label="Close tab"
+                >✕
               </button>
             {/if}
           </div>

@@ -24,15 +24,19 @@
   <div class="sidepanel-content">
     <ul class="sidepanel-items">
       {#each items as item}
-        <li 
-          class="sidepanel-item" 
-          class:active={selectedItem === item.id}
-          on:click={() => selectItem(item.id)}
-        >
-          {#if item.icon}
-            <span class="item-icon">{item.icon}</span>
-          {/if}
-          <span class="item-label">{item.label}</span>
+        <li class="sidepanel-item">
+          <button 
+            type="button"
+            class="sidepanel-button" 
+            class:active={selectedItem === item.id}
+            onclick={() => selectItem(item.id)}
+            onkeydown={(e) => e.key === 'Enter' && selectItem(item.id)}
+          >
+            {#if item.icon}
+              <span class="item-icon">{item.icon}</span>
+            {/if}
+            <span class="item-label">{item.label}</span>
+          </button>
         </li>
       {/each}
     </ul>
@@ -71,18 +75,28 @@
   }
   
   .sidepanel-item {
-    padding: 0.8rem 1rem;
-    cursor: pointer;
+    padding: 0;
     border-bottom: 1px solid #eee;
-    display: flex;
-    align-items: center;
   }
   
-  .sidepanel-item:hover {
+  .sidepanel-button {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    text-align: left;
+    font-family: inherit;
+    font-size: inherit;
+  }
+  
+  .sidepanel-button:hover {
     background-color: #eaeaea;
   }
   
-  .sidepanel-item.active {
+  .sidepanel-button.active {
     background-color: #e0e0ff;
     font-weight: bold;
   }
