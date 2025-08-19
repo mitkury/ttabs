@@ -126,9 +126,7 @@
         />
       {/each}
     {:else if ttabs.defaultComponentIdForEmptyTiles}
-      {@const NoContent = ttabs.getContentComponent(
-        ttabs.defaultComponentIdForEmptyTiles,
-      )?.component}
+      {@const NoContent = ttabs.getContentComponent(ttabs.defaultComponentIdForEmptyTiles)?.component}
       {#if NoContent}
         <div class="ttabs-direct-content">
           <NoContent />
