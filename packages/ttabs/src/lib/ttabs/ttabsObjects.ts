@@ -120,6 +120,24 @@ export class Panel extends TileObject {
       }))
     });
   }
+
+  /**
+   * Get or set components rendered inside the tab bar (after tabs by default)
+   */
+  get tabBarComponents(): Array<{ componentId: string, props?: Record<string, any>, align?: 'left' | 'right' }> {
+    const panel = this.ttabs.getPanel(this._id);
+    return panel.tabBarComponents || [];
+  }
+  
+  set tabBarComponents(components: Array<{ componentId: string, props?: Record<string, any>, align?: 'left' | 'right' }>) {
+    this.ttabs.updateTile(this._id, { 
+      tabBarComponents: components.map(c => ({
+        componentId: c.componentId,
+        props: c.props || {},
+        align: c.align
+      }))
+    });
+  }
 }
 
 /**

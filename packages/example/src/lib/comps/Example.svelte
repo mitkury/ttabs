@@ -12,6 +12,7 @@
   import EditorComponent from "./EditorComponent.svelte";
   import DocumentComponent from "./DocumentComponent.svelte";
   import SidePanelComponent from "./SidePanelComponent.svelte";
+  import AddTabButton from "./AddTabButton.svelte";
 
   // Create a storage adapter for persisting layout
   const storage = new LocalStorageAdapter("ttabs-example");
@@ -30,6 +31,7 @@
   ttabs.registerComponent("editor", EditorComponent, { readOnly: false });
   ttabs.registerComponent("document", DocumentComponent);
   ttabs.registerComponent("sidepanel", SidePanelComponent);
+  ttabs.registerComponent("add-tab-button", AddTabButton);
 
   // Track if the layout has been initialized
   let isInitialized = $state(false);
@@ -37,7 +39,7 @@
   // Track the upper panel ID for adding new tabs
   let upperPanelId = $state("");
 
-  // Keep track of new tab count for naming
+  // Keep track of new tab count for header button
   let newTabCount = $state(1);
 
   // Track sidebar visibility
@@ -106,6 +108,22 @@
 
     // Store the upper panel ID for adding new tabs
     upperPanelId = upperPanel.id;
+
+    // Show a "+" control next to the tab headers (inline after tabs)
+    upperPanel.tabBarComponents = [
+      {
+        componentId: "add-tab-button",
+        props: {
+          tabBaseName: "New Tab",
+          componentId: "editor",
+          componentProps: {
+            content: "// New tab\n",
+            language: "typescript",
+            readOnly: false,
+          },
+        },
+      },
+    ];
 
     // Create editor tab for upper panel
     upperPanel.newTab("Editor").setComponent("editor", {

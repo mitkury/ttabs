@@ -18,6 +18,15 @@
   const tabIds = $derived(panel?.type === "panel" ? panel.tabs : []);
   const activeTab = $derived(panel?.type === "panel" ? panel.activeTab : null);
   const focusedTab = $derived(ttabs.focusedActiveTab);
+  const tabBarComponents = $derived(
+    panel?.type === "panel" ? panel.tabBarComponents || [] : []
+  );
+  const tabBarLeft = $derived(
+    tabBarComponents.filter((c) => c.align !== "right")
+  );
+  const tabBarRight = $derived(
+    tabBarComponents.filter((c) => c.align === "right")
+  );
 
   // Get tab objects from ids
   const tabs = $derived(
@@ -621,6 +630,46 @@
             {/if}
           </div>
         {/each}
+
+        {#if tabBarLeft.length}
+          <div class="ttabs-tab-bar-inline">
+            {#each tabBarLeft as inlineComp}
+              {@const componentData = ttabs.getContentComponent(
+                inlineComp.componentId
+              )}
+              {#if componentData}
+                {@const InlineComponent = componentData.component}
+                {@const inlineProps = {
+                  ...componentData.defaultProps,
+                  ...inlineComp.props,
+                  ttabs,
+                  panelId: id,
+                }}
+                <InlineComponent {...inlineProps} />
+              {/if}
+            {/each}
+          </div>
+        {/if}
+
+        {#if tabBarRight.length}
+          <div class="ttabs-tab-bar-inline tab-bar-inline-right">
+            {#each tabBarRight as inlineComp}
+              {@const componentData = ttabs.getContentComponent(
+                inlineComp.componentId
+              )}
+              {#if componentData}
+                {@const InlineComponent = componentData.component}
+                {@const inlineProps = {
+                  ...componentData.defaultProps,
+                  ...inlineComp.props,
+                  ttabs,
+                  panelId: id,
+                }}
+                <InlineComponent {...inlineProps} />
+              {/if}
+            {/each}
+          </div>
+        {/if}
       </div>
 
       <!-- Right panel UI components -->
@@ -753,6 +802,17 @@
 
     .ttabs-tab-title {
       flex-grow: 1;
+    }
+
+    .ttabs-tab-bar-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding-right: 4px;
+    }
+
+    .ttabs-tab-bar-inline.tab-bar-inline-right {
+      margin-left: auto;
     }
 
     .ttabs-tab-close {

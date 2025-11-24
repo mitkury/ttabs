@@ -9,6 +9,7 @@ export type TileType = 'grid' | 'row' | 'column' | 'panel' | 'tab' | 'content';
 export interface PanelUIComponent {
   componentId: string;
   props?: Record<string, any>;
+  align?: 'left' | 'right';
 }
 
 /**
@@ -69,6 +70,8 @@ export interface TilePanelState extends TileBaseState {
   // UI components that can be placed on the left or right side of the panel
   leftComponents?: PanelUIComponent[];
   rightComponents?: PanelUIComponent[];
+  // Components rendered inside the tab bar; align controls spacing relative to tabs
+  tabBarComponents?: PanelUIComponent[];
 }
 
 /**

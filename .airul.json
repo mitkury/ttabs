@@ -9,7 +9,7 @@
   ],
   "output": {
     "cursor": true,
-    "windsurf": true,
+    "windsurf": false,
     "copilot": false,
     "cline": false,
     "claude": false
