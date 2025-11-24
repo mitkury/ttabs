@@ -1610,7 +1610,8 @@ export class TTabs {
       type: 'panel',
       parent: parentId,
       tabs: [],
-      activeTab: null
+      activeTab: null,
+      tabBarComponents: []
     });
 
     // Update column's child

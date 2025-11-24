@@ -123,6 +123,20 @@
           },
         },
       },
+      {
+        componentId: "add-tab-button",
+        align: "right",
+        props: {
+          tabBaseName: "Doc",
+          componentId: "document",
+          componentProps: {
+            title: "New Doc",
+            content: "Document body",
+          },
+          label: "⋯",
+          title: "New document tab",
+        },
+      },
     ];
 
     // Create editor tab for upper panel
