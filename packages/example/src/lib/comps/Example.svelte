@@ -125,7 +125,6 @@
       },
       {
         componentId: "add-tab-button",
-        align: "right",
         props: {
           tabBaseName: "Doc",
           componentId: "document",
@@ -133,8 +132,38 @@
             title: "New Doc",
             content: "Document body",
           },
-          label: "⋯",
+          label: "📄",
           title: "New document tab",
+        },
+      },
+      {
+        componentId: "add-tab-button",
+        align: "right",
+        props: {
+          tabBaseName: "Scratch",
+          componentId: "editor",
+          componentProps: {
+            content: "// Scratchpad\n",
+            language: "typescript",
+            readOnly: false,
+          },
+          label: "⋯",
+          title: "Scratch tab",
+        },
+      },
+      {
+        componentId: "add-tab-button",
+        align: "right",
+        props: {
+          tabBaseName: "Debug",
+          componentId: "editor",
+          componentProps: {
+            content: "// Debug notes\n",
+            language: "plaintext",
+            readOnly: true,
+          },
+          label: "🧪",
+          title: "New debug tab",
         },
       },
     ];
