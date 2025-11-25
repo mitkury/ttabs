@@ -113,6 +113,21 @@
     upperPanel.tabBarComponents = [
       {
         componentId: "add-tab-button",
+        position: "before-tabs",
+        props: {
+          tabBaseName: "Quick",
+          componentId: "editor",
+          componentProps: {
+            content: "// Quick scratch\n",
+            language: "typescript",
+            readOnly: false,
+          },
+          label: "+",
+          title: "New quick tab (before tabs)",
+        },
+      },
+      {
+        componentId: "add-tab-button",
         props: {
           tabBaseName: "New Tab",
           componentId: "editor",
@@ -138,7 +153,7 @@
       },
       {
         componentId: "add-tab-button",
-        align: "right",
+        position: "far-right",
         props: {
           tabBaseName: "Scratch",
           componentId: "editor",
@@ -153,7 +168,7 @@
       },
       {
         componentId: "add-tab-button",
-        align: "right",
+        position: "far-right",
         props: {
           tabBaseName: "Debug",
           componentId: "editor",

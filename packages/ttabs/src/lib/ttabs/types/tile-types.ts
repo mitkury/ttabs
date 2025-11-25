@@ -9,7 +9,13 @@ export type TileType = 'grid' | 'row' | 'column' | 'panel' | 'tab' | 'content';
 export interface PanelUIComponent {
   componentId: string;
   props?: Record<string, any>;
-  align?: 'left' | 'right';
+  /**
+   * Where to render the control relative to tabs
+   * - before-tabs: ahead of the tab list (left edge)
+   * - after-tabs: immediately after the tab list (default)
+   * - far-right: anchored to the right edge
+   */
+  position?: 'before-tabs' | 'after-tabs' | 'far-right';
 }
 
 /**

@@ -21,11 +21,16 @@
   const tabBarComponents = $derived(
     panel?.type === "panel" ? panel.tabBarComponents || [] : []
   );
-  const tabBarLeft = $derived(
-    tabBarComponents.filter((c) => c.align !== "right")
+  const tabBarBefore = $derived(
+    tabBarComponents.filter((c) => c.position === "before-tabs")
+  );
+  const tabBarAfter = $derived(
+    tabBarComponents.filter(
+      (c) => !c.position || c.position === "after-tabs"
+    )
   );
   const tabBarRight = $derived(
-    tabBarComponents.filter((c) => c.align === "right")
+    tabBarComponents.filter((c) => c.position === "far-right")
   );
 
   // Get tab objects from ids
@@ -563,6 +568,26 @@
         aria-label="Tabs"
         tabindex="0"
       >
+        {#if tabBarBefore.length}
+          <div class="ttabs-tab-bar-inline tab-bar-inline-before">
+            {#each tabBarBefore as inlineComp}
+              {@const componentData = ttabs.getContentComponent(
+                inlineComp.componentId
+              )}
+              {#if componentData}
+                {@const InlineComponent = componentData.component}
+                {@const inlineProps = {
+                  ...componentData.defaultProps,
+                  ...inlineComp.props,
+                  ttabs,
+                  panelId: id,
+                }}
+                <InlineComponent {...inlineProps} />
+              {/if}
+            {/each}
+          </div>
+        {/if}
+
         {#each tabs as tab (tab.id)}
           <!-- Default tab header implementation -->
           <div
@@ -631,9 +656,9 @@
           </div>
         {/each}
 
-        {#if tabBarLeft.length}
+        {#if tabBarAfter.length}
           <div class="ttabs-tab-bar-inline">
-            {#each tabBarLeft as inlineComp}
+            {#each tabBarAfter as inlineComp}
               {@const componentData = ttabs.getContentComponent(
                 inlineComp.componentId
               )}
@@ -809,6 +834,11 @@
       align-items: center;
       gap: 4px;
       padding-right: 4px;
+    }
+
+    .ttabs-tab-bar-inline.tab-bar-inline-before {
+      padding-left: 4px;
+      padding-right: 8px;
     }
 
     .ttabs-tab-bar-inline.tab-bar-inline-right {
