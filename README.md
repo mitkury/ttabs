@@ -97,6 +97,40 @@ ttabs
   .newPanel();
 ```
 
+### Adding a "+" button to the tab bar
+
+You can inject custom tab-bar controls (e.g., a "+" button) by registering a component and attaching it to a panel’s `tabBarComponents`.
+
+```svelte
+<!-- AddTabButton.svelte -->
+<script lang="ts">
+  let { ttabs, panelId } = $props();
+  function addTab() {
+    const tab = ttabs.getPanelObject(panelId).newTab("New Tab", true);
+    tab.setComponent("my-component");
+  }
+</script>
+
+<button onclick={addTab}>+</button>
+```
+
+```ts
+// Register the button and place it after the tabs
+ttabs.registerComponent("add-tab-button", AddTabButton);
+const panel = ttabs.newGrid().newRow().newColumn().newPanel();
+panel.tabBarComponents = [{ componentId: "add-tab-button" }]; // default position is after the tabs
+```
+
+Use `position: "before-tabs"` to render it before the first tab or `"far-right"` to pin it to the right edge:
+
+```ts
+panel.tabBarComponents = [
+  { componentId: "add-tab-button", position: "before-tabs" },
+  { componentId: "add-tab-button" }, // after-tabs (default)
+  { componentId: "add-tab-button", position: "far-right" },
+];
+```
+
 ### Persisting State
 
 ```javascript
