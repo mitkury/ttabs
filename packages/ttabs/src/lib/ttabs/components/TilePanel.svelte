@@ -821,8 +821,10 @@
       display: flex;
       align-items: center;
       color: var(--ttabs-tab-text-color);
-      border-top-left-radius: none;
-      border-top-right-radius: none;
+      border-top-left-radius: var(--ttabs-border-top-left-radius);
+      border-top-right-radius: var(--ttabs-border-top-right-radius);
+      border-bottom-left-radius: var(-ttabs-border-bottom-left-radius);
+      border-bottom-right-radius: var(-ttabs-border-bottom-right-radius);
     }
 
     .ttabs-tab-title {

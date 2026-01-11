@@ -65,8 +65,10 @@ export type TtabsCssVariables = {
   '--ttabs-drop-indicator-offset': string;
   
   // Border radius
-  '--ttabs-border-radius': string;
-  '--ttabs-border-radius-sm': string;
+  '--ttabs-border-top-left-radius': string;
+  '--ttabs-border-top-right-radius': string;
+  '--ttabs-border-bottom-left-radius': string;
+  '--ttabs-border-bottom-right-radius': string;
 }
 
 /**
@@ -198,8 +200,11 @@ export const DEFAULT_THEME: TtabsTheme = {
     '--ttabs-drop-indicator-offset': '-2px',
     
     // Border radius
-    '--ttabs-border-radius': '0',
-    '--ttabs-border-radius-sm': '0',
+    '--ttabs-border-top-left-radius': '0',
+    '--ttabs-border-top-right-radius': '0',
+    '--ttabs-border-bottom-left-radius': '0',
+    '--ttabs-border-bottom-right-radius': '0',
+
     
     // Controls
     '--ttabs-show-close-button': 'flex', // Show close buttons by default

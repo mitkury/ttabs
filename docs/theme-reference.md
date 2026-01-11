@@ -71,6 +71,14 @@ This document provides a comprehensive list of all CSS variables available for t
 | `--ttabs-drop-target-outline` | Drop target outline style | `2px dashed rgba(74, 108, 247, 0.5)` |
 | `--ttabs-split-indicator-color` | Split indicator color | `rgba(74, 108, 247, 0.1)` |
 
+## Border Radius
+| Variable | Description | Default Value |
+| --- | --- | --- |
+| `--ttabs-border-top-left-radius` | Tabs top left border radius | `#666` |
+| `--ttabs-border-top-right-radius` | Tabs top right border radius | `#666` |
+| `--ttabs-border-bottom-left-radius` | Tabs bottom left border radius | `#666` |
+| `--ttabs-border-bottom-right-radius` | Tabs bottom right border radius | `#666` |
+
 ## Element Classes
 
 You can also customize CSS classes for different elements using the `classes` property in your theme:
