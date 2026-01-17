@@ -227,6 +227,8 @@
       flex-direction: column;
       background-color: var(--ttabs-mobile-tabs-overlay-bg);
       z-index: 20;
+      height: 100%;
+      overflow: hidden;
     }
 
     .ttabs-mobile-tabs-overlay-header {
@@ -257,6 +259,8 @@
       gap: 12px;
       padding: 1rem;
       overflow: auto;
+      flex: 1;
+      min-height: 0;
     }
 
     .ttabs-mobile-tab-tile {
@@ -318,6 +322,11 @@
     }
 
     .ttabs-mobile-tabs-empty {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 1rem;
       color: var(--ttabs-empty-state-color);
     }
