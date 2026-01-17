@@ -41,6 +41,14 @@ export type TtabsCssVariables = {
   '--ttabs-tab-close-margin': string;
   '--ttabs-tab-close-size': string;
   '--ttabs-tab-close-border-radius': string;
+
+  // Mobile tabs
+  '--ttabs-mobile-tabs-toggle-bg': string;
+  '--ttabs-mobile-tabs-toggle-color': string;
+  '--ttabs-mobile-tabs-toggle-border': string;
+  '--ttabs-mobile-tabs-overlay-bg': string;
+  '--ttabs-mobile-tabs-tile-bg': string;
+  '--ttabs-mobile-tabs-tile-border': string;
   
   // Error styling
   '--ttabs-error-bg': string;
@@ -89,6 +97,9 @@ export type TtabsElementType =
   | 'tab-title'
   | 'tab-close-button'
   | 'tab-content'
+  | 'mobile-tabs-toggle'
+  | 'mobile-tabs-overlay'
+  | 'mobile-tab-tile'
   
   // Content elements
   | 'content'
@@ -208,7 +219,15 @@ export const DEFAULT_THEME: TtabsTheme = {
     '--ttabs-close-button-hover-bg': 'rgba(0, 0, 0, 0.05)',
     '--ttabs-tab-close-margin': '8px',
     '--ttabs-tab-close-size': '16px',
-    '--ttabs-tab-close-border-radius': '0'
+    '--ttabs-tab-close-border-radius': '0',
+
+    // Mobile tabs
+    '--ttabs-mobile-tabs-toggle-bg': '#f5f5f5',
+    '--ttabs-mobile-tabs-toggle-color': '#555',
+    '--ttabs-mobile-tabs-toggle-border': 'none',
+    '--ttabs-mobile-tabs-overlay-bg': 'white',
+    '--ttabs-mobile-tabs-tile-bg': '#fdfdfd',
+    '--ttabs-mobile-tabs-tile-border': '1px solid #ddd'
   }
 };
 

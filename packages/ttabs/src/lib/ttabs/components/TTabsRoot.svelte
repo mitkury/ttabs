@@ -1,8 +1,10 @@
 <script lang="ts">
   import TileGrid from "./TileGrid.svelte";
   import { TTabs } from "../TTabs.svelte";
+  import { BROWSER } from "esm-env";
 
   let { ttabs }: { ttabs: TTabs } = $props();
+  let rootElement = $state<HTMLElement | null>(null);
 
   // Generate CSS variable style string from theme
   let themeStyle = $derived.by(() =>
@@ -12,12 +14,34 @@
           .join(" ")
       : ""
   );
+
+  function updateMobileLayout() {
+    if (!rootElement) return;
+    const width = rootElement.clientWidth;
+    const isMobile = width <= ttabs.mobileBreakpoint;
+    if (ttabs.isMobileLayout !== isMobile) {
+      ttabs.isMobileLayout = isMobile;
+    }
+  }
+
+  $effect(() => {
+    if (!BROWSER || !rootElement) return;
+
+    updateMobileLayout();
+
+    const observer = new ResizeObserver(() => updateMobileLayout());
+    observer.observe(rootElement);
+
+    return () => observer.disconnect();
+  });
 </script>
 
 <div
   class="ttabs-root {ttabs.theme?.classes?.root || ''}"
   style={themeStyle}
   data-theme={ttabs.theme?.name}
+  data-layout={ttabs.isMobileLayout ? "mobile" : "desktop"}
+  bind:this={rootElement}
 >
   {#if ttabs.rootGridId}
     <TileGrid {ttabs} id={ttabs.rootGridId} />

@@ -32,6 +32,7 @@
   const tabBarRight = $derived(
     tabBarComponents.filter((c) => c.position === "far-right")
   );
+  const isMobileLayout = $derived(ttabs.isMobileLayout);
 
   // Get tab objects from ids
   const tabs = $derived(
@@ -39,6 +40,11 @@
       return ttabs.getTab(id);
     })
   );
+  const activeTabName = $derived.by(() => {
+    if (!activeTab) return "Tabs";
+    const active = tabs.find((tab) => tab.id === activeTab);
+    return active?.name || "Tabs";
+  });
 
   // Drag state
   let draggedTabId: string | null = $state(null);
@@ -52,6 +58,7 @@
     $state(null);
   let splitDirection: "top" | "right" | "bottom" | "left" | "center" | null =
     $state(null);
+  let mobileTabsOpen = $state(false);
 
   // Custom MIME type used to mark ttabs tab drags
   const TTABS_DND_MIME = "application/x-ttabs+json";
@@ -83,6 +90,12 @@
   $effect(() => {
     if (activeTab) {
       setTimeout(() => scrollToTab(activeTab), 0);
+    }
+  });
+
+  $effect(() => {
+    if (!isMobileLayout && mobileTabsOpen) {
+      mobileTabsOpen = false;
     }
   });
 
@@ -556,146 +569,162 @@
         </div>
       {/if}
 
-      <!-- Regular tab bar -->
-      <div
-        class="ttabs-tab-bar {ttabs.theme?.classes?.['tab-bar'] || ''}"
-        bind:this={tabBarElement}
-        ondragover={onDragOver}
-        ondragenter={onDragEnter}
-        ondragleave={onDragLeave}
-        ondrop={onDrop}
-        role="tablist"
-        aria-label="Tabs"
-        tabindex="0"
-      >
-        {#if tabBarBefore.length}
-          <div class="ttabs-tab-bar-inline tab-bar-inline-before">
-            {#each tabBarBefore as inlineComp}
-              {@const componentData = ttabs.getContentComponent(
-                inlineComp.componentId
-              )}
-              {#if componentData}
-                {@const InlineComponent = componentData.component}
-                {@const inlineProps = {
-                  ...componentData.defaultProps,
-                  ...inlineComp.props,
-                  ttabs,
-                  panelId: id,
-                }}
-                <InlineComponent {...inlineProps} />
-              {/if}
-            {/each}
-          </div>
-        {/if}
+      {#if isMobileLayout}
+        <button
+          class="ttabs-mobile-tabs-toggle {ttabs.theme?.classes?.[
+            'mobile-tabs-toggle'
+          ] || ''}"
+          onclick={() => (mobileTabsOpen = !mobileTabsOpen)}
+          aria-haspopup="dialog"
+          aria-expanded={mobileTabsOpen}
+          aria-controls={`ttabs-mobile-tabs-${id}`}
+          type="button"
+        >
+          <span class="ttabs-mobile-tabs-label">{activeTabName}</span>
+          <span class="ttabs-mobile-tabs-count">{tabs.length}</span>
+        </button>
+      {:else}
+        <!-- Regular tab bar -->
+        <div
+          class="ttabs-tab-bar {ttabs.theme?.classes?.['tab-bar'] || ''}"
+          bind:this={tabBarElement}
+          ondragover={onDragOver}
+          ondragenter={onDragEnter}
+          ondragleave={onDragLeave}
+          ondrop={onDrop}
+          role="tablist"
+          aria-label="Tabs"
+          tabindex="0"
+        >
+          {#if tabBarBefore.length}
+            <div class="ttabs-tab-bar-inline tab-bar-inline-before">
+              {#each tabBarBefore as inlineComp}
+                {@const componentData = ttabs.getContentComponent(
+                  inlineComp.componentId
+                )}
+                {#if componentData}
+                  {@const InlineComponent = componentData.component}
+                  {@const inlineProps = {
+                    ...componentData.defaultProps,
+                    ...inlineComp.props,
+                    ttabs,
+                    panelId: id,
+                  }}
+                  <InlineComponent {...inlineProps} />
+                {/if}
+              {/each}
+            </div>
+          {/if}
 
-        {#each tabs as tab (tab.id)}
-          <!-- Default tab header implementation -->
-          <div
-            class="ttabs-tab-header {ttabs.theme?.classes?.['tab-header'] ||
-              ''} {tab.id === activeTab
-              ? `ttabs-tab-header-active ${ttabs.theme?.classes?.['tab-header-active'] || ''}`
-              : ''} {tab.id === focusedTab
-              ? `ttabs-tab-header-focused ${ttabs.theme?.classes?.['tab-header-focused'] || ''}`
-              : ''}"
-            class:active={tab.id === activeTab}
-            class:focused={tab.id === focusedTab}
-            class:is-dragging={tab.id === draggedTabId}
-            class:drop-before={tab.id === dragOverTabId &&
-              dragPosition === "before"}
-            class:drop-after={tab.id === dragOverTabId &&
-              dragPosition === "after"}
-            data-tab-id={tab.id}
-            draggable="true"
-            onmousedown={(e) => {
-              // Don't select the tab if the close button was clicked
-              if (
-                e.target instanceof HTMLElement &&
-                (e.target.classList.contains("ttabs-tab-close") ||
-                  e.target.closest(".ttabs-tab-close"))
-              ) {
-                return;
-              }
-              selectTab(tab.id);
-            }}
-            onkeydown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
+          {#each tabs as tab (tab.id)}
+            <!-- Default tab header implementation -->
+            <div
+              class="ttabs-tab-header {ttabs.theme?.classes?.['tab-header'] ||
+                ''} {tab.id === activeTab
+                ? `ttabs-tab-header-active ${ttabs.theme?.classes?.['tab-header-active'] || ''}`
+                : ''} {tab.id === focusedTab
+                ? `ttabs-tab-header-focused ${ttabs.theme?.classes?.['tab-header-focused'] || ''}`
+                : ''}"
+              class:active={tab.id === activeTab}
+              class:focused={tab.id === focusedTab}
+              class:is-dragging={tab.id === draggedTabId}
+              class:drop-before={tab.id === dragOverTabId &&
+                dragPosition === "before"}
+              class:drop-after={tab.id === dragOverTabId &&
+                dragPosition === "after"}
+              data-tab-id={tab.id}
+              draggable="true"
+              onmousedown={(e) => {
+                // Don't select the tab if the close button was clicked
+                if (
+                  e.target instanceof HTMLElement &&
+                  (e.target.classList.contains("ttabs-tab-close") ||
+                    e.target.closest(".ttabs-tab-close"))
+                ) {
+                  return;
+                }
                 selectTab(tab.id);
-              }
-            }}
-            ondragstart={(e) => onDragStart(e, tab.id)}
-            ondragend={onDragEnd}
-            role="tab"
-            aria-selected={tab.id === activeTab}
-            aria-controls="{id}-content"
-            tabindex="0"
-          >
-            <span class="ttabs-tab-title">
-              <span class:ttabs-lazy-tab={tab.isLazy === true}>
-                {tab.name || "Unnamed Tab"}
+              }}
+              onkeydown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  selectTab(tab.id);
+                }
+              }}
+              ondragstart={(e) => onDragStart(e, tab.id)}
+              ondragend={onDragEnd}
+              role="tab"
+              aria-selected={tab.id === activeTab}
+              aria-controls="{id}-content"
+              tabindex="0"
+            >
+              <span class="ttabs-tab-title">
+                <span class:ttabs-lazy-tab={tab.isLazy === true}>
+                  {tab.name || "Unnamed Tab"}
+                </span>
               </span>
-            </span>
 
-            {#if CustomCloseButton}
-              <CustomCloseButton
-                tabId={tab.id}
-                {ttabs}
-                onClose={(e: Event) => closeTab(e, tab.id)}
-              />
-            {:else}
-              <button
-                class="ttabs-tab-close {ttabs.theme?.classes?.[
-                  'tab-close-button'
-                ] || ''}"
-                style="display: var(--ttabs-show-close-button, none)"
-                onclick={(e) => closeTab(e, tab.id)}
-                aria-label="Close tab"
-                >✕
-              </button>
-            {/if}
-          </div>
-        {/each}
-
-        {#if tabBarAfter.length}
-          <div class="ttabs-tab-bar-inline">
-            {#each tabBarAfter as inlineComp}
-              {@const componentData = ttabs.getContentComponent(
-                inlineComp.componentId
-              )}
-              {#if componentData}
-                {@const InlineComponent = componentData.component}
-                {@const inlineProps = {
-                  ...componentData.defaultProps,
-                  ...inlineComp.props,
-                  ttabs,
-                  panelId: id,
-                }}
-                <InlineComponent {...inlineProps} />
+              {#if CustomCloseButton}
+                <CustomCloseButton
+                  tabId={tab.id}
+                  {ttabs}
+                  onClose={(e: Event) => closeTab(e, tab.id)}
+                />
+              {:else}
+                <button
+                  class="ttabs-tab-close {ttabs.theme?.classes?.[
+                    'tab-close-button'
+                  ] || ''}"
+                  style="display: var(--ttabs-show-close-button, none)"
+                  onclick={(e) => closeTab(e, tab.id)}
+                  aria-label="Close tab"
+                  >✕
+                </button>
               {/if}
-            {/each}
-          </div>
-        {/if}
+            </div>
+          {/each}
 
-        {#if tabBarRight.length}
-          <div class="ttabs-tab-bar-inline tab-bar-inline-right">
-            {#each tabBarRight as inlineComp}
-              {@const componentData = ttabs.getContentComponent(
-                inlineComp.componentId
-              )}
-              {#if componentData}
-                {@const InlineComponent = componentData.component}
-                {@const inlineProps = {
-                  ...componentData.defaultProps,
-                  ...inlineComp.props,
-                  ttabs,
-                  panelId: id,
-                }}
-                <InlineComponent {...inlineProps} />
-              {/if}
-            {/each}
-          </div>
-        {/if}
-      </div>
+          {#if tabBarAfter.length}
+            <div class="ttabs-tab-bar-inline">
+              {#each tabBarAfter as inlineComp}
+                {@const componentData = ttabs.getContentComponent(
+                  inlineComp.componentId
+                )}
+                {#if componentData}
+                  {@const InlineComponent = componentData.component}
+                  {@const inlineProps = {
+                    ...componentData.defaultProps,
+                    ...inlineComp.props,
+                    ttabs,
+                    panelId: id,
+                  }}
+                  <InlineComponent {...inlineProps} />
+                {/if}
+              {/each}
+            </div>
+          {/if}
+
+          {#if tabBarRight.length}
+            <div class="ttabs-tab-bar-inline tab-bar-inline-right">
+              {#each tabBarRight as inlineComp}
+                {@const componentData = ttabs.getContentComponent(
+                  inlineComp.componentId
+                )}
+                {#if componentData}
+                  {@const InlineComponent = componentData.component}
+                  {@const inlineProps = {
+                    ...componentData.defaultProps,
+                    ...inlineComp.props,
+                    ttabs,
+                    panelId: id,
+                  }}
+                  <InlineComponent {...inlineProps} />
+                {/if}
+              {/each}
+            </div>
+          {/if}
+        </div>
+      {/if}
 
       <!-- Right panel UI components -->
       {#if panel?.rightComponents?.length}
@@ -758,6 +787,63 @@
         </div>
       {/if}
     </div>
+
+    {#if isMobileLayout}
+      <div
+        class="ttabs-mobile-tabs-overlay {ttabs.theme?.classes?.[
+          'mobile-tabs-overlay'
+        ] || ''} {mobileTabsOpen ? 'is-open' : ''}"
+        id={`ttabs-mobile-tabs-${id}`}
+        aria-hidden={!mobileTabsOpen}
+      >
+        <div class="ttabs-mobile-tabs-overlay-header">
+          <span class="ttabs-mobile-tabs-overlay-title">Tabs</span>
+          <button
+            class="ttabs-mobile-tabs-close"
+            onclick={() => (mobileTabsOpen = false)}
+            type="button"
+          >
+            Close
+          </button>
+        </div>
+        {#if tabs.length}
+          <div class="ttabs-mobile-tabs-grid">
+            {#each tabs as tab (tab.id)}
+              <div
+                class="ttabs-mobile-tab-tile {ttabs.theme?.classes?.[
+                  'mobile-tab-tile'
+                ] || ''} {tab.id === activeTab
+                  ? 'is-active'
+                  : ''}"
+              >
+                <button
+                  class="ttabs-mobile-tab-select"
+                  onclick={() => {
+                    selectTab(tab.id);
+                    mobileTabsOpen = false;
+                  }}
+                  type="button"
+                >
+                  <span class="ttabs-mobile-tab-title">
+                    {tab.name || "Unnamed Tab"}
+                  </span>
+                </button>
+                <button
+                  class="ttabs-mobile-tab-close"
+                  onclick={(e) => closeTab(e, tab.id)}
+                  aria-label={`Close ${tab.name || "tab"}`}
+                  type="button"
+                >
+                  ✕
+                </button>
+              </div>
+            {/each}
+          </div>
+        {:else}
+          <div class="ttabs-mobile-tabs-empty">No tabs</div>
+        {/if}
+      </div>
+    {/if}
   </div>
 {:else}
   <div class="ttabs-error {ttabs.theme?.classes?.error || ''}">
@@ -777,6 +863,7 @@
       color: var(--ttabs-text-color);
       border: var(--ttabs-border);
       border-radius: none;
+      position: relative;
     }
 
     .ttabs-panel-bar {
@@ -808,6 +895,36 @@
       overflow-x: auto;
       overflow-y: hidden;
       scrollbar-width: none;
+    }
+
+    .ttabs-mobile-tabs-toggle {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.45rem 0.75rem;
+      font-size: var(--ttabs-tab-header-font-size);
+      color: var(--ttabs-mobile-tabs-toggle-color);
+      background-color: var(--ttabs-mobile-tabs-toggle-bg);
+      border: var(--ttabs-mobile-tabs-toggle-border);
+      cursor: pointer;
+    }
+
+    .ttabs-mobile-tabs-toggle:hover {
+      background-color: var(--ttabs-close-button-hover-bg);
+    }
+
+    .ttabs-mobile-tabs-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      background-color: var(--ttabs-active-tab-indicator);
+      color: var(--ttabs-tab-active-text-color);
     }
 
     .ttabs-tab-header {
@@ -909,6 +1026,99 @@
       overflow: hidden;
       position: relative;
       background-color: var(--ttabs-content-bg);
+    }
+
+    .ttabs-mobile-tabs-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--ttabs-mobile-tabs-overlay-bg);
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+      transition: opacity var(--ttabs-transition-duration)
+        var(--ttabs-transition-timing);
+      z-index: 20;
+    }
+
+    .ttabs-mobile-tabs-overlay.is-open {
+      opacity: 1;
+      pointer-events: auto;
+      visibility: visible;
+    }
+
+    .ttabs-mobile-tabs-overlay-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      border-bottom: var(--ttabs-tab-bar-border);
+      background-color: var(--ttabs-tab-bar-bg);
+    }
+
+    .ttabs-mobile-tabs-overlay-title {
+      font-weight: 600;
+      color: var(--ttabs-tab-text-color);
+    }
+
+    .ttabs-mobile-tabs-close {
+      border: none;
+      background: none;
+      color: var(--ttabs-tab-text-color);
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .ttabs-mobile-tabs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+      padding: 1rem;
+      overflow: auto;
+    }
+
+    .ttabs-mobile-tab-tile {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 0.75rem;
+      border: var(--ttabs-mobile-tabs-tile-border);
+      background-color: var(--ttabs-mobile-tabs-tile-bg);
+      border-radius: var(--ttabs-border-radius-sm);
+    }
+
+    .ttabs-mobile-tab-tile.is-active {
+      box-shadow: inset 0 0 0 2px var(--ttabs-active-tab-indicator);
+    }
+
+    .ttabs-mobile-tab-select {
+      flex: 1;
+      text-align: left;
+      border: none;
+      background: none;
+      color: var(--ttabs-tab-text-color);
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .ttabs-mobile-tab-title {
+      display: block;
+      line-height: 1.2;
+    }
+
+    .ttabs-mobile-tab-close {
+      border: none;
+      background: none;
+      color: var(--ttabs-close-button-color);
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .ttabs-mobile-tabs-empty {
+      padding: 1rem;
+      color: var(--ttabs-empty-state-color);
     }
 
     /* Split indicators */
