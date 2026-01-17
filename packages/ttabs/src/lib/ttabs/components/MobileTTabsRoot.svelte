@@ -109,43 +109,51 @@
       {/if}
     </div>
   {:else}
-    <div
-      class="ttabs-mobile-content {ttabs.theme?.classes?.content || ''}"
-      data-panel-id={activePanelId || undefined}
-    >
-      {#if activeTab}
-        <TileTab {ttabs} id={activeTab} />
-      {:else if ttabs.defaultComponentIdForEmptyTiles}
-        {@const NoContent = ttabs.getContentComponent(
-          ttabs.defaultComponentIdForEmptyTiles
-        )?.component}
-        {#if NoContent}
-          <div class="ttabs-direct-content">
-            <NoContent />
+    <div class="ttabs-mobile-content-wrapper">
+      <div
+        class="ttabs-mobile-content {ttabs.theme?.classes?.content || ''}"
+        data-panel-id={activePanelId || undefined}
+      >
+        {#if activeTab}
+          <TileTab {ttabs} id={activeTab} />
+        {:else if ttabs.defaultComponentIdForEmptyTiles}
+          {@const NoContent = ttabs.getContentComponent(
+            ttabs.defaultComponentIdForEmptyTiles
+          )?.component}
+          {#if NoContent}
+            <div class="ttabs-direct-content">
+              <NoContent />
+            </div>
+          {/if}
+        {:else}
+          <div
+            class="ttabs-empty-state {ttabs.theme?.classes?.['empty-state'] || ''}"
+          >
+            No active tab
           </div>
         {/if}
-      {:else}
-        <div
-          class="ttabs-empty-state {ttabs.theme?.classes?.['empty-state'] || ''}"
-        >
-          No active tab
-        </div>
-      {/if}
-    </div>
+      </div>
 
-    <button
-      class="ttabs-mobile-tabs-toggle {ttabs.theme?.classes?.[
-        'mobile-tabs-toggle'
-      ] || ''}"
-      onclick={() => (mobileTabsOpen = true)}
-      aria-haspopup="dialog"
-      aria-expanded={mobileTabsOpen}
-      aria-controls="ttabs-mobile-tabs-overlay"
-      type="button"
-    >
-      <span class="ttabs-mobile-tabs-label">{activeTabName}</span>
-      <span class="ttabs-mobile-tabs-count">{tabs.length}</span>
-    </button>
+      <div
+        class="ttabs-mobile-tabs-footer {ttabs.theme?.classes?.[
+          'mobile-tabs-footer'
+        ] || ''}"
+      >
+        <button
+          class="ttabs-mobile-tabs-toggle {ttabs.theme?.classes?.[
+            'mobile-tabs-toggle'
+          ] || ''}"
+          onclick={() => (mobileTabsOpen = true)}
+          aria-haspopup="dialog"
+          aria-expanded={mobileTabsOpen}
+          aria-controls="ttabs-mobile-tabs-overlay"
+          type="button"
+        >
+          <span class="ttabs-mobile-tabs-label">{activeTabName}</span>
+          <span class="ttabs-mobile-tabs-count">{tabs.length}</span>
+        </button>
+      </div>
+    </div>
   {/if}
 </div>
 
@@ -166,10 +174,22 @@
       overflow: hidden;
     }
 
+    .ttabs-mobile-content-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .ttabs-mobile-tabs-footer {
+      display: flex;
+      justify-content: center;
+      padding: 0.75rem 1rem;
+      border-top: var(--ttabs-tab-bar-border);
+      background-color: var(--ttabs-tab-bar-bg);
+    }
+
     .ttabs-mobile-tabs-toggle {
-      position: absolute;
-      right: 1rem;
-      bottom: 1rem;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -180,9 +200,8 @@
       background-color: var(--ttabs-mobile-tabs-toggle-bg);
       border: var(--ttabs-mobile-tabs-toggle-border);
       border-radius: 999px;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
       cursor: pointer;
-      z-index: 30;
     }
 
     .ttabs-mobile-tabs-toggle:hover {

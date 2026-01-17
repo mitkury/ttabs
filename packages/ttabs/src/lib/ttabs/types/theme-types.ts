@@ -99,6 +99,7 @@ export type TtabsElementType =
   | 'tab-content'
   | 'mobile-tabs-toggle'
   | 'mobile-tabs-overlay'
+  | 'mobile-tabs-footer'
   | 'mobile-tab-tile'
   
   // Content elements
