@@ -758,6 +758,7 @@
         </div>
       {/if}
     </div>
+
   </div>
 {:else}
   <div class="ttabs-error {ttabs.theme?.classes?.error || ''}">
@@ -809,6 +810,7 @@
       overflow-y: hidden;
       scrollbar-width: none;
     }
+
 
     .ttabs-tab-header {
       padding: var(--ttabs-tab-header-padding);
@@ -910,6 +912,7 @@
       position: relative;
       background-color: var(--ttabs-content-bg);
     }
+
 
     /* Split indicators */
     .ttabs-tab-content.split-indicator-top::before {

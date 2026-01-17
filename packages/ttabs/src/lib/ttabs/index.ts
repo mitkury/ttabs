@@ -33,6 +33,7 @@ export { default as TileColumnComponent } from './components/TileColumn.svelte';
 export { default as TilePanelComponent } from './components/TilePanel.svelte';
 export { default as TileTabComponent } from './components/TileTab.svelte';
 export { default as TTabsRoot } from './components/TTabsRoot.svelte';
+export { default as MobileTTabsRoot } from './components/MobileTTabsRoot.svelte';
 
 // Types
 export type * from './types/tile-types';
