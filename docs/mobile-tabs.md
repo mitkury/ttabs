@@ -46,6 +46,8 @@ Use the same `ttabs` instance for both the desktop and mobile roots to keep stat
   - Floating tab switcher button (bottom-right).
   - Overlay grid of tab tiles for quick switching/closing.
 
+> Note: The tab switcher button only appears when rendering `MobileTTabsRoot`. Use a responsive switch in your app to toggle between roots as needed.
+
 ## Theming
 
 `MobileTTabsRoot` uses the same theme system as the desktop root. The following CSS variables are used by the mobile UI:

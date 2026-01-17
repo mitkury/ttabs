@@ -35,6 +35,8 @@
 
   const regularWidth = 720;
   let isMobile = $state(false);
+  let forceMobile = $state(false);
+  const isMobileLayout = $derived(forceMobile || isMobile);
 
   $effect(() => {
     if (!BROWSER) return;
@@ -146,11 +148,17 @@
     <div class="actions">
       <button onclick={resetLayout}>Reset Layout</button>
       <button onclick={addTab}>Add Tab</button>
+      <button
+        class:active={forceMobile}
+        onclick={() => (forceMobile = !forceMobile)}
+      >
+        Mobile Layout
+      </button>
     </div>
   </header>
 
   <main>
-    {#if isMobile}
+    {#if isMobileLayout}
       <MobileTTabsRoot {ttabs} />
     {:else}
       <TTabsRoot {ttabs} />
