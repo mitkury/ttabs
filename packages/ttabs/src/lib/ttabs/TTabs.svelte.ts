@@ -66,11 +66,6 @@ export interface TtabsOptions {
   defaultLayoutCreator?: (ttabs: TTabs) => void;
 
   setupFromScratch?: SetupCallback;
-
-  /**
-   * Breakpoint in pixels for switching to mobile layout
-   */
-  mobileBreakpoint?: number;
 }
 
 /**
@@ -83,8 +78,6 @@ export class TTabs {
   rootGridId: string = $state('');
   componentRegistry: Record<string, ContentComponent> = $state({});
   theme: TtabsTheme = $state(DEFAULT_THEME);
-  isMobileLayout: boolean = $state(false);
-  mobileBreakpoint: number = $state(720);
 
   // State change listeners
   stateChangeListeners: StateChangeCallback[] = [];
@@ -159,10 +152,6 @@ export class TTabs {
       this.theme = resolveTheme(options.theme);
     } else {
       this.theme = DEFAULT_THEME;
-    }
-
-    if (typeof options.mobileBreakpoint === 'number') {
-      this.mobileBreakpoint = options.mobileBreakpoint;
     }
 
     // Set focused tab if provided

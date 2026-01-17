@@ -1,6 +1,12 @@
 <script lang="ts">
-  import { createTtabs, TTabsRoot, LocalStorageAdapter } from "ttabs-svelte";
+  import {
+    createTtabs,
+    TTabsRoot,
+    MobileTTabsRoot,
+    LocalStorageAdapter,
+  } from "ttabs-svelte";
   import { onMount } from "svelte";
+  import { BROWSER } from "esm-env";
   import SimpleTextComponent from "./SimpleTextComponent.svelte";
 
   // Create a storage adapter
@@ -25,6 +31,22 @@
   // Connect the storage adapter to save changes
   const unsubscribe = ttabs.subscribe((state) => {
     storageAdapter.save(state);
+  });
+
+  const regularWidth = 720;
+  let isMobile = $state(false);
+
+  $effect(() => {
+    if (!BROWSER) return;
+
+    const updateLayout = () => {
+      isMobile = window.innerWidth < regularWidth;
+    };
+
+    updateLayout();
+    window.addEventListener("resize", updateLayout);
+
+    return () => window.removeEventListener("resize", updateLayout);
   });
 
   // Register cleanup on component destroy
@@ -128,7 +150,11 @@
   </header>
 
   <main>
-    <TTabsRoot {ttabs} />
+    {#if isMobile}
+      <MobileTTabsRoot {ttabs} />
+    {:else}
+      <TTabsRoot {ttabs} />
+    {/if}
   </main>
 </div>
 
