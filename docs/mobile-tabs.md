@@ -44,7 +44,8 @@ Use the same `ttabs` instance for both the desktop and mobile roots to keep stat
 - **Mobile (`MobileTTabsRoot`)**:
   - Shows only the active panel content.
   - Floating tab switcher button (bottom-right).
-  - Overlay grid of tab tiles for quick switching/closing.
+  - Tap the button to open a full-page tab grid.
+  - Choose a tile to switch tabs and return to content.
 
 > Note: The tab switcher button only appears when rendering `MobileTTabsRoot`. Use a responsive switch in your app to toggle between roots as needed.
 

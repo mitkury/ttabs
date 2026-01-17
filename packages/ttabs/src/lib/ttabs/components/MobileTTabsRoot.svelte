@@ -55,96 +55,98 @@
 </script>
 
 <div class="ttabs-mobile-root {ttabs.theme?.classes?.root || ''}">
-  <div
-    class="ttabs-mobile-content {ttabs.theme?.classes?.content || ''}"
-    data-panel-id={activePanelId || undefined}
-  >
-    {#if activeTab}
-      <TileTab {ttabs} id={activeTab} />
-    {:else if ttabs.defaultComponentIdForEmptyTiles}
-      {@const NoContent = ttabs.getContentComponent(
-        ttabs.defaultComponentIdForEmptyTiles
-      )?.component}
-      {#if NoContent}
-        <div class="ttabs-direct-content">
-          <NoContent />
+  {#if mobileTabsOpen}
+    <div
+      class="ttabs-mobile-tabs-overlay {ttabs.theme?.classes?.[
+        'mobile-tabs-overlay'
+      ] || ''}"
+      id="ttabs-mobile-tabs-overlay"
+      aria-hidden={!mobileTabsOpen}
+    >
+      <div class="ttabs-mobile-tabs-overlay-header">
+        <span class="ttabs-mobile-tabs-overlay-title">Tabs</span>
+        <button
+          class="ttabs-mobile-tabs-close"
+          onclick={() => (mobileTabsOpen = false)}
+          type="button"
+        >
+          Close
+        </button>
+      </div>
+      {#if tabs.length}
+        <div class="ttabs-mobile-tabs-grid">
+          {#each tabs as tab (tab.id)}
+            <div
+              class="ttabs-mobile-tab-tile {ttabs.theme?.classes?.[
+                'mobile-tab-tile'
+              ] || ''} {tab.id === activeTab ? 'is-active' : ''}"
+            >
+              <button
+                class="ttabs-mobile-tab-select"
+                onclick={() => selectTab(tab.id)}
+                type="button"
+              >
+                <span class="ttabs-mobile-tab-title">
+                  {tab.name || "Unnamed Tab"}
+                </span>
+                <span class="ttabs-mobile-tab-meta">
+                  {tab.id === activeTab ? "Active tab" : "Tap to open"}
+                </span>
+              </button>
+              <button
+                class="ttabs-mobile-tab-close"
+                onclick={(e) => closeTab(e, tab.id)}
+                aria-label={`Close ${tab.name || "tab"}`}
+                type="button"
+              >
+                ✕
+              </button>
+            </div>
+          {/each}
+        </div>
+      {:else}
+        <div class="ttabs-mobile-tabs-empty">No tabs</div>
+      {/if}
+    </div>
+  {:else}
+    <div
+      class="ttabs-mobile-content {ttabs.theme?.classes?.content || ''}"
+      data-panel-id={activePanelId || undefined}
+    >
+      {#if activeTab}
+        <TileTab {ttabs} id={activeTab} />
+      {:else if ttabs.defaultComponentIdForEmptyTiles}
+        {@const NoContent = ttabs.getContentComponent(
+          ttabs.defaultComponentIdForEmptyTiles
+        )?.component}
+        {#if NoContent}
+          <div class="ttabs-direct-content">
+            <NoContent />
+          </div>
+        {/if}
+      {:else}
+        <div
+          class="ttabs-empty-state {ttabs.theme?.classes?.['empty-state'] || ''}"
+        >
+          No active tab
         </div>
       {/if}
-    {:else}
-      <div
-        class="ttabs-empty-state {ttabs.theme?.classes?.['empty-state'] || ''}"
-      >
-        No active tab
-      </div>
-    {/if}
-  </div>
-
-  <button
-    class="ttabs-mobile-tabs-toggle {ttabs.theme?.classes?.[
-      'mobile-tabs-toggle'
-    ] || ''}"
-    onclick={() => (mobileTabsOpen = !mobileTabsOpen)}
-    aria-haspopup="dialog"
-    aria-expanded={mobileTabsOpen}
-    aria-controls="ttabs-mobile-tabs-overlay"
-    type="button"
-  >
-    <span class="ttabs-mobile-tabs-label">{activeTabName}</span>
-    <span class="ttabs-mobile-tabs-count">{tabs.length}</span>
-  </button>
-
-  <div
-    class="ttabs-mobile-tabs-overlay {ttabs.theme?.classes?.[
-      'mobile-tabs-overlay'
-    ] || ''} {mobileTabsOpen ? 'is-open' : ''}"
-    id="ttabs-mobile-tabs-overlay"
-    aria-hidden={!mobileTabsOpen}
-  >
-    <div class="ttabs-mobile-tabs-overlay-header">
-      <span class="ttabs-mobile-tabs-overlay-title">Tabs</span>
-      <button
-        class="ttabs-mobile-tabs-close"
-        onclick={() => (mobileTabsOpen = false)}
-        type="button"
-      >
-        Close
-      </button>
     </div>
-    {#if tabs.length}
-      <div class="ttabs-mobile-tabs-grid">
-        {#each tabs as tab (tab.id)}
-          <div
-            class="ttabs-mobile-tab-tile {ttabs.theme?.classes?.[
-              'mobile-tab-tile'
-            ] || ''} {tab.id === activeTab ? 'is-active' : ''}"
-          >
-            <button
-              class="ttabs-mobile-tab-select"
-              onclick={() => selectTab(tab.id)}
-              type="button"
-            >
-              <span class="ttabs-mobile-tab-title">
-                {tab.name || "Unnamed Tab"}
-              </span>
-              <span class="ttabs-mobile-tab-meta">
-                {tab.id === activeTab ? "Active tab" : "Tap to open"}
-              </span>
-            </button>
-            <button
-              class="ttabs-mobile-tab-close"
-              onclick={(e) => closeTab(e, tab.id)}
-              aria-label={`Close ${tab.name || "tab"}`}
-              type="button"
-            >
-              ✕
-            </button>
-          </div>
-        {/each}
-      </div>
-    {:else}
-      <div class="ttabs-mobile-tabs-empty">No tabs</div>
-    {/if}
-  </div>
+
+    <button
+      class="ttabs-mobile-tabs-toggle {ttabs.theme?.classes?.[
+        'mobile-tabs-toggle'
+      ] || ''}"
+      onclick={() => (mobileTabsOpen = true)}
+      aria-haspopup="dialog"
+      aria-expanded={mobileTabsOpen}
+      aria-controls="ttabs-mobile-tabs-overlay"
+      type="button"
+    >
+      <span class="ttabs-mobile-tabs-label">{activeTabName}</span>
+      <span class="ttabs-mobile-tabs-count">{tabs.length}</span>
+    </button>
+  {/if}
 </div>
 
 <style>
@@ -205,18 +207,7 @@
       display: flex;
       flex-direction: column;
       background-color: var(--ttabs-mobile-tabs-overlay-bg);
-      opacity: 0;
-      pointer-events: none;
-      visibility: hidden;
-      transition: opacity var(--ttabs-transition-duration)
-        var(--ttabs-transition-timing);
       z-index: 20;
-    }
-
-    .ttabs-mobile-tabs-overlay.is-open {
-      opacity: 1;
-      pointer-events: auto;
-      visibility: visible;
     }
 
     .ttabs-mobile-tabs-overlay-header {
