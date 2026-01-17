@@ -255,12 +255,14 @@
 
     .ttabs-mobile-tabs-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(140px, 180px));
       gap: 12px;
       padding: 1rem;
       overflow: auto;
       flex: 1;
       min-height: 0;
+      justify-content: center;
+      align-content: start;
     }
 
     .ttabs-mobile-tab-tile {
