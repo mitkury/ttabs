@@ -126,6 +126,9 @@
               <span class="ttabs-mobile-tab-title">
                 {tab.name || "Unnamed Tab"}
               </span>
+              <span class="ttabs-mobile-tab-meta">
+                {tab.id === activeTab ? "Active tab" : "Tap to open"}
+              </span>
             </button>
             <button
               class="ttabs-mobile-tab-close"
@@ -248,17 +251,25 @@
 
     .ttabs-mobile-tab-tile {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 8px;
-      padding: 0.75rem;
+      padding: 0.85rem;
       border: var(--ttabs-mobile-tabs-tile-border);
       background-color: var(--ttabs-mobile-tabs-tile-bg);
       border-radius: var(--ttabs-border-radius-sm);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+      transition: transform var(--ttabs-transition-duration)
+          var(--ttabs-transition-timing),
+        box-shadow var(--ttabs-transition-duration)
+          var(--ttabs-transition-timing);
+      min-height: 80px;
     }
 
     .ttabs-mobile-tab-tile.is-active {
-      box-shadow: inset 0 0 0 2px var(--ttabs-active-tab-indicator);
+      border-color: var(--ttabs-active-tab-indicator);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+      transform: translateY(-1px);
     }
 
     .ttabs-mobile-tab-select {
@@ -269,11 +280,22 @@
       color: var(--ttabs-tab-text-color);
       font-size: 0.9rem;
       cursor: pointer;
+      padding: 0;
     }
 
     .ttabs-mobile-tab-title {
       display: block;
       line-height: 1.2;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      color: var(--ttabs-tab-text-color);
+    }
+
+    .ttabs-mobile-tab-meta {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--ttabs-tab-active-text-color);
+      opacity: 0.7;
     }
 
     .ttabs-mobile-tab-close {
@@ -282,6 +304,7 @@
       color: var(--ttabs-close-button-color);
       cursor: pointer;
       font-size: 0.9rem;
+      padding: 0;
     }
 
     .ttabs-mobile-tabs-empty {
